@@ -9,6 +9,7 @@ from app.extensions import db, migrate
 from app.routes import (
     alerts_bp,
     auth_bp,
+    dashboard_bp,
     health_bp,
     memory_bp,
     monitoring_bp,
@@ -93,5 +94,6 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(alerts_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(monitoring_bp)
+    app.register_blueprint(dashboard_bp)
 
     return app

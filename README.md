@@ -2,21 +2,22 @@
 
 ## Project Vision
 
-AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, automated monitoring, multi-channel external notification delivery, and production-grade scheduled execution with concurrency locking and exponential backoff retries.
+AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, automated monitoring, multi-channel external notification delivery, production-grade scheduled execution, and unified read-optimized dashboard APIs.
 
 ---
 
 ## Current Phase
 
-**Phase 13 — Production-Grade Scheduled Monitoring, Retry & Observability Foundation**
+**Phase 14 — Unified Investor Dashboard & Read API Foundation**
 
-Phase 13 establishes a robust, scheduler-agnostic production execution foundation:
-- **Database-Backed Concurrency Locking (`MonitoringLock`)**: Implemented `monitoring_locks` table to prevent overlapping execution cycles across multiple worker processes or scheduler instances. Stale locks automatically expire after `MONITORING_LOCK_TIMEOUT_SECONDS` (default 300s).
-- **Scheduler-Agnostic Runner (`MonitoringRunner`)**: Unified entry point (`MonitoringRunner.run()`) that checks feature flags, acquires the distributed lock, executes batch alert monitoring, processes due notification retries, and safely releases the lock.
-- **CLI Execution Entry Point**: Single-cycle command `python -m app.monitoring` suitable for cron jobs, cloud schedulers, or background container tasks with proper exit codes.
-- **Transient Failure Classification & Exponential Backoff**: Distinguishes retryable errors (timeouts, network drops, HTTP 429, HTTP 5xx) from non-retryable errors (SSRF blocks, invalid URLs, bad recipients). Calculates exponential backoff: `delay = min(base_delay * 2^(attempt - 1), max_delay)`.
-- **Zero Duplicate Deliveries on Retry**: Retries update existing `NotificationDelivery` records in-place (`attempt_count`, `next_retry_at`, `status`), strictly preserving the `UNIQUE(alert_id, channel)` idempotency invariant.
-- **Observability & Operational Status API**: `GET /api/v1/monitoring/status` provides high-level run metrics and health visibility without exposing sensitive user portfolios or credentials.
+Phase 14 delivers a unified, authenticated read-model layer aggregating all AIRA investor intelligence into clean, frontend-friendly dashboard responses:
+- **Dedicated Read Orchestrator (`DashboardService`)**: Synthesizes 8 core domain areas (User Profile, Portfolio Valuations, Watchlist Priorities, Deterministic Alerts, Research History, Notifications, Monitoring, and Portfolio Intelligence availability) without duplicating business logic.
+- **Zero AI / Monitoring Invocations on GET**: `GET /api/v1/dashboard` is strictly read-only. It never executes CrewAI/Gemini agent workflows or triggers batch monitoring runs.
+- **Bounded Collections & Query Efficiency**: Returns bounded top holdings (5), priority watchlist items (5), recent alerts (5), and recent research summaries (5) to guarantee fast and predictable response times.
+- **Comprehensive & Lightweight Endpoints**:
+  - `GET /api/v1/dashboard`: Full multi-domain investor dashboard snapshot.
+  - `GET /api/v1/dashboard/summary`: Fast top-level totals for header widgets.
+- **Strict Multi-Tenant Scoping & Security**: Scoped strictly to `g.current_user.id` with zero exposure of webhook secrets, API keys, credentials, or private semantic memories.
 
 ---
 
@@ -64,6 +65,7 @@ AIRA/
 │   │   ├── __init__.py
 │   │   ├── alerts.py         # Alert routes (check, list, get, read, dismiss)
 │   │   ├── auth.py           # Authentication routes (register, login, me)
+│   │   ├── dashboard.py      # Unified dashboard routes (/api/v1/dashboard & /summary)
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
 │   │   ├── monitoring.py     # Operational monitoring status route (/api/v1/monitoring/status)
@@ -79,6 +81,7 @@ AIRA/
 │       │   ├── crew.py       # CrewAI 3-agent research and portfolio intelligence crew definitions
 │       │   └── tools.py      # CrewAI tools wrapping FinancialDataService
 │       ├── alert_service.py     # Deterministic alert detection engine & management
+│       ├── dashboard_service.py # Unified investor dashboard read-model orchestrator
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
 │       ├── monitoring_runner.py # Scheduler-agnostic runner with distributed concurrency locking
@@ -116,7 +119,8 @@ AIRA/
 │       ├── ADR-013-alert-detection-and-monitoring-foundation.md
 │       ├── ADR-014-automated-alert-monitoring-and-notification-foundation.md
 │       ├── ADR-015-external-notification-delivery-and-preferences.md
-│       └── ADR-016-production-monitoring-scheduler-retry-and-observability.md
+│       ├── ADR-016-production-monitoring-scheduler-retry-and-observability.md
+│       └── ADR-017-unified-investor-dashboard-read-api.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
@@ -135,6 +139,7 @@ AIRA/
 │   │   ├── test_ai_tools.py          # CrewAI financial tools unit tests
 │   │   ├── test_alert_service.py     # Alert detection rules & CRUD unit tests
 │   │   ├── test_config.py            # Configuration and connection URI tests
+│   │   ├── test_dashboard_service.py # DashboardService aggregation & bounded limits tests
 │   │   ├── test_email_notification_provider.py # Email provider formatting & dispatch tests
 │   │   ├── test_embedding_service.py # Embedding service unit tests
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
@@ -158,6 +163,7 @@ AIRA/
 │       ├── test_ai_research.py       # AI research workflow, facts grounding, & personalization tests
 │       ├── test_alerts.py            # Alerts check, list, get, read, dismiss & isolation tests
 │       ├── test_auth.py              # Registration, login, auth context tests
+│       ├── test_dashboard.py         # Dashboard endpoints, multi-tenancy, and read-only tests
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
 │       ├── test_monitoring.py        # Automated batch monitoring integration & idempotency tests
@@ -189,6 +195,8 @@ All endpoints are versioned under `/api/v1/`.
 | Method | Endpoint | Auth Required | Description |
 |---|---|---|---|
 | `GET` | `/api/v1/health` | No | Service health check |
+| `GET` | `/api/v1/dashboard` | Yes (`Bearer <token>`) | Complete unified investor dashboard snapshot |
+| `GET` | `/api/v1/dashboard/summary` | Yes (`Bearer <token>`) | Lightweight summary metrics for header widgets |
 | `GET` | `/api/v1/monitoring/status` | No | Automated monitoring operational status and latest run summary |
 | `POST` | `/api/v1/auth/register` | No | Register a new user and profile |
 | `POST` | `/api/v1/auth/login` | No | Authenticate credentials and receive JWT |
@@ -348,4 +356,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 161 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 169 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
