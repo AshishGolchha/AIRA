@@ -54,6 +54,14 @@ class BaseConfig:
     ALERT_MONITORING_ENABLED = os.getenv("ALERT_MONITORING_ENABLED", "true").lower() in ("true", "1")
     NOTIFICATION_ENABLED = os.getenv("NOTIFICATION_ENABLED", "true").lower() in ("true", "1")
 
+    # External Notification Channels
+    NOTIFICATION_EMAIL_ENABLED = os.getenv("NOTIFICATION_EMAIL_ENABLED", "false").lower() in ("true", "1")
+    NOTIFICATION_EMAIL_PROVIDER = os.getenv("NOTIFICATION_EMAIL_PROVIDER", "resend")
+    NOTIFICATION_EMAIL_API_KEY = os.getenv("NOTIFICATION_EMAIL_API_KEY", "")
+    NOTIFICATION_EMAIL_FROM = os.getenv("NOTIFICATION_EMAIL_FROM", "alerts@aira.internal")
+    NOTIFICATION_WEBHOOK_ENABLED = os.getenv("NOTIFICATION_WEBHOOK_ENABLED", "true").lower() in ("true", "1")
+    NOTIFICATION_WEBHOOK_TIMEOUT_SECONDS = float(os.getenv("NOTIFICATION_WEBHOOK_TIMEOUT_SECONDS", "5.0"))
+
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True

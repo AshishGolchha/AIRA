@@ -11,6 +11,7 @@ from app.routes import (
     auth_bp,
     health_bp,
     memory_bp,
+    notifications_bp,
     portfolio_bp,
     profile_bp,
     research_bp,
@@ -89,5 +90,6 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(watchlist_bp)
     app.register_blueprint(portfolio_bp)
     app.register_blueprint(alerts_bp)
+    app.register_blueprint(notifications_bp)
 
     return app

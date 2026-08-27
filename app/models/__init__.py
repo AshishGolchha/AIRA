@@ -14,6 +14,8 @@ from app.models.financial import (
 )
 from app.models.monitoring import AlertMonitoringRun
 from app.models.notification import NotificationDelivery
+from app.models.notification_endpoint import NotificationEndpoint
+from app.models.notification_preference import NotificationPreference
 from app.models.portfolio import PortfolioHolding
 from app.models.research import ResearchRecord
 from app.models.user import User, UserProfile
@@ -29,6 +31,8 @@ __all__ = [
     "MarketQuote",
     "NewsArticle",
     "NotificationDelivery",
+    "NotificationEndpoint",
+    "NotificationPreference",
     "PortfolioHolding",
     "PortfolioIntelligenceReport",
     "PricePoint",

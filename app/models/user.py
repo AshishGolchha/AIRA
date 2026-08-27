@@ -53,6 +53,22 @@ class User(TimestampMixin, db.Model):
         order_by="desc(Alert.created_at)",
     )
 
+    # 1-to-1 relationship with NotificationPreference
+    notification_preference = db.relationship(
+        "NotificationPreference",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    # 1-to-many relationship with NotificationEndpoint
+    notification_endpoints = db.relationship(
+        "NotificationEndpoint",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="NotificationEndpoint.id.asc()",
+    )
+
     def __init__(self, email: str, alerts_enabled: bool = True, **kwargs):
         super().__init__(**kwargs)
         self.email = email
