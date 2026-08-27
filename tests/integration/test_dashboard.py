@@ -1,7 +1,11 @@
 from app.extensions import db
 from app.models.alert import Alert
 from app.models.notification import NotificationDelivery
+from app.models.portfolio_intelligence import PortfolioIntelligenceRecord
 from app.models.research import ResearchRecord
+from app.services.financial.service import FinancialDataService
+from app.services.portfolio_intelligence_service import PortfolioIntelligenceService
+from tests.unit.test_financial_service import MockFinancialProvider
 
 
 def _register_user(client, email: str = "dash_user@example.com", password: str = "Password123!"):
@@ -34,7 +38,7 @@ def test_dashboard_endpoint_authenticated_success(app, client):
         headers=headers,
     )
 
-    # Call Dashboard Endpoint
+    # Call Dashboard Endpoint (No intelligence generated yet)
     resp = client.get("/api/v1/dashboard", headers=headers)
     assert resp.status_code == 200
     data = resp.get_json()["data"]
@@ -55,6 +59,47 @@ def test_dashboard_endpoint_authenticated_success(app, client):
     assert data["watchlist"]["total_count"] == 1
     assert data["watchlist"]["high_priority_count"] == 1
     assert data["portfolio_intelligence"]["available"] is False
+
+
+def test_dashboard_with_latest_portfolio_intelligence(app, client):
+    """Verify GET /api/v1/dashboard displays latest intelligence when generated."""
+    token = _register_user(client, "dash_intel@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Inject mock intelligence runner
+    def mock_runner(**kwargs):
+        return {
+            "summary": "High conviction bullish tech portfolio.",
+            "portfolio_overview": "Overview text.",
+            "portfolio_risks": ["Concentration in NVDA"],
+            "portfolio_opportunities": ["AI market scale"],
+            "watchlist_priorities": ["Monitor TSLA"],
+            "recommended_research": ["Deep dive on NVDA"],
+        }
+
+    app.extensions["portfolio_intelligence_service"] = PortfolioIntelligenceService(
+        financial_service=FinancialDataService(provider=MockFinancialProvider()),
+        crew_runner=mock_runner,
+    )
+
+    client.post(
+        "/api/v1/portfolio/holdings",
+        json={"symbol": "NVDA", "quantity": 10, "average_cost": 100},
+        headers=headers,
+    )
+
+    # Generate intelligence
+    client.post("/api/v1/portfolio/intelligence", headers=headers)
+
+    # Call dashboard
+    resp = client.get("/api/v1/dashboard", headers=headers)
+    assert resp.status_code == 200
+    data = resp.get_json()["data"]
+
+    assert data["portfolio_intelligence"]["available"] is True
+    assert data["portfolio_intelligence"]["latest"] is not None
+    assert "NVDA" in data["portfolio_intelligence"]["latest"]["symbols_analyzed"]
+    assert data["portfolio_intelligence"]["latest"]["summary"] == "High conviction bullish tech portfolio."
 
 
 def test_dashboard_summary_endpoint(app, client):
@@ -137,6 +182,7 @@ def test_dashboard_is_strictly_read_only(app, client):
     initial_alerts_count = Alert.query.count()
     initial_deliveries_count = NotificationDelivery.query.count()
     initial_research_count = ResearchRecord.query.count()
+    initial_intel_count = PortfolioIntelligenceRecord.query.count()
 
     # Call dashboard 3 times
     for _ in range(3):
@@ -147,3 +193,4 @@ def test_dashboard_is_strictly_read_only(app, client):
     assert Alert.query.count() == initial_alerts_count
     assert NotificationDelivery.query.count() == initial_deliveries_count
     assert ResearchRecord.query.count() == initial_research_count
+    assert PortfolioIntelligenceRecord.query.count() == initial_intel_count

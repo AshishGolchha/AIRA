@@ -7,6 +7,7 @@ from app.extensions import db
 from app.models.alert import Alert
 from app.models.monitoring import AlertMonitoringRun
 from app.models.notification import NotificationDelivery
+from app.models.portfolio_intelligence import PortfolioIntelligenceRecord
 from app.models.user import User
 from app.services.alert_service import AlertService
 from app.services.notifications.service import NotificationService
@@ -172,10 +173,22 @@ class DashboardService:
         }
 
         # 8. Portfolio Intelligence Summary (Zero LLM on GET)
-        portfolio_intelligence_data = {
-            "available": False,
-            "message": "Portfolio intelligence is generated on demand. Use POST /api/v1/portfolio/intelligence to generate AI insights.",
-        }
+        latest_intel = (
+            PortfolioIntelligenceRecord.query.filter_by(user_id=user_id)
+            .order_by(desc(PortfolioIntelligenceRecord.created_at))
+            .first()
+        )
+        if latest_intel:
+            portfolio_intelligence_data = {
+                "available": True,
+                "latest": latest_intel.to_dashboard_dict(),
+            }
+        else:
+            portfolio_intelligence_data = {
+                "available": False,
+                "latest": None,
+                "message": "Portfolio intelligence has not been generated yet.",
+            }
 
         return {
             "user": profile_data,

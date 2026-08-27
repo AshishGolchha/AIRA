@@ -2,22 +2,24 @@
 
 ## Project Vision
 
-AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, automated monitoring, multi-channel external notification delivery, production-grade scheduled execution, and unified read-optimized dashboard APIs.
+AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, automated monitoring, multi-channel external notification delivery, production-grade scheduled execution, unified read-optimized dashboard APIs, and persistent portfolio intelligence history.
 
 ---
 
 ## Current Phase
 
-**Phase 14 — Unified Investor Dashboard & Read API Foundation**
+**Phase 15 — Portfolio Intelligence Persistence & History**
 
-Phase 14 delivers a unified, authenticated read-model layer aggregating all AIRA investor intelligence into clean, frontend-friendly dashboard responses:
-- **Dedicated Read Orchestrator (`DashboardService`)**: Synthesizes 8 core domain areas (User Profile, Portfolio Valuations, Watchlist Priorities, Deterministic Alerts, Research History, Notifications, Monitoring, and Portfolio Intelligence availability) without duplicating business logic.
-- **Zero AI / Monitoring Invocations on GET**: `GET /api/v1/dashboard` is strictly read-only. It never executes CrewAI/Gemini agent workflows or triggers batch monitoring runs.
-- **Bounded Collections & Query Efficiency**: Returns bounded top holdings (5), priority watchlist items (5), recent alerts (5), and recent research summaries (5) to guarantee fast and predictable response times.
-- **Comprehensive & Lightweight Endpoints**:
-  - `GET /api/v1/dashboard`: Full multi-domain investor dashboard snapshot.
-  - `GET /api/v1/dashboard/summary`: Fast top-level totals for header widgets.
-- **Strict Multi-Tenant Scoping & Security**: Scoped strictly to `g.current_user.id` with zero exposure of webhook secrets, API keys, credentials, or private semantic memories.
+Phase 15 establishes persistent, user-scoped Portfolio Intelligence history:
+- **Persistent Intelligence Model (`PortfolioIntelligenceRecord`)**: Saves complete AI portfolio analysis, overview, risk discussions, opportunities, watchlist priorities, and recommended research together with verified financial facts and source provenance.
+- **Immutable Snapshot Semantics**: Persisted reports freeze portfolio snapshot calculations, market values, and prices at the moment of generation. Future modifications to user holdings do not mutate historical reports.
+- **Strict Fact vs. AI Separation**: Deterministic numbers (cost basis, market value, concentration weights, prices) remain strictly separated from qualitative LLM reasoning.
+- **User-Scoped History API**:
+  - `GET /api/v1/portfolio/intelligence/history`: Paginated lightweight summaries.
+  - `GET /api/v1/portfolio/intelligence/history/<id>`: Full detailed report by ID.
+  - `DELETE /api/v1/portfolio/intelligence/history/<id>`: Delete user's own report.
+- **Fail-Safe Integrity**: Malformed AI output or failed validations persist zero database rows and safely roll back.
+- **Unified Dashboard Integration**: `GET /api/v1/dashboard` seamlessly renders the latest available portfolio intelligence report with zero AI invocations and zero database writes.
 
 ---
 
@@ -57,6 +59,7 @@ AIRA/
 │   │   ├── notification_endpoint.py   # NotificationEndpoint webhook model
 │   │   ├── notification_preference.py # NotificationPreference user preferences model
 │   │   ├── portfolio.py      # PortfolioHolding persistent SQLAlchemy model
+│   │   ├── portfolio_intelligence.py # PortfolioIntelligenceRecord persistent SQLAlchemy model
 │   │   ├── research.py       # ResearchRecord persistent SQLAlchemy model
 │   │   ├── user.py           # User & UserProfile SQLAlchemy models
 │   │   └── watchlist.py      # WatchlistItem persistent SQLAlchemy model
@@ -70,7 +73,7 @@ AIRA/
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
 │   │   ├── monitoring.py     # Operational monitoring status route (/api/v1/monitoring/status)
 │   │   ├── notifications.py  # Notification routes (preferences, endpoints, deliveries)
-│   │   ├── portfolio.py      # Portfolio holdings CRUD, valuation snapshot, & intelligence endpoints
+│   │   ├── portfolio.py      # Portfolio holdings CRUD, valuation snapshot, intelligence & history endpoints
 │   │   ├── profile.py        # User profile routes (get, update)
 │   │   ├── research.py       # Research routes (analyze, history, profile, quote, history, financials, news, search)
 │   │   └── watchlist.py      # Watchlist CRUD & priority filtering endpoints
@@ -120,7 +123,8 @@ AIRA/
 │       ├── ADR-014-automated-alert-monitoring-and-notification-foundation.md
 │       ├── ADR-015-external-notification-delivery-and-preferences.md
 │       ├── ADR-016-production-monitoring-scheduler-retry-and-observability.md
-│       └── ADR-017-unified-investor-dashboard-read-api.md
+│       ├── ADR-017-unified-investor-dashboard-read-api.md
+│       └── ADR-018-portfolio-intelligence-persistence-and-history.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
@@ -129,7 +133,8 @@ AIRA/
 │       ├── 0004_create_alerts.py
 │       ├── 0005_create_monitoring_and_notifications.py
 │       ├── 0006_create_notification_preferences_and_endpoints.py
-│       └── 0007_create_monitoring_locks_and_retries.py
+│       ├── 0007_create_monitoring_locks_and_retries.py
+│       └── 0008_create_portfolio_intelligence_records.py
 ├── supabase/                 # Supabase pgvector schema and migration scripts
 │   └── migrations/
 │       └── 001_create_user_memories.sql
@@ -150,6 +155,7 @@ AIRA/
 │   │   ├── test_monitoring_service.py # MonitoringService batch & isolation tests
 │   │   ├── test_notification_preference_model.py # Preference & endpoint model unit tests
 │   │   ├── test_notification_service.py # NotificationService filtering, idempotency, & multi-channel tests
+│   │   ├── test_portfolio_intelligence_model.py # PortfolioIntelligenceRecord model unit tests
 │   │   ├── test_portfolio_intelligence_service.py # Portfolio intelligence unit tests
 │   │   ├── test_portfolio_model.py    # PortfolioHolding model unit tests
 │   │   ├── test_portfolio_service.py  # PortfolioService calculation unit tests
@@ -175,6 +181,7 @@ AIRA/
 │       ├── test_notifications.py     # Multi-channel notification delivery & history tests
 │       ├── test_portfolio.py         # Portfolio CRUD, snapshot calculations, and isolation tests
 │       ├── test_portfolio_intelligence.py # Portfolio intelligence endpoint & personalization tests
+│       ├── test_portfolio_intelligence_history.py # Intelligence history, persistence, & snapshot tests
 │       ├── test_profile.py           # Profile endpoints & multi-user isolation tests
 │       ├── test_research.py          # Financial data endpoints integration tests
 │       ├── test_research_history.py  # Research history & multi-tenant persistence tests
@@ -219,6 +226,9 @@ All endpoints are versioned under `/api/v1/`.
 | `DELETE` | `/api/v1/portfolio/holdings/<id>` | Yes (`Bearer <token>`) | Delete a portfolio holding |
 | `GET` | `/api/v1/portfolio/snapshot` | Yes (`Bearer <token>`) | Calculate real-time portfolio valuation & gain/loss |
 | `POST` | `/api/v1/portfolio/intelligence` | Yes (`Bearer <token>`) | Generate personalized portfolio & watchlist intelligence |
+| `GET` | `/api/v1/portfolio/intelligence/history` | Yes (`Bearer <token>`) | List paginated lightweight portfolio intelligence summaries |
+| `GET` | `/api/v1/portfolio/intelligence/history/<id>` | Yes (`Bearer <token>`) | Retrieve a full completed portfolio intelligence report |
+| `DELETE` | `/api/v1/portfolio/intelligence/history/<id>` | Yes (`Bearer <token>`) | Delete a portfolio intelligence report owned by user |
 | `POST` | `/api/v1/alerts/check` | Yes (`Bearer <token>`) | Run deterministic alert rules against holdings & watchlist |
 | `GET` | `/api/v1/alerts` | Yes (`Bearer <token>`) | List alerts (`?unread_only=true&include_dismissed=false`) |
 | `GET` | `/api/v1/alerts/<id>` | Yes (`Bearer <token>`) | Retrieve a single alert (404 if not owned) |
@@ -356,4 +366,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 169 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 179 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
