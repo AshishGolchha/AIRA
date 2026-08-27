@@ -1,3 +1,4 @@
+from app.routes.alerts import alerts_bp
 from app.routes.auth import auth_bp
 from app.routes.health import health_bp
 from app.routes.memory import memory_bp
@@ -7,6 +8,7 @@ from app.routes.research import research_bp
 from app.routes.watchlist import watchlist_bp
 
 __all__ = [
+    "alerts_bp",
     "auth_bp",
     "health_bp",
     "memory_bp",

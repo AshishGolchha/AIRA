@@ -44,6 +44,14 @@ class User(TimestampMixin, db.Model):
         order_by="PortfolioHolding.symbol.asc()",
     )
 
+    # 1-to-many relationship with Alert
+    alerts = db.relationship(
+        "Alert",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="desc(Alert.created_at)",
+    )
+
     def __init__(self, email: str, **kwargs):
         super().__init__(**kwargs)
         self.email = email

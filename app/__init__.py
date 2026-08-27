@@ -7,6 +7,7 @@ from werkzeug.exceptions import HTTPException
 from app.config import get_config
 from app.extensions import db, migrate
 from app.routes import (
+    alerts_bp,
     auth_bp,
     health_bp,
     memory_bp,
@@ -87,5 +88,6 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(research_bp)
     app.register_blueprint(watchlist_bp)
     app.register_blueprint(portfolio_bp)
+    app.register_blueprint(alerts_bp)
 
     return app
