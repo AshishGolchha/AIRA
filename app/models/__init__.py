@@ -7,6 +7,7 @@ from app.models.financial import (
     MarketQuote,
     NewsArticle,
     PricePoint,
+    ResearchReport,
     SourceMetadata,
 )
 from app.models.user import User, UserProfile
@@ -19,6 +20,7 @@ __all__ = [
     "MarketQuote",
     "NewsArticle",
     "PricePoint",
+    "ResearchReport",
     "SourceMetadata",
     "TimestampMixin",
     "User",

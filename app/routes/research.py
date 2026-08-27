@@ -2,6 +2,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 
 from app.common.auth import auth_required
 from app.services.financial import FinancialDataService
+from app.services.research_service import ResearchService
 
 research_bp = Blueprint("research", __name__, url_prefix="/api/v1/research")
 
@@ -11,8 +12,13 @@ def _get_financial_service() -> FinancialDataService:
     return current_app.extensions.get("financial_service") or FinancialDataService()
 
 
+def _get_research_service() -> ResearchService:
+    """Returns research orchestration service instance, allowing test overrides."""
+    return current_app.extensions.get("research_service") or ResearchService()
+
+
 def _handle_service_error(e: Exception):
-    """Standardized error translation for financial service errors."""
+    """Standardized error translation for research service errors."""
     msg = str(e)
     req_id = getattr(g, "request_id", "")
     if isinstance(e, ValueError):
@@ -34,15 +40,50 @@ def _handle_service_error(e: Exception):
             "request_id": req_id,
         }), 400
 
-    current_app.logger.exception(f"Financial data provider error: {e}")
+    current_app.logger.exception(f"Research service error: {e}")
     return jsonify({
         "success": False,
         "error": {
             "code": "INTERNAL_SERVER_ERROR",
-            "message": "Failed to retrieve market research data from provider.",
+            "message": "Failed to execute AI investment research analysis.",
         },
         "request_id": req_id,
     }), 500
+
+
+@research_bp.post("/analyze")
+@auth_required
+def analyze_company():
+    """Execute AI multi-agent research workflow on a company/symbol for authenticated user."""
+    data = request.get_json(silent=True) or {}
+    query = data.get("query")
+    symbol = data.get("symbol")
+
+    if not query and not symbol:
+        return jsonify({
+            "success": False,
+            "error": {
+                "code": "BAD_REQUEST",
+                "message": "Either 'query' or 'symbol' is required in request payload.",
+            },
+            "request_id": getattr(g, "request_id", ""),
+        }), 400
+
+    service = _get_research_service()
+    try:
+        report = service.run_research(
+            user_id=g.current_user.id,
+            query=query or symbol or "",
+            symbol=symbol,
+        )
+        return jsonify({
+            "success": True,
+            "data": {
+                "report": report,
+            },
+        }), 200
+    except Exception as e:
+        return _handle_service_error(e)
 
 
 @research_bp.get("/search")
