@@ -8,14 +8,14 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 6 — Evidence-Based Research Workflow & Reliable Research Output**
+**Phase 7 — Research Persistence & User Research History**
 
-Phase 6 hardens AIRA's multi-agent research pipeline into a traceable, evidence-grounded intelligence system:
-- **Fact vs. Analysis Separation**: The structured output explicitly isolates verified `facts` (provided directly from `FinancialDataService`) from AI analytical interpretations (`fundamentals`, `valuation`, `market_context`, `risks`, `opportunities`).
-- **Elimination of Fabricated Fallbacks**: Removed silent fallback behavior that previously manufactured generic claims upon unparseable LLM output. Malformed AI responses fail safely with a standardized error response (`INTERNAL_SERVER_ERROR`).
-- **Verified Source Provenance**: `sources` in `ResearchReport` is assembled strictly from verified `SourceMetadata` entries attached to actual financial entities, barring the LLM from inventing citations or URLs.
-- **Pre-Fetched Factual Context**: Ground-truth financials are pre-fetched and injected directly into agent reasoning tasks, minimizing numerical hallucinations.
-- **Strict Multi-Tenant Isolation**: Memory personalization continues to resolve strictly from `g.current_user.id` (JWT), rejecting client-supplied `user_id` parameters.
+Phase 7 establishes relational storage and user-scoped research history for completed AI investment research analyses:
+- **Relational Persistence (`research_records`)**: Every completed research analysis is stored in MySQL, preserving verified `facts`, `sources`, analytical conclusions (`fundamentals`, `valuation`, `market_context`, `risks`, `opportunities`), and personalized `user_context`.
+- **Strict Multi-Tenant Isolation**: History listing, single report lookups, and deletions are strictly scoped to `g.current_user.id` resolved from verified JWT claims.
+- **Failure Safety**: Incomplete, broken, or malformed research workflows persist zero incomplete records.
+- **Lightweight History Summaries**: `GET /api/v1/research/history` provides paginated lightweight summaries for efficient listing.
+- **Full Report Inspection & Deletion**: Dedicated `GET` and `DELETE` endpoints under `/api/v1/research/history/<id>`.
 
 ---
 
@@ -48,7 +48,8 @@ AIRA/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
-│   │   ├── financial.py      # Normalized research dataclasses & ResearchReport (with facts & sources)
+│   │   ├── financial.py      # Normalized research dataclasses & ResearchReport
+│   │   ├── research.py       # ResearchRecord persistent SQLAlchemy model
 │   │   └── user.py           # User & UserProfile SQLAlchemy models
 │   ├── routes/
 │   │   ├── __init__.py
@@ -56,7 +57,7 @@ AIRA/
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
 │   │   ├── profile.py        # User profile routes (get, update)
-│   │   └── research.py       # Research & AI analysis routes (analyze, profile, quote, history, financials, news, search)
+│   │   └── research.py       # Research routes (analyze, history, profile, quote, history, financials, news, search)
 │   └── services/
 │       ├── __init__.py
 │       ├── ai/
@@ -65,7 +66,7 @@ AIRA/
 │       │   └── tools.py      # CrewAI tools wrapping FinancialDataService
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
-│       ├── research_service.py  # Evidence-grounded research pipeline orchestrator
+│       ├── research_service.py  # Research pipeline orchestrator with persistence
 │       └── financial/
 │           ├── __init__.py
 │           ├── base.py       # BaseFinancialProvider abstract interface
@@ -81,10 +82,12 @@ AIRA/
 │       ├── ADR-006-persistent-user-memory-supabase-pgvector.md
 │       ├── ADR-007-financial-data-provider-architecture.md
 │       ├── ADR-008-ai-research-agent-crewai-architecture.md
-│       └── ADR-009-evidence-based-research-workflow.md
+│       ├── ADR-009-evidence-based-research-workflow.md
+│       └── ADR-010-research-persistence-and-history.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
-│       └── 0001_create_users_and_user_profiles.py
+│       ├── 0001_create_users_and_user_profiles.py
+│       └── 0002_create_research_records.py
 ├── supabase/                 # Supabase pgvector schema and migration scripts
 │   └── migrations/
 │       └── 001_create_user_memories.sql
@@ -97,6 +100,7 @@ AIRA/
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
 │   │   ├── test_financial_service.py  # Financial service & caching unit tests
 │   │   ├── test_memory_service.py     # Memory service unit tests
+│   │   ├── test_research_model.py     # ResearchRecord model unit tests
 │   │   └── test_research_service.py   # Research orchestration service unit tests
 │   └── integration/
 │       ├── test_ai_research.py       # AI research workflow, facts grounding, & personalization tests
@@ -104,7 +108,8 @@ AIRA/
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
 │       ├── test_profile.py           # Profile endpoints & multi-user isolation tests
-│       └── test_research.py          # Financial research endpoints integration tests
+│       ├── test_research.py          # Financial data endpoints integration tests
+│       └── test_research_history.py  # Research history & multi-tenant persistence tests
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Git ignore rules
 ├── README.md                 # Project documentation
@@ -130,7 +135,10 @@ All endpoints are versioned under `/api/v1/`.
 | `GET` | `/api/v1/memory` | Yes (`Bearer <token>`) | List recent memories for authenticated user |
 | `GET` | `/api/v1/memory/search` | Yes (`Bearer <token>`) | Semantic vector search (`?q=...&limit=...`) |
 | `DELETE` | `/api/v1/memory/<id>` | Yes (`Bearer <token>`) | Delete a memory owned by authenticated user |
-| `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger evidence-based AI research on a company/symbol |
+| `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger evidence-based AI research and persist report |
+| `GET` | `/api/v1/research/history` | Yes (`Bearer <token>`) | List paginated research history summaries (`?page=1&limit=20`) |
+| `GET` | `/api/v1/research/history/<id>` | Yes (`Bearer <token>`) | Retrieve a full completed research report |
+| `DELETE` | `/api/v1/research/history/<id>` | Yes (`Bearer <token>`) | Delete a research report owned by user |
 | `GET` | `/api/v1/research/search` | Yes (`Bearer <token>`) | Resolve company name to ticker symbol (`?q=...`) |
 | `GET` | `/api/v1/research/company/<symbol>` | Yes (`Bearer <token>`) | Retrieve company overview & business summary |
 | `GET` | `/api/v1/research/company/<symbol>/quote` | Yes (`Bearer <token>`) | Retrieve latest price quote, day range, & volume |
@@ -213,4 +221,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 66 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 73 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.

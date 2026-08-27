@@ -20,6 +20,14 @@ class User(TimestampMixin, db.Model):
         cascade="all, delete-orphan",
     )
 
+    # 1-to-many relationship with ResearchRecord
+    research_records = db.relationship(
+        "ResearchRecord",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="desc(ResearchRecord.created_at)",
+    )
+
     def __init__(self, email: str, **kwargs):
         super().__init__(**kwargs)
         self.email = email
