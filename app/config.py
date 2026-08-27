@@ -1,0 +1,73 @@
+import os
+from urllib.parse import quote_plus
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def build_mysql_uri() -> str:
+    """Constructs MySQL database URI from environment variables."""
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        return database_url
+
+    user = os.getenv("MYSQL_USER")
+    password = os.getenv("MYSQL_PASSWORD")
+    host = os.getenv("MYSQL_HOST")
+    port = os.getenv("MYSQL_PORT", "3306")
+    db_name = os.getenv("MYSQL_DATABASE")
+
+    if all([user, password is not None, host, port, db_name]):
+        encoded_password = quote_plus(password)
+        return f"mysql+pymysql://{user}:{encoded_password}@{host}:{port}/{db_name}"
+
+    raise RuntimeError(
+        "MySQL database configuration missing. Please provide DATABASE_URL "
+        "or MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USER, and MYSQL_PASSWORD."
+    )
+
+
+class BaseConfig:
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Future integration settings (Phase 1 placeholders)
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+    CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "")
+
+
+class DevelopmentConfig(BaseConfig):
+    DEBUG = True
+
+    def __init__(self):
+        self.SQLALCHEMY_DATABASE_URI = build_mysql_uri()
+
+
+class ProductionConfig(BaseConfig):
+    DEBUG = False
+
+    def __init__(self):
+        self.SQLALCHEMY_DATABASE_URI = build_mysql_uri()
+
+
+class TestingConfig(BaseConfig):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+
+
+CONFIG_MAP = {
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+    "testing": TestingConfig,
+}
+
+
+def get_config(config_name: str | None = None) -> BaseConfig:
+    """Returns the appropriate config instance based on environment or name."""
+    env = config_name or os.getenv("FLASK_ENV", "development").lower()
+    config_class = CONFIG_MAP.get(env, DevelopmentConfig)
+    return config_class()
