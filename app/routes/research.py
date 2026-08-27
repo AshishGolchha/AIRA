@@ -86,6 +86,81 @@ def analyze_company():
         return _handle_service_error(e)
 
 
+@research_bp.get("/history")
+@auth_required
+def list_research_history():
+    """List paginated research history summary for the authenticated user."""
+    try:
+        page = int(request.args.get("page", 1))
+        limit = int(request.args.get("limit", 20))
+    except (ValueError, TypeError):
+        page, limit = 1, 20
+
+    service = _get_research_service()
+    try:
+        history_data = service.get_user_history(user_id=g.current_user.id, page=page, limit=limit)
+        return jsonify({
+            "success": True,
+            "data": history_data,
+        }), 200
+    except Exception as e:
+        return _handle_service_error(e)
+
+
+@research_bp.get("/history/<int:research_id>")
+@auth_required
+def get_research_report(research_id: int):
+    """Retrieve a single completed research report owned by the authenticated user."""
+    service = _get_research_service()
+    try:
+        report = service.get_user_report(user_id=g.current_user.id, research_id=research_id)
+        if not report:
+            return jsonify({
+                "success": False,
+                "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Research report not found.",
+                },
+                "request_id": getattr(g, "request_id", ""),
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "report": report,
+            },
+        }), 200
+    except Exception as e:
+        return _handle_service_error(e)
+
+
+@research_bp.delete("/history/<int:research_id>")
+@auth_required
+def delete_research_report(research_id: int):
+    """Delete a research report owned by the authenticated user."""
+    service = _get_research_service()
+    try:
+        deleted = service.delete_user_report(user_id=g.current_user.id, research_id=research_id)
+        if not deleted:
+            return jsonify({
+                "success": False,
+                "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Research report not found.",
+                },
+                "request_id": getattr(g, "request_id", ""),
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "message": "Research report deleted successfully.",
+            },
+        }), 200
+    except Exception as e:
+        return _handle_service_error(e)
+
+
 @research_bp.get("/search")
 @auth_required
 def search_companies():

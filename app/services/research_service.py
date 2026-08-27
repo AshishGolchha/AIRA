@@ -3,14 +3,16 @@ import re
 from typing import Any, Callable
 from flask import current_app, has_app_context
 
+from app.extensions import db
 from app.models.financial import ResearchReport
+from app.models.research import ResearchRecord
 from app.services.ai.crew import create_research_crew
 from app.services.financial.service import FinancialDataService
 from app.services.memory_service import MemoryService
 
 
 class ResearchService:
-    """Orchestrates evidence-based AI research pipelines uniting memory, verified financial data, and CrewAI."""
+    """Orchestrates evidence-based AI research pipelines uniting memory, verified financial data, CrewAI, and persistence."""
 
     def __init__(
         self,
@@ -89,7 +91,7 @@ class ResearchService:
         return facts, sources, profile
 
     def run_research(self, user_id: int, query: str, symbol: str | None = None) -> dict[str, Any]:
-        """Executes evidence-grounded AI research workflow for the authenticated user."""
+        """Executes evidence-grounded AI research workflow and persists the validated report."""
         if not isinstance(user_id, int) or user_id <= 0:
             raise ValueError("Valid authenticated user ID is required.")
 
@@ -131,7 +133,6 @@ class ResearchService:
                 sources=sources,
             )
             if isinstance(result, dict) and "summary" in result:
-                # Ensure facts and sources are preserved from ground truth if missing
                 report = ResearchReport(
                     company=result.get("company", company_name),
                     symbol=result.get("symbol", clean_symbol),
@@ -145,9 +146,9 @@ class ResearchService:
                     user_context=result.get("user_context", user_context),
                     sources=result.get("sources") or sources,
                 )
-                return report.to_dict()
+                report_dict = report.to_dict()
             elif isinstance(result, str):
-                return self._parse_crew_output(
+                report_dict = self._parse_crew_output(
                     raw_text=result,
                     company_name=company_name,
                     symbol=clean_symbol,
@@ -168,7 +169,7 @@ class ResearchService:
             )
             crew_output = crew.kickoff()
             raw_text = str(crew_output.raw if hasattr(crew_output, "raw") else crew_output)
-            return self._parse_crew_output(
+            report_dict = self._parse_crew_output(
                 raw_text=raw_text,
                 company_name=company_name,
                 symbol=clean_symbol,
@@ -176,6 +177,31 @@ class ResearchService:
                 facts=facts,
                 sources=sources,
             )
+
+        # 4. Persist Validated Report Record if in application context
+        if has_app_context():
+            record = ResearchRecord(
+                user_id=user_id,
+                query=clean_query,
+                symbol=clean_symbol,
+                company=report_dict.get("company") or company_name,
+                summary=report_dict.get("summary") or "",
+                facts=report_dict.get("facts") or facts,
+                fundamentals=report_dict.get("fundamentals") or "",
+                valuation=report_dict.get("valuation") or "",
+                market_context=report_dict.get("market_context") or "",
+                risks=report_dict.get("risks") or [],
+                opportunities=report_dict.get("opportunities") or [],
+                user_context=report_dict.get("user_context") or user_context,
+                sources=report_dict.get("sources") or sources,
+            )
+            db.session.add(record)
+            db.session.commit()
+
+            report_dict["id"] = record.id
+            report_dict["created_at"] = record.created_at.isoformat() if record.created_at else None
+
+        return report_dict
 
     def _parse_crew_output(
         self,
@@ -218,3 +244,50 @@ class ResearchService:
 
         # Strict least-hallucination rule: Malformed output must fail safely rather than fabricating financial conclusions
         raise RuntimeError("Failed to produce valid structured research report from AI model.")
+
+    def get_user_history(self, user_id: int, page: int = 1, limit: int = 20) -> dict[str, Any]:
+        """Retrieves paginated lightweight research history for the authenticated user."""
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError("Valid authenticated user ID is required.")
+
+        page = max(1, page)
+        limit = max(1, min(100, limit))
+        offset = (page - 1) * limit
+
+        total = ResearchRecord.query.filter_by(user_id=user_id).count()
+        records = (
+            ResearchRecord.query.filter_by(user_id=user_id)
+            .order_by(ResearchRecord.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        return {
+            "history": [r.to_summary_dict() for r in records],
+            "count": len(records),
+            "page": page,
+            "limit": limit,
+            "total": total,
+        }
+
+    def get_user_report(self, user_id: int, research_id: int) -> dict[str, Any] | None:
+        """Retrieves a single complete research report scoped strictly by user_id and research_id."""
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError("Valid authenticated user ID is required.")
+
+        record = ResearchRecord.query.filter_by(id=research_id, user_id=user_id).first()
+        return record.to_dict() if record else None
+
+    def delete_user_report(self, user_id: int, research_id: int) -> bool:
+        """Deletes a single research report owned by the authenticated user."""
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError("Valid authenticated user ID is required.")
+
+        record = ResearchRecord.query.filter_by(id=research_id, user_id=user_id).first()
+        if not record:
+            return False
+
+        db.session.delete(record)
+        db.session.commit()
+        return True
