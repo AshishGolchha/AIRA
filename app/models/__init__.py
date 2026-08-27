@@ -17,6 +17,7 @@ from app.models.notification import NotificationDelivery
 from app.models.notification_endpoint import NotificationEndpoint
 from app.models.notification_preference import NotificationPreference
 from app.models.portfolio import PortfolioHolding
+from app.models.portfolio_intelligence import PortfolioIntelligenceRecord
 from app.models.research import ResearchRecord
 from app.models.user import User, UserProfile
 from app.models.watchlist import WatchlistItem
@@ -35,6 +36,7 @@ __all__ = [
     "NotificationEndpoint",
     "NotificationPreference",
     "PortfolioHolding",
+    "PortfolioIntelligenceRecord",
     "PortfolioIntelligenceReport",
     "PricePoint",
     "ResearchRecord",

@@ -4,6 +4,7 @@ from flask import current_app, has_app_context
 
 from app.extensions import db
 from app.models.financial import PortfolioIntelligenceReport
+from app.models.portfolio_intelligence import PortfolioIntelligenceRecord
 from app.models.user import User
 from app.services.ai.crew import create_portfolio_intelligence_crew
 from app.services.financial.service import FinancialDataService
@@ -161,9 +162,9 @@ class PortfolioIntelligenceService:
             if quote_data and quote_data.get("source") and quote_data["source"] not in sources:
                 sources.append(quote_data["source"])
 
-        # 6. Graceful Empty Portfolio & Watchlist Handling
+        # 6. Execute Generation (Empty state vs AI Research Crew)
         if not snapshot.get("holdings") and not watchlist_items:
-            report = PortfolioIntelligenceReport(
+            report_dict = PortfolioIntelligenceReport(
                 summary="No investment holdings or watchlist items have been added to your account yet.",
                 portfolio_overview="Your portfolio is currently empty. Add your security positions via the portfolio API to receive personalized valuation and risk analysis.",
                 portfolio_risks=[],
@@ -177,11 +178,8 @@ class PortfolioIntelligenceService:
                 user_context=user_context,
                 facts=facts,
                 sources=[],
-            )
-            return report.to_dict()
-
-        # 7. Execute AI Research Crew or Injected Mock Runner
-        if self.crew_runner:
+            ).to_dict()
+        elif self.crew_runner:
             result = self.crew_runner(
                 query=clean_query,
                 portfolio_context=snapshot.get("holdings", []),
@@ -191,7 +189,7 @@ class PortfolioIntelligenceService:
                 sources=sources,
             )
             if isinstance(result, dict) and "summary" in result:
-                report = PortfolioIntelligenceReport(
+                report_dict = PortfolioIntelligenceReport(
                     summary=result.get("summary", ""),
                     portfolio_overview=result.get("portfolio_overview", ""),
                     portfolio_risks=result.get("portfolio_risks", []),
@@ -202,10 +200,9 @@ class PortfolioIntelligenceService:
                     user_context=user_context,
                     facts=facts,
                     sources=sources,
-                )
-                return report.to_dict()
+                ).to_dict()
             elif isinstance(result, str):
-                return self._parse_crew_output(
+                report_dict = self._parse_crew_output(
                     raw_text=result,
                     snapshot=snapshot,
                     user_context=user_context,
@@ -226,13 +223,37 @@ class PortfolioIntelligenceService:
             )
             crew_output = crew.kickoff()
             raw_text = str(crew_output.raw if hasattr(crew_output, "raw") else crew_output)
-            return self._parse_crew_output(
+            report_dict = self._parse_crew_output(
                 raw_text=raw_text,
                 snapshot=snapshot,
                 user_context=user_context,
                 facts=facts,
                 sources=sources,
             )
+
+        # 7. Persist Successful Intelligence Report into Database
+        if has_app_context():
+            record = PortfolioIntelligenceRecord(
+                user_id=user_id,
+                query=clean_query,
+                summary=report_dict.get("summary", ""),
+                portfolio_overview=report_dict.get("portfolio_overview", ""),
+                portfolio_risks=report_dict.get("portfolio_risks") or [],
+                portfolio_opportunities=report_dict.get("portfolio_opportunities") or [],
+                watchlist_priorities=report_dict.get("watchlist_priorities") or [],
+                recommended_research=report_dict.get("recommended_research") or [],
+                portfolio_summary=report_dict.get("portfolio_summary") or snapshot,
+                user_context=report_dict.get("user_context") or user_context,
+                facts=report_dict.get("facts") or facts,
+                sources=report_dict.get("sources") or sources,
+            )
+            db.session.add(record)
+            db.session.commit()
+
+            report_dict["id"] = record.id
+            report_dict["created_at"] = record.created_at.isoformat() if record.created_at else None
+
+        return report_dict
 
     def _parse_crew_output(
         self,
@@ -272,3 +293,62 @@ class PortfolioIntelligenceService:
             pass
 
         raise RuntimeError("Failed to produce valid structured portfolio intelligence report from AI model.")
+
+    def get_user_history(self, user_id: int, page: int = 1, limit: int = 20) -> dict[str, Any]:
+        """Retrieves paginated lightweight portfolio intelligence history for the authenticated user."""
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError("Valid authenticated user ID is required.")
+
+        page = max(1, page)
+        limit = max(1, min(100, limit))
+        offset = (page - 1) * limit
+
+        total = PortfolioIntelligenceRecord.query.filter_by(user_id=user_id).count()
+        records = (
+            PortfolioIntelligenceRecord.query.filter_by(user_id=user_id)
+            .order_by(PortfolioIntelligenceRecord.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        return {
+            "history": [r.to_summary_dict() for r in records],
+            "count": len(records),
+            "page": page,
+            "limit": limit,
+            "total": total,
+        }
+
+    def get_user_report(self, user_id: int, intelligence_id: int) -> dict[str, Any] | None:
+        """Retrieves a single complete portfolio intelligence report scoped strictly by user_id and intelligence_id."""
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError("Valid authenticated user ID is required.")
+
+        record = PortfolioIntelligenceRecord.query.filter_by(id=intelligence_id, user_id=user_id).first()
+        return record.to_dict() if record else None
+
+    def delete_user_report(self, user_id: int, intelligence_id: int) -> bool:
+        """Deletes a single portfolio intelligence report owned by the authenticated user."""
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError("Valid authenticated user ID is required.")
+
+        record = PortfolioIntelligenceRecord.query.filter_by(id=intelligence_id, user_id=user_id).first()
+        if not record:
+            return False
+
+        db.session.delete(record)
+        db.session.commit()
+        return True
+
+    def get_latest_report(self, user_id: int) -> dict[str, Any] | None:
+        """Retrieves the latest persisted portfolio intelligence report summary for the user."""
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError("Valid authenticated user ID is required.")
+
+        record = (
+            PortfolioIntelligenceRecord.query.filter_by(user_id=user_id)
+            .order_by(PortfolioIntelligenceRecord.created_at.desc())
+            .first()
+        )
+        return record.to_dashboard_dict() if record else None

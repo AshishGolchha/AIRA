@@ -275,3 +275,82 @@ def get_portfolio_intelligence():
         }), 200
     except Exception as e:
         return _handle_service_error(e)
+
+
+@portfolio_bp.get("/intelligence/history")
+@auth_required
+def list_portfolio_intelligence_history():
+    """Retrieve paginated lightweight portfolio intelligence history for current user."""
+    try:
+        page = int(request.args.get("page", 1))
+    except (ValueError, TypeError):
+        page = 1
+
+    try:
+        limit = int(request.args.get("limit", 20))
+    except (ValueError, TypeError):
+        limit = 20
+
+    service = _get_portfolio_intelligence_service()
+    try:
+        result = service.get_user_history(user_id=g.current_user.id, page=page, limit=limit)
+        return jsonify({
+            "success": True,
+            "data": result,
+        }), 200
+    except Exception as e:
+        return _handle_service_error(e)
+
+
+@portfolio_bp.get("/intelligence/history/<int:intelligence_id>")
+@auth_required
+def get_portfolio_intelligence_report(intelligence_id: int):
+    """Retrieve a single complete portfolio intelligence report owned by current user."""
+    service = _get_portfolio_intelligence_service()
+    try:
+        report = service.get_user_report(user_id=g.current_user.id, intelligence_id=intelligence_id)
+        if not report:
+            return jsonify({
+                "success": False,
+                "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Portfolio intelligence report not found.",
+                },
+                "request_id": getattr(g, "request_id", ""),
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "report": report,
+            },
+        }), 200
+    except Exception as e:
+        return _handle_service_error(e)
+
+
+@portfolio_bp.delete("/intelligence/history/<int:intelligence_id>")
+@auth_required
+def delete_portfolio_intelligence_report(intelligence_id: int):
+    """Delete a single portfolio intelligence report owned by current user."""
+    service = _get_portfolio_intelligence_service()
+    try:
+        deleted = service.delete_user_report(user_id=g.current_user.id, intelligence_id=intelligence_id)
+        if not deleted:
+            return jsonify({
+                "success": False,
+                "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Portfolio intelligence report not found.",
+                },
+                "request_id": getattr(g, "request_id", ""),
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "message": "Portfolio intelligence report deleted successfully.",
+            },
+        }), 200
+    except Exception as e:
+        return _handle_service_error(e)

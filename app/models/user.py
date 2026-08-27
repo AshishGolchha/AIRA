@@ -29,6 +29,14 @@ class User(TimestampMixin, db.Model):
         order_by="desc(ResearchRecord.created_at)",
     )
 
+    # 1-to-many relationship with PortfolioIntelligenceRecord
+    portfolio_intelligence_records = db.relationship(
+        "PortfolioIntelligenceRecord",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="desc(PortfolioIntelligenceRecord.created_at)",
+    )
+
     # 1-to-many relationship with WatchlistItem
     watchlist_items = db.relationship(
         "WatchlistItem",
