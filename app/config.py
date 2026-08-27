@@ -38,7 +38,7 @@ class BaseConfig:
 
     # Gemini & Embeddings
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "text-embedding-004")
+    GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-2")
     EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "768"))
     MEMORY_SIMILARITY_THRESHOLD = float(os.getenv("MEMORY_SIMILARITY_THRESHOLD", "0.5"))
 

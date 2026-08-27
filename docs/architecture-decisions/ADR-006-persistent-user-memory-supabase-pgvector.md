@@ -11,7 +11,7 @@ AIRA requires long-term semantic memory for each investor to enable personalized
    - **MySQL**: Retains ownership of transactional data (users, user profiles, authentication credentials).
    - **Supabase PostgreSQL + `pgvector`**: Dedicated store for persistent semantic memory records and embeddings (`user_memories`).
 2. **Vector Embeddings**:
-   - Utilize Google Gemini `text-embedding-004` to generate 768-dimensional dense float vectors for user memories and search queries.
+   - Utilize Google Gemini `gemini-embedding-2` to generate 768-dimensional dense float vectors for user memories and search queries.
 3. **User Isolation & Scoped Retrieval**:
    - Every memory record stores the canonical MySQL `user_id`.
    - Vector similarity search is executed via the `match_user_memories` RPC function, enforcing `WHERE user_id = p_user_id` at the database query level before returning top-k matches.

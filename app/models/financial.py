@@ -1,0 +1,136 @@
+from dataclasses import asdict, dataclass
+from typing import Any
+
+
+@dataclass(frozen=True)
+class SourceMetadata:
+    """Standardized metadata tracking the source and provenance of external research data."""
+
+    provider: str
+    source_url: str | None
+    retrieved_at: str  # ISO-8601 UTC timestamp
+    data_type: str  # "profile", "quote", "history", "financials", "metrics", "news"
+    symbol: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class CompanyProfile:
+    """Normalized company description and identity snapshot."""
+
+    symbol: str
+    name: str
+    sector: str | None
+    industry: str | None
+    country: str | None
+    website: str | None
+    description: str | None
+    currency: str | None
+    source: SourceMetadata
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class MarketQuote:
+    """Normalized real-time or latest market quote."""
+
+    symbol: str
+    current_price: float
+    currency: str | None
+    change: float | None
+    change_percent: float | None
+    day_high: float | None
+    day_low: float | None
+    volume: int | None
+    market_cap: float | None
+    pe_ratio: float | None
+    fifty_two_week_high: float | None
+    fifty_two_week_low: float | None
+    source: SourceMetadata
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class PricePoint:
+    """Single period OHLCV historical price record."""
+
+    date: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class HistoricalPrices:
+    """Series of historical prices with period and interval context."""
+
+    symbol: str
+    period: str
+    interval: str
+    prices: list[PricePoint]
+    source: SourceMetadata
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class FinancialStatement:
+    """Normalized financial statement summary (income statement, balance sheet, cash flow)."""
+
+    symbol: str
+    statement_type: str  # "income_statement", "balance_sheet", "cash_flow"
+    period_type: str  # "annual", "quarterly"
+    periods: list[dict[str, Any]]
+    source: SourceMetadata
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class KeyMetrics:
+    """Normalized key financial valuation and profitability ratios."""
+
+    symbol: str
+    pe_ratio: float | None
+    forward_pe: float | None
+    price_to_book: float | None
+    profit_margins: float | None
+    operating_margins: float | None
+    return_on_equity: float | None
+    dividend_yield: float | None
+    beta: float | None
+    free_cash_flow: float | None
+    total_revenue: float | None
+    total_debt: float | None
+    source: SourceMetadata
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class NewsArticle:
+    """Normalized company news article with provenance."""
+
+    title: str
+    publisher: str | None
+    link: str | None
+    published_at: str | None
+    summary: str | None
+    source: SourceMetadata
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
