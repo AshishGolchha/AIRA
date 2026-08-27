@@ -29,7 +29,7 @@ class MonitoringService:
         Executes a scheduled monitoring batch run across all eligible users.
         Isolates failures per user so one user error never prevents other users from being monitored.
         """
-        run = AlertMonitoringRun(status="in_progress")
+        run = AlertMonitoringRun(status="running")
         db.session.add(run)
         db.session.commit()
 
@@ -37,6 +37,9 @@ class MonitoringService:
         users_succeeded = 0
         users_failed = 0
         alerts_generated = 0
+        notifications_attempted = 0
+        notifications_succeeded = 0
+        notifications_failed = 0
         errors: list[str] = []
 
         try:
@@ -61,7 +64,17 @@ class MonitoringService:
 
                 # 2. Process notifications for newly generated alerts
                 for alert in new_alerts:
-                    self.notification_service.process_alert(user_id=user.id, alert=alert)
+                    results = self.notification_service.process_alert(user_id=user.id, alert=alert)
+                    if isinstance(results, dict):
+                        results = [results]
+                    for res in results:
+                        st = res.get("status")
+                        if st != "skipped":
+                            notifications_attempted += 1
+                            if st == "delivered":
+                                notifications_succeeded += 1
+                            else:
+                                notifications_failed += 1
 
                 users_succeeded += 1
             except Exception as e:
@@ -75,10 +88,10 @@ class MonitoringService:
                     )
 
         # 3. Finalize Monitoring Run Record
-        if users_failed == 0:
+        if users_failed == 0 and notifications_failed == 0:
             run.status = "completed"
         elif users_succeeded > 0:
-            run.status = "partial_success"
+            run.status = "partial_failure"
         else:
             run.status = "failed" if users_checked > 0 else "completed"
 
@@ -86,6 +99,9 @@ class MonitoringService:
         run.users_succeeded = users_succeeded
         run.users_failed = users_failed
         run.alerts_generated = alerts_generated
+        run.notifications_attempted = notifications_attempted
+        run.notifications_succeeded = notifications_succeeded
+        run.notifications_failed = notifications_failed
         run.error_summary = "; ".join(errors[:10]) if errors else None
         run.completed_at = datetime.now(timezone.utc)
 

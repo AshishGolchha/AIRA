@@ -12,7 +12,7 @@ from app.models.financial import (
     ResearchReport,
     SourceMetadata,
 )
-from app.models.monitoring import AlertMonitoringRun
+from app.models.monitoring import AlertMonitoringRun, MonitoringLock
 from app.models.notification import NotificationDelivery
 from app.models.notification_endpoint import NotificationEndpoint
 from app.models.notification_preference import NotificationPreference
@@ -29,6 +29,7 @@ __all__ = [
     "HistoricalPrices",
     "KeyMetrics",
     "MarketQuote",
+    "MonitoringLock",
     "NewsArticle",
     "NotificationDelivery",
     "NotificationEndpoint",

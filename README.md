@@ -2,22 +2,21 @@
 
 ## Project Vision
 
-AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, automated monitoring, and multi-channel external notification delivery.
+AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, automated monitoring, multi-channel external notification delivery, and production-grade scheduled execution with concurrency locking and exponential backoff retries.
 
 ---
 
 ## Current Phase
 
-**Phase 12 — External Notification Delivery & User Preferences**
+**Phase 13 — Production-Grade Scheduled Monitoring, Retry & Observability Foundation**
 
-Phase 12 establishes multi-channel external notification delivery and user preference management:
-- **User Notification Preferences (`NotificationPreference`)**: 1-to-1 relationship with `User` supporting per-channel toggles (`in_app_enabled`, `email_enabled`, `webhook_enabled`), minimum severity filters (`info`, `warning`, `critical`), and optional alert type whitelisting.
-- **Notification Endpoints (`NotificationEndpoint`)**: Configurable webhook destinations with optional HMAC SHA-256 request signing (`X-AIRA-Signature`).
-- **SSRF & Network Protections**: Webhook endpoints enforce HTTPS URLs and block private, loopback, link-local, and cloud metadata IP ranges (`127.0.0.1`, `localhost`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `169.254.169.254`) along with invalid URL schemes (`file:`, `javascript:`, `data:`).
-- **External Email Delivery (`EmailNotificationProvider`)**: Decoupled email alert delivery formatting verified facts, sources, and severity metadata into plain text and HTML emails.
-- **External Webhook Delivery (`WebhookNotificationProvider`)**: Dispatches structured JSON payloads with strict network timeouts and isolated error handling.
-- **Multi-Channel Dispatch & Idempotency (`NotificationService`)**: Routes alerts across all enabled channels according to user preferences. Preserves database-level idempotency via `UNIQUE(alert_id, channel)` to prevent duplicate notification spam across repeated scheduled monitoring runs.
-- **Notification Management REST APIs**: Full CRUD endpoints for preferences (`/preferences`), webhook endpoints (`/endpoints`), and delivery history (`/deliveries`).
+Phase 13 establishes a robust, scheduler-agnostic production execution foundation:
+- **Database-Backed Concurrency Locking (`MonitoringLock`)**: Implemented `monitoring_locks` table to prevent overlapping execution cycles across multiple worker processes or scheduler instances. Stale locks automatically expire after `MONITORING_LOCK_TIMEOUT_SECONDS` (default 300s).
+- **Scheduler-Agnostic Runner (`MonitoringRunner`)**: Unified entry point (`MonitoringRunner.run()`) that checks feature flags, acquires the distributed lock, executes batch alert monitoring, processes due notification retries, and safely releases the lock.
+- **CLI Execution Entry Point**: Single-cycle command `python -m app.monitoring` suitable for cron jobs, cloud schedulers, or background container tasks with proper exit codes.
+- **Transient Failure Classification & Exponential Backoff**: Distinguishes retryable errors (timeouts, network drops, HTTP 429, HTTP 5xx) from non-retryable errors (SSRF blocks, invalid URLs, bad recipients). Calculates exponential backoff: `delay = min(base_delay * 2^(attempt - 1), max_delay)`.
+- **Zero Duplicate Deliveries on Retry**: Retries update existing `NotificationDelivery` records in-place (`attempt_count`, `next_retry_at`, `status`), strictly preserving the `UNIQUE(alert_id, channel)` idempotency invariant.
+- **Observability & Operational Status API**: `GET /api/v1/monitoring/status` provides high-level run metrics and health visibility without exposing sensitive user portfolios or credentials.
 
 ---
 
@@ -52,7 +51,7 @@ AIRA/
 │   │   ├── alert.py          # Alert persistent SQLAlchemy model
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
 │   │   ├── financial.py      # Normalized research dataclasses, ResearchReport, & PortfolioIntelligenceReport
-│   │   ├── monitoring.py     # AlertMonitoringRun execution tracking model
+│   │   ├── monitoring.py     # AlertMonitoringRun & MonitoringLock models
 │   │   ├── notification.py   # NotificationDelivery delivery tracking model
 │   │   ├── notification_endpoint.py   # NotificationEndpoint webhook model
 │   │   ├── notification_preference.py # NotificationPreference user preferences model
@@ -60,12 +59,14 @@ AIRA/
 │   │   ├── research.py       # ResearchRecord persistent SQLAlchemy model
 │   │   ├── user.py           # User & UserProfile SQLAlchemy models
 │   │   └── watchlist.py      # WatchlistItem persistent SQLAlchemy model
+│   ├── monitoring.py         # CLI entry point for scheduled monitoring (python -m app.monitoring)
 │   ├── routes/
 │   │   ├── __init__.py
 │   │   ├── alerts.py         # Alert routes (check, list, get, read, dismiss)
 │   │   ├── auth.py           # Authentication routes (register, login, me)
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
+│   │   ├── monitoring.py     # Operational monitoring status route (/api/v1/monitoring/status)
 │   │   ├── notifications.py  # Notification routes (preferences, endpoints, deliveries)
 │   │   ├── portfolio.py      # Portfolio holdings CRUD, valuation snapshot, & intelligence endpoints
 │   │   ├── profile.py        # User profile routes (get, update)
@@ -80,13 +81,14 @@ AIRA/
 │       ├── alert_service.py     # Deterministic alert detection engine & management
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
+│       ├── monitoring_runner.py # Scheduler-agnostic runner with distributed concurrency locking
 │       ├── monitoring_service.py # Automated batch alert monitoring orchestrator
 │       ├── notifications/
 │       │   ├── __init__.py      # Notification layer export
 │       │   ├── base.py          # BaseNotificationProvider interface
 │       │   ├── email.py         # EmailNotificationProvider implementation
 │       │   ├── in_app.py        # InAppNotificationProvider implementation
-│       │   ├── service.py       # NotificationService with multi-channel dispatch & filtering
+│       │   ├── service.py       # NotificationService with retry engine & backoff
 │       │   └── webhook.py       # WebhookNotificationProvider with SSRF defense & HMAC signing
 │       ├── portfolio_intelligence_service.py # Orchestrator for personalized portfolio & watchlist intelligence
 │       ├── portfolio_service.py # Portfolio holding management & valuation calculation
@@ -113,7 +115,8 @@ AIRA/
 │       ├── ADR-012-personalized-portfolio-intelligence.md
 │       ├── ADR-013-alert-detection-and-monitoring-foundation.md
 │       ├── ADR-014-automated-alert-monitoring-and-notification-foundation.md
-│       └── ADR-015-external-notification-delivery-and-preferences.md
+│       ├── ADR-015-external-notification-delivery-and-preferences.md
+│       └── ADR-016-production-monitoring-scheduler-retry-and-observability.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
@@ -121,7 +124,8 @@ AIRA/
 │       ├── 0003_create_watchlist_and_portfolio.py
 │       ├── 0004_create_alerts.py
 │       ├── 0005_create_monitoring_and_notifications.py
-│       └── 0006_create_notification_preferences_and_endpoints.py
+│       ├── 0006_create_notification_preferences_and_endpoints.py
+│       └── 0007_create_monitoring_locks_and_retries.py
 ├── supabase/                 # Supabase pgvector schema and migration scripts
 │   └── migrations/
 │       └── 001_create_user_memories.sql
@@ -136,6 +140,8 @@ AIRA/
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
 │   │   ├── test_financial_service.py  # Financial service & caching unit tests
 │   │   ├── test_memory_service.py     # Memory service unit tests
+│   │   ├── test_monitoring_lock.py    # Lock acquire, release, & stale recovery unit tests
+│   │   ├── test_monitoring_runner.py  # Runner flag, concurrency, & execution tests
 │   │   ├── test_monitoring_service.py # MonitoringService batch & isolation tests
 │   │   ├── test_notification_preference_model.py # Preference & endpoint model unit tests
 │   │   ├── test_notification_service.py # NotificationService filtering, idempotency, & multi-channel tests
@@ -144,6 +150,7 @@ AIRA/
 │   │   ├── test_portfolio_service.py  # PortfolioService calculation unit tests
 │   │   ├── test_research_model.py     # ResearchRecord model unit tests
 │   │   ├── test_research_service.py   # Research orchestration service unit tests
+│   │   ├── test_retry_backoff.py      # Exponential backoff & error classification unit tests
 │   │   ├── test_watchlist_model.py    # WatchlistItem model unit tests
 │   │   ├── test_watchlist_service.py  # WatchlistService unit tests
 │   │   └── test_webhook_notification_provider.py # Webhook payload, SSRF checks, & HMAC signing tests
@@ -154,8 +161,11 @@ AIRA/
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
 │       ├── test_monitoring.py        # Automated batch monitoring integration & idempotency tests
+│       ├── test_monitoring_cli.py    # CLI runner execution & status endpoint integration tests
+│       ├── test_monitoring_concurrency.py # Multi-instance concurrency locking integration tests
 │       ├── test_notification_endpoints.py # Webhook endpoints CRUD, SSRF validation, and isolation tests
 │       ├── test_notification_preferences.py # Notification preferences API & isolation tests
+│       ├── test_notification_retries.py # Transient error recovery & in-place retry tests
 │       ├── test_notifications.py     # Multi-channel notification delivery & history tests
 │       ├── test_portfolio.py         # Portfolio CRUD, snapshot calculations, and isolation tests
 │       ├── test_portfolio_intelligence.py # Portfolio intelligence endpoint & personalization tests
@@ -179,6 +189,7 @@ All endpoints are versioned under `/api/v1/`.
 | Method | Endpoint | Auth Required | Description |
 |---|---|---|---|
 | `GET` | `/api/v1/health` | No | Service health check |
+| `GET` | `/api/v1/monitoring/status` | No | Automated monitoring operational status and latest run summary |
 | `POST` | `/api/v1/auth/register` | No | Register a new user and profile |
 | `POST` | `/api/v1/auth/login` | No | Authenticate credentials and receive JWT |
 | `GET` | `/api/v1/auth/me` | Yes (`Bearer <token>`) | Get current authenticated user details |
@@ -271,7 +282,7 @@ GEMINI_API_KEY=your-gemini-api-key
 GEMINI_LLM_MODEL=gemini/gemini-2.0-flash
 GEMINI_EMBEDDING_MODEL=gemini-embedding-2
 
-# Alert & Monitoring Thresholds (Optional)
+# Alert & Monitoring Configuration
 ALERT_PRICE_MOVE_THRESHOLD_PERCENT=5.0
 ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT=10.0
 ALERT_MONITORING_ENABLED=true
@@ -284,6 +295,12 @@ NOTIFICATION_EMAIL_API_KEY=
 NOTIFICATION_EMAIL_FROM=alerts@aira.internal
 NOTIFICATION_WEBHOOK_ENABLED=true
 NOTIFICATION_WEBHOOK_TIMEOUT_SECONDS=5.0
+
+# Scheduled Monitoring & Retries (Optional)
+MONITORING_LOCK_TIMEOUT_SECONDS=300.0
+NOTIFICATION_MAX_RETRIES=3
+NOTIFICATION_RETRY_BASE_DELAY_SECONDS=10.0
+NOTIFICATION_RETRY_MAX_DELAY_SECONDS=3600.0
 ```
 
 ### 5. Run Database Migrations
@@ -297,16 +314,29 @@ NOTIFICATION_WEBHOOK_TIMEOUT_SECONDS=5.0
 ---
 
 ## Running Automated Monitoring
-To execute an automated alert monitoring run from a CLI, background script, or scheduler:
+
+### 1. CLI Execution
+Execute a single monitoring and retry cycle from the command line:
+```bash
+python -m app.monitoring
+```
+
+### 2. Cron Configuration Example
+To schedule monitoring every 15 minutes via Linux crontab:
+```cron
+*/15 * * * * cd /path/to/AIRA && /path/to/AIRA/venv/bin/python -m app.monitoring >> /var/log/aira_monitoring.log 2>&1
+```
+
+### 3. Python Programmatic Execution
 ```python
 from app import create_app
-from app.services.monitoring_service import MonitoringService
+from app.services.monitoring_runner import MonitoringRunner
 
 app = create_app()
 with app.app_context():
-    service = MonitoringService()
-    results = service.run_alert_monitoring()
-    print("Monitoring Run Stats:", results)
+    runner = MonitoringRunner()
+    result = runner.run()
+    print("Monitoring Run Result:", result)
 ```
 
 ---
@@ -318,4 +348,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 151 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 161 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.

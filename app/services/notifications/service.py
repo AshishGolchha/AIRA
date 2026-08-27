@@ -1,8 +1,11 @@
+import os
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from flask import current_app, has_app_context
 from sqlalchemy import desc
 
 from app.extensions import db
+from app.models.alert import Alert
 from app.models.notification import NotificationDelivery
 from app.models.notification_endpoint import NotificationEndpoint
 from app.models.notification_preference import NotificationPreference
@@ -18,9 +21,49 @@ SEVERITY_LEVELS = {
     "critical": 3,
 }
 
+NON_RETRYABLE_KEYWORDS = (
+    "ssrf",
+    "blocked",
+    "invalid endpoint url",
+    "invalid recipient",
+    "missing recipient",
+    "scheme must be https",
+    "not found",
+    "bad request",
+    "unauthorized",
+    "forbidden",
+)
+
+
+def calculate_backoff_delay(
+    attempt_count: int,
+    base_delay: float = 10.0,
+    max_delay: float = 3600.0,
+) -> float:
+    """Calculates exponential backoff delay with upper bound."""
+    attempt = max(1, attempt_count)
+    delay = base_delay * (2 ** (attempt - 1))
+    return min(delay, max_delay)
+
+
+def is_retryable_error(error_message: str | None, exception: Exception | None = None) -> bool:
+    """Determines if a notification delivery error is transient and retryable."""
+    if not error_message and not exception:
+        return True
+
+    text = (error_message or "").lower()
+    if any(kw in text for kw in NON_RETRYABLE_KEYWORDS):
+        return False
+
+    if exception is not None:
+        if isinstance(exception, (ValueError, TypeError, KeyError)):
+            return False
+
+    return True
+
 
 class NotificationService:
-    """Orchestrates notification delivery, user preference filtering, multi-channel dispatch, and idempotency."""
+    """Orchestrates notification delivery, user preference filtering, multi-channel dispatch, and retry engine."""
 
     def __init__(
         self,
@@ -104,7 +147,7 @@ class NotificationService:
         channel: str | None = None,
     ) -> Any:
         """
-        Processes and delivers an alert across eligible channels based on user preferences and filters.
+        Processes and delivers an alert across eligible channels with exponential retry metadata.
         Maintains channel-level idempotency and isolated transaction safety.
         """
         if not isinstance(user_id, int) or user_id <= 0:
@@ -168,6 +211,22 @@ class NotificationService:
 
         delivery_results: list[dict[str, Any]] = []
 
+        base_delay = float(
+            current_app.config.get("NOTIFICATION_RETRY_BASE_DELAY_SECONDS", 10.0)
+            if has_app_context()
+            else 10.0
+        )
+        max_delay = float(
+            current_app.config.get("NOTIFICATION_RETRY_MAX_DELAY_SECONDS", 3600.0)
+            if has_app_context()
+            else 3600.0
+        )
+        max_retries = int(
+            current_app.config.get("NOTIFICATION_MAX_RETRIES", 3)
+            if has_app_context()
+            else 3
+        )
+
         for ch in target_channels:
             # 5. Channel-Level Idempotency Check
             existing = NotificationDelivery.query.filter_by(
@@ -186,34 +245,32 @@ class NotificationService:
 
             # 6. Attempt Channel Delivery
             prov = self.providers.get(ch)
+            failure_reason = None
+            success = False
+
             if not prov:
-                delivery = NotificationDelivery(
-                    alert_id=alert_id,
-                    user_id=user_id,
-                    channel=ch,
-                    status="failed",
-                    failure_reason=f"No notification provider registered for channel '{ch}'.",
-                )
+                failure_reason = f"No notification provider registered for channel '{ch}'."
             elif ch == "email":
+                if hasattr(prov, "_is_enabled") and not prov._is_enabled():
+                    delivery = NotificationDelivery(
+                        alert_id=alert_id,
+                        user_id=user_id,
+                        channel=ch,
+                        status="skipped",
+                        failure_reason="Email provider is disabled in system configuration.",
+                    )
+                    db.session.add(delivery)
+                    db.session.commit()
+                    delivery_results.append(delivery.to_dict())
+                    continue
                 user = db.session.get(User, user_id)
                 recipient = user.email if user else None
                 try:
                     success = prov.send_alert_notification(user_id=user_id, alert=alert, recipient=recipient)
-                    delivery = NotificationDelivery(
-                        alert_id=alert_id,
-                        user_id=user_id,
-                        channel=ch,
-                        status="delivered" if success else "failed",
-                        failure_reason=None if success else "Email provider returned delivery failure or disabled.",
-                    )
+                    if not success:
+                        failure_reason = "Email provider returned delivery failure or disabled."
                 except Exception as e:
-                    delivery = NotificationDelivery(
-                        alert_id=alert_id,
-                        user_id=user_id,
-                        channel=ch,
-                        status="failed",
-                        failure_reason=f"Provider exception: {str(e)}",
-                    )
+                    failure_reason = f"Provider exception: {str(e)}"
             elif ch == "webhook":
                 endpoints = NotificationEndpoint.query.filter_by(
                     user_id=user_id, channel="webhook", is_enabled=True
@@ -226,6 +283,10 @@ class NotificationService:
                         status="skipped",
                         failure_reason="No enabled webhook endpoints configured.",
                     )
+                    db.session.add(delivery)
+                    db.session.commit()
+                    delivery_results.append(delivery.to_dict())
+                    continue
                 else:
                     all_success = True
                     errs = []
@@ -243,33 +304,35 @@ class NotificationService:
                         except Exception as e:
                             all_success = False
                             errs.append(f"Endpoint {ep.id} exception: {str(e)}")
-
-                    delivery = NotificationDelivery(
-                        alert_id=alert_id,
-                        user_id=user_id,
-                        channel=ch,
-                        status="delivered" if all_success else "failed",
-                        failure_reason="; ".join(errs) if errs else None,
-                    )
+                    success = all_success
+                    if not success:
+                        failure_reason = "; ".join(errs) if errs else "Webhook delivery failed."
             else:  # in_app or custom provider
                 try:
                     success = bool(prov.send_alert_notification(user_id=user_id, alert=alert))
-                    delivery = NotificationDelivery(
-                        alert_id=alert_id,
-                        user_id=user_id,
-                        channel=ch,
-                        status="delivered" if success else "failed",
-                        failure_reason=None if success else "In-app provider returned failure.",
-                    )
+                    if not success:
+                        failure_reason = "In-app provider returned failure."
                 except Exception as e:
-                    delivery = NotificationDelivery(
-                        alert_id=alert_id,
-                        user_id=user_id,
-                        channel=ch,
-                        status="failed",
-                        failure_reason=f"Provider exception: {str(e)}",
-                    )
+                    failure_reason = f"Provider exception: {str(e)}"
 
+            retryable = False
+            next_retry = None
+            if not success and failure_reason:
+                retryable = is_retryable_error(failure_reason) and (1 < max_retries)
+                if retryable:
+                    delay = calculate_backoff_delay(1, base_delay=base_delay, max_delay=max_delay)
+                    next_retry = datetime.now(timezone.utc) + timedelta(seconds=delay)
+
+            delivery = NotificationDelivery(
+                alert_id=alert_id,
+                user_id=user_id,
+                channel=ch,
+                status="delivered" if success else "failed",
+                failure_reason=failure_reason,
+                attempt_count=1,
+                is_retryable=retryable,
+                next_retry_at=next_retry,
+            )
             db.session.add(delivery)
             db.session.commit()
             delivery_results.append(delivery.to_dict())
@@ -282,6 +345,123 @@ class NotificationService:
                 "status": "skipped",
             }
         return delivery_results
+
+    def retry_failed_deliveries(self, max_retries: int | None = None) -> dict[str, Any]:
+        """
+        Retries eligible failed notification deliveries whose next_retry_at has elapsed.
+        Reuses existing NotificationDelivery records to preserve UNIQUE(alert_id, channel).
+        """
+        now = datetime.now(timezone.utc)
+        m_retries = max_retries or (
+            int(current_app.config.get("NOTIFICATION_MAX_RETRIES", 3))
+            if has_app_context()
+            else 3
+        )
+        base_delay = float(
+            current_app.config.get("NOTIFICATION_RETRY_BASE_DELAY_SECONDS", 10.0)
+            if has_app_context()
+            else 10.0
+        )
+        max_delay = float(
+            current_app.config.get("NOTIFICATION_RETRY_MAX_DELAY_SECONDS", 3600.0)
+            if has_app_context()
+            else 3600.0
+        )
+
+        deliveries_to_retry = NotificationDelivery.query.filter(
+            NotificationDelivery.status == "failed",
+            NotificationDelivery.is_retryable.is_(True),
+            NotificationDelivery.next_retry_at <= now,
+        ).all()
+
+        retried_count = 0
+        succeeded_count = 0
+        failed_count = 0
+
+        for d in deliveries_to_retry:
+            retried_count += 1
+            alert = db.session.get(Alert, d.alert_id)
+            if not alert or alert.is_dismissed:
+                d.is_retryable = False
+                d.next_retry_at = None
+                continue
+
+            prov = self.providers.get(d.channel)
+            success = False
+            failure_reason = None
+
+            if not prov:
+                failure_reason = f"No provider registered for channel {d.channel}"
+            elif d.channel == "email":
+                user = db.session.get(User, d.user_id)
+                recipient = user.email if user else None
+                try:
+                    success = prov.send_alert_notification(user_id=d.user_id, alert=alert.to_dict(), recipient=recipient)
+                    if not success:
+                        failure_reason = "Email provider returned delivery failure."
+                except Exception as e:
+                    failure_reason = str(e)
+            elif d.channel == "webhook":
+                endpoints = NotificationEndpoint.query.filter_by(
+                    user_id=d.user_id, channel="webhook", is_enabled=True
+                ).all()
+                if not endpoints:
+                    failure_reason = "No enabled webhook endpoints configured."
+                else:
+                    all_success = True
+                    errs = []
+                    for ep in endpoints:
+                        try:
+                            ok = prov.send_alert_notification(
+                                user_id=d.user_id,
+                                alert=alert.to_dict(),
+                                endpoint_url=ep.endpoint_url,
+                                secret_key=ep.secret_key,
+                            )
+                            if not ok:
+                                all_success = False
+                                errs.append(f"Endpoint {ep.id} delivery failed")
+                        except Exception as e:
+                            all_success = False
+                            errs.append(str(e))
+                    success = all_success
+                    if not success:
+                        failure_reason = "; ".join(errs) if errs else "Webhook retry failed."
+            else:
+                try:
+                    success = bool(prov.send_alert_notification(user_id=d.user_id, alert=alert.to_dict()))
+                    if not success:
+                        failure_reason = "Provider returned failure."
+                except Exception as e:
+                    failure_reason = str(e)
+
+            d.attempt_count += 1
+            d.attempted_at = datetime.now(timezone.utc)
+
+            if success:
+                succeeded_count += 1
+                d.status = "delivered"
+                d.delivered_at = datetime.now(timezone.utc)
+                d.is_retryable = False
+                d.next_retry_at = None
+                d.failure_reason = None
+            else:
+                failed_count += 1
+                d.failure_reason = failure_reason
+                if d.attempt_count >= m_retries:
+                    d.is_retryable = False
+                    d.next_retry_at = None
+                else:
+                    delay = calculate_backoff_delay(d.attempt_count, base_delay=base_delay, max_delay=max_delay)
+                    d.next_retry_at = datetime.now(timezone.utc) + timedelta(seconds=delay)
+
+            db.session.commit()
+
+        return {
+            "retried_count": retried_count,
+            "succeeded_count": succeeded_count,
+            "failed_count": failed_count,
+        }
 
     def list_deliveries(
         self,
