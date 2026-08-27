@@ -8,13 +8,12 @@ AIRA is designed as a multi-user platform where private investor preferences, wa
 
 ## Decision
 Enforce a multi-tenant isolation pattern where user-scoped data is strictly accessed through authenticated user identity:
-1. **Authenticated Context**: Every authenticated request resolves the user identity (`user_id`) from verified credentials/tokens.
-2. **Mandatory User Scoping**: All queries accessing private resources must filter on `user_id`.
-3. **Defense in Depth**: Isolation will be enforced at the application/query layer, verified via dedicated integration tests.
-
-In Phase 1, the foundational infrastructure provides clean request context and base architecture to support this model without introducing premature authentication abstractions.
+1. **Authenticated Context**: Every protected request verifies the bearer JWT token and resolves `g.current_user`.
+2. **Zero Client Trust for Identity**: No endpoint accepts a client-provided `user_id` or `owner_id` (via URL parameter or JSON body) to determine data ownership. All operations are strictly bounded by `g.current_user`.
+3. **Database-Level Enforced Isolation**: Models (such as `UserProfile`) enforce strict foreign keys to `users.id` with unique constraints. Queries access user-owned data directly through the authenticated relationship (e.g. `g.current_user.profile`).
+4. **Defense in Depth**: Isolation is verified directly at the API/query boundary via automated multi-user integration tests.
 
 ## Consequences
-- **Positive**: Clear boundary preventing data leakage between user tenants.
-- **Positive**: Architecture is prepared for seamless integration of JWT authentication and user-scoped data access in subsequent phases.
-- **Trade-off**: Requires strict discipline in future domain queries to ensure tenant filtering is always present.
+- **Positive**: Complete prevention of IDOR (Insecure Direct Object Reference) vulnerabilities.
+- **Positive**: Strict identity boundary established for future user-specific memory, research history, and watchlists.
+- **Positive**: User A's private data is fundamentally inaccessible to User B.

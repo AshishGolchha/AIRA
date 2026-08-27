@@ -36,7 +36,9 @@ class BaseConfig:
     SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
     SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+    # Authentication settings
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") or os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+    JWT_ACCESS_TOKEN_EXPIRES_SECONDS = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_SECONDS", "86400"))
     CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "")
 
 

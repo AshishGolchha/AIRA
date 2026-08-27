@@ -8,12 +8,19 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 1 — Production-Oriented Backend Foundation**
+**Phase 2 — Database Schema, Authentication & User Identity Foundation**
 
-Phase 1 delivers the foundational backend architecture, ensuring clean dependency management, environment configuration, database integration, structured JSON error handling, request ID tracing, and an isolated test harness.
+Phase 2 builds the user identity and multi-tenant isolation foundation:
+- Domain models: `User` and `UserProfile` with a 1-to-1 relationship and UTC timestamp tracking.
+- Stateless JWT authentication via `PyJWT` with configurable expiration.
+- Secure password hashing using native `werkzeug.security` (scrypt/pbkdf2).
+- Zero client-trust identity resolution via the `@auth_required` decorator (`g.current_user`).
+- User-scoped profile management (`GET` and `PUT` `/api/v1/profile`) with whitelisted field updates.
+- Centralized database migrations via `Flask-Migrate` / `Alembic`.
+- Comprehensive automated tests with multi-tenant isolation verification.
 
 > **Important Scope Clarification**:
-> Phase 1 is strictly a backend foundation. It does **not** yet perform investment research, stock analysis, Gemini LLM reasoning, CrewAI multi-agent orchestration, or semantic memory retrieval.
+> Phase 2 establishes user identity, authentication, and database foundation. It does **not** yet implement investment analysis, Gemini LLM reasoning, CrewAI multi-agent orchestration, or vector memory retrieval (Supabase/pgvector).
 
 ---
 
@@ -21,7 +28,8 @@ Phase 1 delivers the foundational backend architecture, ensuring clean dependenc
 
 - **Runtime**: Python 3.10+
 - **Web Framework**: Flask 3.x
-- **ORM & Migrations**: SQLAlchemy, Flask-SQLAlchemy, Flask-Migrate
+- **Authentication & Security**: PyJWT, Werkzeug Security
+- **ORM & Migrations**: SQLAlchemy, Flask-SQLAlchemy, Flask-Migrate (Alembic)
 - **Primary Database**: MySQL (via PyMySQL driver)
 - **Testing**: Pytest (utilizing isolated in-memory SQLite)
 - **Configuration**: Python-dotenv
@@ -33,55 +41,58 @@ Phase 1 delivers the foundational backend architecture, ensuring clean dependenc
 ```
 AIRA/
 ├── app/
-│   ├── __init__.py           # Application factory (create_app), error handlers, request ID hooks
+│   ├── common/
+│   │   ├── __init__.py
+│   │   └── auth.py           # Shared JWT generation, verification & @auth_required decorator
 │   ├── config.py             # Environment configurations (Development, Production, Testing)
 │   ├── extensions.py         # Extension singletons (SQLAlchemy, Migrate)
 │   ├── models/
 │   │   ├── __init__.py
-│   │   └── base.py           # Reusable model mixins (TimestampMixin)
+│   │   ├── base.py           # Base model mixins (TimestampMixin)
+│   │   └── user.py           # User & UserProfile SQLAlchemy models
 │   └── routes/
 │       ├── __init__.py
-│       └── health.py         # Versioned health check endpoint (/api/v1/health)
+│       ├── auth.py           # Authentication routes (register, login, me)
+│       ├── health.py         # Versioned health check endpoint (/api/v1/health)
+│       └── profile.py        # User profile routes (get, update)
 ├── docs/
 │   └── architecture-decisions/
 │       ├── ADR-001-flask-application-factory.md
 │       ├── ADR-002-mysql-sqlalchemy-database-strategy.md
 │       ├── ADR-003-multi-user-data-isolation.md
-│       └── ADR-004-future-memory-architecture.md
+│       ├── ADR-004-future-memory-architecture.md
+│       └── ADR-005-jwt-authentication-strategy.md
+├── migrations/               # Alembic database migration scripts
+│   └── versions/
 ├── tests/
 │   ├── conftest.py           # Test fixtures with isolated SQLite database
 │   ├── unit/
 │   │   └── test_config.py    # Configuration and connection URI tests
 │   └── integration/
-│       └── test_health.py    # Health endpoint, Request ID, and Error handling tests
+│       ├── test_auth.py      # Registration, login, auth context tests
+│       ├── test_health.py    # Health endpoint, Request ID, and Error handling tests
+│       └── test_profile.py   # Profile endpoints & critical multi-user isolation tests
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Git ignore rules
 ├── README.md                 # Project documentation
-├── requirements.txt          # Minimal Phase 1 dependencies
+├── requirements.txt          # Minimal dependencies
 └── run.py                    # Application entry point
 ```
 
 ---
 
-## Implemented vs. Future Capabilities
+## API Endpoints
 
-### Implemented in Phase 1
-- **Flask Application Factory**: Clean separation of app creation and configuration.
-- **Environment-Driven Configuration**: Strict fail-fast configuration for MySQL with zero silent SQLite fallback in development or production.
-- **API Versioning**: Standard `/api/v1` namespace.
-- **Health Check Endpoint**: `GET /api/v1/health` returning service status and version metadata.
-- **Request ID Tracking**: Automatic generation and client propagation of `X-Request-ID` headers for request lifecycle tracing.
-- **Standardized Error Handling**: Uniform JSON error envelopes for HTTP 400, 404, 405, and 500 without leaking stack traces or internal implementation details.
-- **Database Foundation**: `Flask-SQLAlchemy` and `Flask-Migrate` singletons with `TimestampMixin`.
-- **Isolated Testing Suite**: Pytest configuration running against isolated in-memory SQLite (`sqlite:///:memory:`).
+All endpoints are versioned under `/api/v1/`.
 
-### Deferred to Future Phases
-- **Domain Database Models**: User, Company, ResearchReport, Watchlist, Conversation, Memory tables.
-- **User Authentication**: JWT authentication, registration, login, and tenant access controls.
-- **Multi-Agent Orchestration**: CrewAI research workflows and specialized agent roles.
-- **LLM Reasoning**: Gemini API integration and structured prompt pipelines.
-- **Vector Memory**: Supabase / PostgreSQL + `pgvector` semantic storage and RAG retrieval.
-- **Financial Ingestion & Visualizations**: Market data feeds, scrapers, financial scorecards, and charts.
+| Method | Endpoint | Auth Required | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/health` | No | Service health check |
+| `POST` | `/api/v1/auth/register` | No | Register a new user and profile |
+| `POST` | `/api/v1/auth/login` | No | Authenticate credentials and receive JWT |
+| `GET` | `/api/v1/auth/me` | Yes (`Bearer <token>`) | Get current authenticated user details |
+| `GET` | `/api/v1/profile` | Yes (`Bearer <token>`) | Retrieve current user's profile |
+| `PUT` | `/api/v1/profile` | Yes (`Bearer <token>`) | Update current user's profile |
 
 ---
 
@@ -114,11 +125,17 @@ Copy `.env.example` to `.env` and configure your MySQL database credentials:
 cp .env.example .env
 ```
 
-Edit `.env` with your MySQL details:
+Edit `.env` with your settings:
 ```ini
 FLASK_ENV=development
 DATABASE_URL=mysql+pymysql://aira_user:aira_password@localhost:3306/aira_db
-# Or specify individual parameters (MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD)
+JWT_SECRET_KEY=your-secure-jwt-secret-key
+JWT_ACCESS_TOKEN_EXPIRES_SECONDS=86400
+```
+
+### 5. Run Database Migrations
+```bash
+flask db upgrade
 ```
 
 ---
@@ -130,20 +147,6 @@ Start the Flask development server:
 python run.py
 ```
 
-Verify the health check endpoint:
-```bash
-curl http://127.0.0.1:5000/api/v1/health
-```
-
-Expected response:
-```json
-{
-  "status": "ok",
-  "service": "AIRA",
-  "version": "0.1.0"
-}
-```
-
 ---
 
 ## Running Tests
@@ -153,4 +156,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All tests execute against an isolated in-memory SQLite database and never interact with your local MySQL database.
+All tests execute against an isolated in-memory SQLite database (`sqlite:///:memory:`) and never interact with your local MySQL database.
