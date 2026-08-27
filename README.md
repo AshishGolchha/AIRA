@@ -2,21 +2,21 @@
 
 ## Project Vision
 
-AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, and deterministic risk/event alerts.
+AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, and automated monitoring.
 
 ---
 
 ## Current Phase
 
-**Phase 10 — Portfolio & Watchlist Alerts Foundation**
+**Phase 11 — Automated Alert Monitoring & Notification Foundation**
 
-Phase 10 establishes the deterministic alert detection and management foundation across user portfolios and watchlists:
-- **Alert Data Model (`Alert`)**: Tracks user-scoped alerts with typed categories (`price_move`, `portfolio_gain`, `portfolio_loss`, `watchlist_move`, `data_quality`), severity levels (`info`, `warning`, `critical`), structured verified `facts`, source metadata provenance, and read/dismissed statuses.
-- **Deterministic Alert Detection Engine (`AlertService`)**: Evaluates portfolio holdings and watchlist items against configurable thresholds (daily price swings, unrealized gain/loss breaches, missing live market quotes) using deterministic Python logic. Zero numerical calculations are performed by LLMs.
-- **Idempotency & Duplicate Prevention**: Automatically prevents duplicate alert flooding by checking active non-dismissed alerts for `(user_id, symbol, alert_type)`.
-- **User-Scoped Alert Management REST APIs**: Endpoints for running alert checks (`POST /api/v1/alerts/check`), listing alerts with pagination and unread/dismissed filters (`GET /api/v1/alerts`), single alert inspection (`GET /api/v1/alerts/<id>`), marking as read (`PUT /api/v1/alerts/<id>/read`), and dismissing (`PUT /api/v1/alerts/<id>/dismiss`).
-- **Strict Multi-Tenant Isolation**: All alert queries and mutations filter strictly by `WHERE id = :id AND user_id = g.current_user.id`, returning `404 Not Found` for cross-user requests to eliminate ID enumeration.
-- *Note: Background notification delivery (email, SMS, WhatsApp, Celery, push notifications) and broker/trading execution are intentionally deferred to future phases.*
+Phase 11 establishes the automated monitoring orchestration and notification delivery foundation across eligible user accounts:
+- **Automated Monitoring Service (`MonitoringService`)**: Discovers eligible users (`User.alerts_enabled = True`) and executes batch alert checks with strict per-user transaction isolation (`db.session.rollback()` on user failure). One user's error never halts the monitoring run.
+- **Monitoring Run Tracking (`AlertMonitoringRun`)**: Records execution statistics (`status`, `users_checked`, `users_succeeded`, `users_failed`, `alerts_generated`, `error_summary`, `started_at`, `completed_at`).
+- **Decoupled Notification Abstraction (`NotificationService` & `BaseNotificationProvider`)**: Decouples alert detection from notification delivery. Provides channel-level idempotency via a `UNIQUE(alert_id, channel)` constraint on `NotificationDelivery` to eliminate duplicate notification attempts.
+- **Default In-App Delivery Channel (`InAppNotificationProvider`)**: Serves as the foundational notification provider, establishing the exact interface for future channels (Email, SMS, Mobile Push) without altering alert detection rules.
+- **Deterministic Math & Zero LLM Alert Generation**: All alert triggers (price moves, gain/loss thresholds, data quality missing quotes) are evaluated deterministically in Python. Zero LLM involvement in numerical rule decisions.
+- **Strict Multi-Tenant Security**: Automated monitoring resolves user IDs directly from database query of eligible users. Client-controlled IDs can never trigger or influence batch monitoring.
 
 ---
 
@@ -44,13 +44,15 @@ AIRA/
 │   ├── common/
 │   │   ├── __init__.py
 │   │   └── auth.py           # Shared JWT generation, verification & @auth_required decorator
-│   ├── config.py             # Environment configurations & alert thresholds
+│   ├── config.py             # Environment configurations, alert thresholds, & monitoring settings
 │   ├── extensions.py         # Extension singletons (SQLAlchemy, Migrate)
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── alert.py          # Alert persistent SQLAlchemy model
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
 │   │   ├── financial.py      # Normalized research dataclasses, ResearchReport, & PortfolioIntelligenceReport
+│   │   ├── monitoring.py     # AlertMonitoringRun execution tracking model
+│   │   ├── notification.py   # NotificationDelivery delivery tracking model
 │   │   ├── portfolio.py      # PortfolioHolding persistent SQLAlchemy model
 │   │   ├── research.py       # ResearchRecord persistent SQLAlchemy model
 │   │   ├── user.py           # User & UserProfile SQLAlchemy models
@@ -74,6 +76,12 @@ AIRA/
 │       ├── alert_service.py     # Deterministic alert detection engine & management
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
+│       ├── monitoring_service.py # Automated batch alert monitoring orchestrator
+│       ├── notifications/
+│       │   ├── __init__.py      # Notification layer export
+│       │   ├── base.py          # BaseNotificationProvider interface
+│       │   ├── in_app.py        # InAppNotificationProvider implementation
+│       │   └── service.py       # NotificationService with delivery tracking & idempotency
 │       ├── portfolio_intelligence_service.py # Orchestrator for personalized portfolio & watchlist intelligence
 │       ├── portfolio_service.py # Portfolio holding management & valuation calculation
 │       ├── research_service.py  # Research pipeline orchestrator with persistence
@@ -97,13 +105,15 @@ AIRA/
 │       ├── ADR-010-research-persistence-and-history.md
 │       ├── ADR-011-user-watchlist-and-portfolio-foundation.md
 │       ├── ADR-012-personalized-portfolio-intelligence.md
-│       └── ADR-013-alert-detection-and-monitoring-foundation.md
+│       ├── ADR-013-alert-detection-and-monitoring-foundation.md
+│       └── ADR-014-automated-alert-monitoring-and-notification-foundation.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
 │       ├── 0002_create_research_records.py
 │       ├── 0003_create_watchlist_and_portfolio.py
-│       └── 0004_create_alerts.py
+│       ├── 0004_create_alerts.py
+│       └── 0005_create_monitoring_and_notifications.py
 ├── supabase/                 # Supabase pgvector schema and migration scripts
 │   └── migrations/
 │       └── 001_create_user_memories.sql
@@ -117,6 +127,8 @@ AIRA/
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
 │   │   ├── test_financial_service.py  # Financial service & caching unit tests
 │   │   ├── test_memory_service.py     # Memory service unit tests
+│   │   ├── test_monitoring_service.py # MonitoringService batch & isolation tests
+│   │   ├── test_notification_service.py # NotificationService idempotency & delivery tests
 │   │   ├── test_portfolio_intelligence_service.py # Portfolio intelligence unit tests
 │   │   ├── test_portfolio_model.py    # PortfolioHolding model unit tests
 │   │   ├── test_portfolio_service.py  # PortfolioService calculation unit tests
@@ -130,6 +142,7 @@ AIRA/
 │       ├── test_auth.py              # Registration, login, auth context tests
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
+│       ├── test_monitoring.py        # Automated batch monitoring integration & idempotency tests
 │       ├── test_portfolio.py         # Portfolio CRUD, snapshot calculations, and isolation tests
 │       ├── test_portfolio_intelligence.py # Portfolio intelligence endpoint & personalization tests
 │       ├── test_profile.py           # Profile endpoints & multi-user isolation tests
@@ -237,9 +250,11 @@ GEMINI_API_KEY=your-gemini-api-key
 GEMINI_LLM_MODEL=gemini/gemini-2.0-flash
 GEMINI_EMBEDDING_MODEL=gemini-embedding-2
 
-# Alert Thresholds (Optional)
+# Alert & Monitoring Thresholds (Optional)
 ALERT_PRICE_MOVE_THRESHOLD_PERCENT=5.0
 ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT=10.0
+ALERT_MONITORING_ENABLED=true
+NOTIFICATION_ENABLED=true
 ```
 
 ### 5. Run Database Migrations
@@ -252,11 +267,17 @@ ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT=10.0
 
 ---
 
-## Running the Application
+## Running Automated Monitoring
+To execute an automated alert monitoring run from a CLI, background script, or scheduler:
+```python
+from app import create_app
+from app.services.monitoring_service import MonitoringService
 
-Start the Flask development server:
-```bash
-python run.py
+app = create_app()
+with app.app_context():
+    service = MonitoringService()
+    results = service.run_alert_monitoring()
+    print("Monitoring Run Stats:", results)
 ```
 
 ---
@@ -268,4 +289,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 120 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 131 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.

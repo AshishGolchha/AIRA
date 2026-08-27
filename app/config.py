@@ -48,9 +48,11 @@ class BaseConfig:
     JWT_ACCESS_TOKEN_EXPIRES_SECONDS = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_SECONDS", "86400"))
     CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "")
 
-    # Alert Thresholds
+    # Alert & Monitoring Configuration
     ALERT_PRICE_MOVE_THRESHOLD_PERCENT = float(os.getenv("ALERT_PRICE_MOVE_THRESHOLD_PERCENT", "5.0"))
     ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT = float(os.getenv("ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT", "10.0"))
+    ALERT_MONITORING_ENABLED = os.getenv("ALERT_MONITORING_ENABLED", "true").lower() in ("true", "1")
+    NOTIFICATION_ENABLED = os.getenv("NOTIFICATION_ENABLED", "true").lower() in ("true", "1")
 
 
 class DevelopmentConfig(BaseConfig):

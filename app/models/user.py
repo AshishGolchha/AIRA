@@ -11,6 +11,7 @@ class User(TimestampMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    alerts_enabled = db.Column(db.Boolean, nullable=False, default=True)
 
     # 1-to-1 relationship with UserProfile
     profile = db.relationship(
@@ -52,9 +53,10 @@ class User(TimestampMixin, db.Model):
         order_by="desc(Alert.created_at)",
     )
 
-    def __init__(self, email: str, **kwargs):
+    def __init__(self, email: str, alerts_enabled: bool = True, **kwargs):
         super().__init__(**kwargs)
         self.email = email
+        self.alerts_enabled = alerts_enabled
 
     def set_password(self, password: str) -> None:
         """Hashes and sets the user's password."""
@@ -69,6 +71,7 @@ class User(TimestampMixin, db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "alerts_enabled": self.alerts_enabled,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "profile": self.profile.to_dict() if self.profile else None,
         }

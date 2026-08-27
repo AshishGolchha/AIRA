@@ -12,6 +12,8 @@ from app.models.financial import (
     ResearchReport,
     SourceMetadata,
 )
+from app.models.monitoring import AlertMonitoringRun
+from app.models.notification import NotificationDelivery
 from app.models.portfolio import PortfolioHolding
 from app.models.research import ResearchRecord
 from app.models.user import User, UserProfile
@@ -19,12 +21,14 @@ from app.models.watchlist import WatchlistItem
 
 __all__ = [
     "Alert",
+    "AlertMonitoringRun",
     "CompanyProfile",
     "FinancialStatement",
     "HistoricalPrices",
     "KeyMetrics",
     "MarketQuote",
     "NewsArticle",
+    "NotificationDelivery",
     "PortfolioHolding",
     "PortfolioIntelligenceReport",
     "PricePoint",
