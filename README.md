@@ -2,21 +2,22 @@
 
 ## Project Vision
 
-AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, and automated monitoring.
+AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, deterministic alerts, automated monitoring, and multi-channel external notification delivery.
 
 ---
 
 ## Current Phase
 
-**Phase 11 — Automated Alert Monitoring & Notification Foundation**
+**Phase 12 — External Notification Delivery & User Preferences**
 
-Phase 11 establishes the automated monitoring orchestration and notification delivery foundation across eligible user accounts:
-- **Automated Monitoring Service (`MonitoringService`)**: Discovers eligible users (`User.alerts_enabled = True`) and executes batch alert checks with strict per-user transaction isolation (`db.session.rollback()` on user failure). One user's error never halts the monitoring run.
-- **Monitoring Run Tracking (`AlertMonitoringRun`)**: Records execution statistics (`status`, `users_checked`, `users_succeeded`, `users_failed`, `alerts_generated`, `error_summary`, `started_at`, `completed_at`).
-- **Decoupled Notification Abstraction (`NotificationService` & `BaseNotificationProvider`)**: Decouples alert detection from notification delivery. Provides channel-level idempotency via a `UNIQUE(alert_id, channel)` constraint on `NotificationDelivery` to eliminate duplicate notification attempts.
-- **Default In-App Delivery Channel (`InAppNotificationProvider`)**: Serves as the foundational notification provider, establishing the exact interface for future channels (Email, SMS, Mobile Push) without altering alert detection rules.
-- **Deterministic Math & Zero LLM Alert Generation**: All alert triggers (price moves, gain/loss thresholds, data quality missing quotes) are evaluated deterministically in Python. Zero LLM involvement in numerical rule decisions.
-- **Strict Multi-Tenant Security**: Automated monitoring resolves user IDs directly from database query of eligible users. Client-controlled IDs can never trigger or influence batch monitoring.
+Phase 12 establishes multi-channel external notification delivery and user preference management:
+- **User Notification Preferences (`NotificationPreference`)**: 1-to-1 relationship with `User` supporting per-channel toggles (`in_app_enabled`, `email_enabled`, `webhook_enabled`), minimum severity filters (`info`, `warning`, `critical`), and optional alert type whitelisting.
+- **Notification Endpoints (`NotificationEndpoint`)**: Configurable webhook destinations with optional HMAC SHA-256 request signing (`X-AIRA-Signature`).
+- **SSRF & Network Protections**: Webhook endpoints enforce HTTPS URLs and block private, loopback, link-local, and cloud metadata IP ranges (`127.0.0.1`, `localhost`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `169.254.169.254`) along with invalid URL schemes (`file:`, `javascript:`, `data:`).
+- **External Email Delivery (`EmailNotificationProvider`)**: Decoupled email alert delivery formatting verified facts, sources, and severity metadata into plain text and HTML emails.
+- **External Webhook Delivery (`WebhookNotificationProvider`)**: Dispatches structured JSON payloads with strict network timeouts and isolated error handling.
+- **Multi-Channel Dispatch & Idempotency (`NotificationService`)**: Routes alerts across all enabled channels according to user preferences. Preserves database-level idempotency via `UNIQUE(alert_id, channel)` to prevent duplicate notification spam across repeated scheduled monitoring runs.
+- **Notification Management REST APIs**: Full CRUD endpoints for preferences (`/preferences`), webhook endpoints (`/endpoints`), and delivery history (`/deliveries`).
 
 ---
 
@@ -44,7 +45,7 @@ AIRA/
 │   ├── common/
 │   │   ├── __init__.py
 │   │   └── auth.py           # Shared JWT generation, verification & @auth_required decorator
-│   ├── config.py             # Environment configurations, alert thresholds, & monitoring settings
+│   ├── config.py             # Environment configurations, alert thresholds, & notification settings
 │   ├── extensions.py         # Extension singletons (SQLAlchemy, Migrate)
 │   ├── models/
 │   │   ├── __init__.py
@@ -53,6 +54,8 @@ AIRA/
 │   │   ├── financial.py      # Normalized research dataclasses, ResearchReport, & PortfolioIntelligenceReport
 │   │   ├── monitoring.py     # AlertMonitoringRun execution tracking model
 │   │   ├── notification.py   # NotificationDelivery delivery tracking model
+│   │   ├── notification_endpoint.py   # NotificationEndpoint webhook model
+│   │   ├── notification_preference.py # NotificationPreference user preferences model
 │   │   ├── portfolio.py      # PortfolioHolding persistent SQLAlchemy model
 │   │   ├── research.py       # ResearchRecord persistent SQLAlchemy model
 │   │   ├── user.py           # User & UserProfile SQLAlchemy models
@@ -63,6 +66,7 @@ AIRA/
 │   │   ├── auth.py           # Authentication routes (register, login, me)
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
+│   │   ├── notifications.py  # Notification routes (preferences, endpoints, deliveries)
 │   │   ├── portfolio.py      # Portfolio holdings CRUD, valuation snapshot, & intelligence endpoints
 │   │   ├── profile.py        # User profile routes (get, update)
 │   │   ├── research.py       # Research routes (analyze, history, profile, quote, history, financials, news, search)
@@ -80,8 +84,10 @@ AIRA/
 │       ├── notifications/
 │       │   ├── __init__.py      # Notification layer export
 │       │   ├── base.py          # BaseNotificationProvider interface
+│       │   ├── email.py         # EmailNotificationProvider implementation
 │       │   ├── in_app.py        # InAppNotificationProvider implementation
-│       │   └── service.py       # NotificationService with delivery tracking & idempotency
+│       │   ├── service.py       # NotificationService with multi-channel dispatch & filtering
+│       │   └── webhook.py       # WebhookNotificationProvider with SSRF defense & HMAC signing
 │       ├── portfolio_intelligence_service.py # Orchestrator for personalized portfolio & watchlist intelligence
 │       ├── portfolio_service.py # Portfolio holding management & valuation calculation
 │       ├── research_service.py  # Research pipeline orchestrator with persistence
@@ -106,14 +112,16 @@ AIRA/
 │       ├── ADR-011-user-watchlist-and-portfolio-foundation.md
 │       ├── ADR-012-personalized-portfolio-intelligence.md
 │       ├── ADR-013-alert-detection-and-monitoring-foundation.md
-│       └── ADR-014-automated-alert-monitoring-and-notification-foundation.md
+│       ├── ADR-014-automated-alert-monitoring-and-notification-foundation.md
+│       └── ADR-015-external-notification-delivery-and-preferences.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
 │       ├── 0002_create_research_records.py
 │       ├── 0003_create_watchlist_and_portfolio.py
 │       ├── 0004_create_alerts.py
-│       └── 0005_create_monitoring_and_notifications.py
+│       ├── 0005_create_monitoring_and_notifications.py
+│       └── 0006_create_notification_preferences_and_endpoints.py
 ├── supabase/                 # Supabase pgvector schema and migration scripts
 │   └── migrations/
 │       └── 001_create_user_memories.sql
@@ -123,19 +131,22 @@ AIRA/
 │   │   ├── test_ai_tools.py          # CrewAI financial tools unit tests
 │   │   ├── test_alert_service.py     # Alert detection rules & CRUD unit tests
 │   │   ├── test_config.py            # Configuration and connection URI tests
+│   │   ├── test_email_notification_provider.py # Email provider formatting & dispatch tests
 │   │   ├── test_embedding_service.py # Embedding service unit tests
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
 │   │   ├── test_financial_service.py  # Financial service & caching unit tests
 │   │   ├── test_memory_service.py     # Memory service unit tests
 │   │   ├── test_monitoring_service.py # MonitoringService batch & isolation tests
-│   │   ├── test_notification_service.py # NotificationService idempotency & delivery tests
+│   │   ├── test_notification_preference_model.py # Preference & endpoint model unit tests
+│   │   ├── test_notification_service.py # NotificationService filtering, idempotency, & multi-channel tests
 │   │   ├── test_portfolio_intelligence_service.py # Portfolio intelligence unit tests
 │   │   ├── test_portfolio_model.py    # PortfolioHolding model unit tests
 │   │   ├── test_portfolio_service.py  # PortfolioService calculation unit tests
 │   │   ├── test_research_model.py     # ResearchRecord model unit tests
 │   │   ├── test_research_service.py   # Research orchestration service unit tests
 │   │   ├── test_watchlist_model.py    # WatchlistItem model unit tests
-│   │   └── test_watchlist_service.py  # WatchlistService unit tests
+│   │   ├── test_watchlist_service.py  # WatchlistService unit tests
+│   │   └── test_webhook_notification_provider.py # Webhook payload, SSRF checks, & HMAC signing tests
 │   └── integration/
 │       ├── test_ai_research.py       # AI research workflow, facts grounding, & personalization tests
 │       ├── test_alerts.py            # Alerts check, list, get, read, dismiss & isolation tests
@@ -143,6 +154,9 @@ AIRA/
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
 │       ├── test_monitoring.py        # Automated batch monitoring integration & idempotency tests
+│       ├── test_notification_endpoints.py # Webhook endpoints CRUD, SSRF validation, and isolation tests
+│       ├── test_notification_preferences.py # Notification preferences API & isolation tests
+│       ├── test_notifications.py     # Multi-channel notification delivery & history tests
 │       ├── test_portfolio.py         # Portfolio CRUD, snapshot calculations, and isolation tests
 │       ├── test_portfolio_intelligence.py # Portfolio intelligence endpoint & personalization tests
 │       ├── test_profile.py           # Profile endpoints & multi-user isolation tests
@@ -191,6 +205,13 @@ All endpoints are versioned under `/api/v1/`.
 | `GET` | `/api/v1/alerts/<id>` | Yes (`Bearer <token>`) | Retrieve a single alert (404 if not owned) |
 | `PUT` | `/api/v1/alerts/<id>/read` | Yes (`Bearer <token>`) | Mark alert as read |
 | `PUT` | `/api/v1/alerts/<id>/dismiss` | Yes (`Bearer <token>`) | Dismiss alert |
+| `GET` | `/api/v1/notifications/preferences` | Yes (`Bearer <token>`) | Retrieve user notification preferences |
+| `PUT` | `/api/v1/notifications/preferences` | Yes (`Bearer <token>`) | Update user notification preferences |
+| `GET` | `/api/v1/notifications/endpoints` | Yes (`Bearer <token>`) | List user webhook endpoints |
+| `POST` | `/api/v1/notifications/endpoints` | Yes (`Bearer <token>`) | Create a new webhook notification endpoint |
+| `PUT` | `/api/v1/notifications/endpoints/<id>` | Yes (`Bearer <token>`) | Update a webhook notification endpoint |
+| `DELETE` | `/api/v1/notifications/endpoints/<id>` | Yes (`Bearer <token>`) | Delete a webhook notification endpoint |
+| `GET` | `/api/v1/notifications/deliveries` | Yes (`Bearer <token>`) | List notification delivery history (`?channel=...&status=...`) |
 | `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger evidence-based AI research and persist report |
 | `GET` | `/api/v1/research/history` | Yes (`Bearer <token>`) | List paginated research history summaries |
 | `GET` | `/api/v1/research/history/<id>` | Yes (`Bearer <token>`) | Retrieve a full completed research report |
@@ -255,6 +276,14 @@ ALERT_PRICE_MOVE_THRESHOLD_PERCENT=5.0
 ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT=10.0
 ALERT_MONITORING_ENABLED=true
 NOTIFICATION_ENABLED=true
+
+# External Notification Delivery (Optional)
+NOTIFICATION_EMAIL_ENABLED=false
+NOTIFICATION_EMAIL_PROVIDER=resend
+NOTIFICATION_EMAIL_API_KEY=
+NOTIFICATION_EMAIL_FROM=alerts@aira.internal
+NOTIFICATION_WEBHOOK_ENABLED=true
+NOTIFICATION_WEBHOOK_TIMEOUT_SECONDS=5.0
 ```
 
 ### 5. Run Database Migrations
@@ -289,4 +318,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 131 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 151 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
