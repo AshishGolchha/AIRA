@@ -8,19 +8,18 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 2 — Database Schema, Authentication & User Identity Foundation**
+**Phase 3 — Persistent User Memory Foundation**
 
-Phase 2 builds the user identity and multi-tenant isolation foundation:
-- Domain models: `User` and `UserProfile` with a 1-to-1 relationship and UTC timestamp tracking.
-- Stateless JWT authentication via `PyJWT` with configurable expiration.
-- Secure password hashing using native `werkzeug.security` (scrypt/pbkdf2).
-- Zero client-trust identity resolution via the `@auth_required` decorator (`g.current_user`).
-- User-scoped profile management (`GET` and `PUT` `/api/v1/profile`) with whitelisted field updates.
-- Centralized database migrations via `Flask-Migrate` / `Alembic`.
-- Comprehensive automated tests with multi-tenant isolation verification.
+Phase 3 implements the persistent user-specific memory infrastructure using Supabase PostgreSQL + `pgvector` and Google Gemini vector embeddings (`text-embedding-004`):
+- **User Memory Tier**: Long-term semantic memory storage with HNSW vector indexing.
+- **Strict User Isolation**: All vector searches (`match_user_memories` RPC) and CRUD operations strictly enforce `WHERE user_id = g.current_user.id`.
+- **Vector Embeddings**: 768-dimensional dense vectors generated via `EmbeddingService` wrapping `google-genai`.
+- **Memory Management API**: `/api/v1/memory` endpoints for creating, listing, semantically searching, and deleting memories.
+- **Exact Duplicate Prevention**: Prevents duplicate memory spam per user.
+- **Dual Database Architecture**: MySQL maintains relational user identity and profiles; Supabase manages high-dimensional vector memory.
 
 > **Important Scope Clarification**:
-> Phase 2 establishes user identity, authentication, and database foundation. It does **not** yet implement investment analysis, Gemini LLM reasoning, CrewAI multi-agent orchestration, or vector memory retrieval (Supabase/pgvector).
+> Phase 3 implements persistent memory *infrastructure*. It does **not** yet implement CrewAI multi-agent research orchestration, automated conversation memory extraction, financial data ingestion, or company/global knowledge memory.
 
 ---
 
@@ -29,9 +28,10 @@ Phase 2 builds the user identity and multi-tenant isolation foundation:
 - **Runtime**: Python 3.10+
 - **Web Framework**: Flask 3.x
 - **Authentication & Security**: PyJWT, Werkzeug Security
-- **ORM & Migrations**: SQLAlchemy, Flask-SQLAlchemy, Flask-Migrate (Alembic)
-- **Primary Database**: MySQL (via PyMySQL driver)
-- **Testing**: Pytest (utilizing isolated in-memory SQLite)
+- **Relational Database & Migrations**: MySQL, SQLAlchemy, Flask-SQLAlchemy, Flask-Migrate (Alembic)
+- **Vector Database**: Supabase PostgreSQL + `pgvector`
+- **Embeddings**: Google Gemini API (`text-embedding-004`, 768 dimensions)
+- **Testing**: Pytest (isolated in-memory SQLite + mock vector services)
 - **Configuration**: Python-dotenv
 
 ---
@@ -50,27 +50,39 @@ AIRA/
 │   │   ├── __init__.py
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
 │   │   └── user.py           # User & UserProfile SQLAlchemy models
-│   └── routes/
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── auth.py           # Authentication routes (register, login, me)
+│   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
+│   │   ├── memory.py         # User memory routes (create, list, search, delete)
+│   │   └── profile.py        # User profile routes (get, update)
+│   └── services/
 │       ├── __init__.py
-│       ├── auth.py           # Authentication routes (register, login, me)
-│       ├── health.py         # Versioned health check endpoint (/api/v1/health)
-│       └── profile.py        # User profile routes (get, update)
+│       ├── embedding_service.py # Gemini text-embedding-004 provider
+│       └── memory_service.py    # User-scoped semantic memory service
 ├── docs/
 │   └── architecture-decisions/
 │       ├── ADR-001-flask-application-factory.md
 │       ├── ADR-002-mysql-sqlalchemy-database-strategy.md
 │       ├── ADR-003-multi-user-data-isolation.md
 │       ├── ADR-004-future-memory-architecture.md
-│       └── ADR-005-jwt-authentication-strategy.md
-├── migrations/               # Alembic database migration scripts
+│       ├── ADR-005-jwt-authentication-strategy.md
+│       └── ADR-006-persistent-user-memory-supabase-pgvector.md
+├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
+│       └── 0001_create_users_and_user_profiles.py
+├── supabase/                 # Supabase pgvector schema and migration scripts
+│   └── migrations/
+│       └── 001_create_user_memories.sql
 ├── tests/
 │   ├── conftest.py           # Test fixtures with isolated SQLite database
 │   ├── unit/
-│   │   └── test_config.py    # Configuration and connection URI tests
+│   │   ├── test_config.py    # Configuration and connection URI tests
+│   │   └── test_memory_service.py # Unit tests for memory and embedding services
 │   └── integration/
 │       ├── test_auth.py      # Registration, login, auth context tests
 │       ├── test_health.py    # Health endpoint, Request ID, and Error handling tests
+│       ├── test_memory.py    # Memory CRUD, vector search, and isolation tests
 │       └── test_profile.py   # Profile endpoints & critical multi-user isolation tests
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Git ignore rules
@@ -93,6 +105,10 @@ All endpoints are versioned under `/api/v1/`.
 | `GET` | `/api/v1/auth/me` | Yes (`Bearer <token>`) | Get current authenticated user details |
 | `GET` | `/api/v1/profile` | Yes (`Bearer <token>`) | Retrieve current user's profile |
 | `PUT` | `/api/v1/profile` | Yes (`Bearer <token>`) | Update current user's profile |
+| `POST` | `/api/v1/memory` | Yes (`Bearer <token>`) | Store a new user memory and vector embedding |
+| `GET` | `/api/v1/memory` | Yes (`Bearer <token>`) | List recent memories for authenticated user |
+| `GET` | `/api/v1/memory/search` | Yes (`Bearer <token>`) | Semantic vector search (`?q=...&limit=...`) |
+| `DELETE` | `/api/v1/memory/<id>` | Yes (`Bearer <token>`) | Delete a memory owned by authenticated user |
 
 ---
 
@@ -120,7 +136,7 @@ pip install -r requirements.txt
 ```
 
 ### 4. Configure Environment Variables
-Copy `.env.example` to `.env` and configure your MySQL database credentials:
+Copy `.env.example` to `.env` and configure your credentials:
 ```bash
 cp .env.example .env
 ```
@@ -131,12 +147,23 @@ FLASK_ENV=development
 DATABASE_URL=mysql+pymysql://aira_user:aira_password@localhost:3306/aira_db
 JWT_SECRET_KEY=your-secure-jwt-secret-key
 JWT_ACCESS_TOKEN_EXPIRES_SECONDS=86400
+
+# Supabase (pgvector memory)
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+
+# Gemini API (Embeddings)
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_EMBEDDING_MODEL=text-embedding-004
 ```
 
 ### 5. Run Database Migrations
-```bash
-flask db upgrade
-```
+- **MySQL Migrations**:
+  ```bash
+  flask db upgrade
+  ```
+- **Supabase pgvector Schema**:
+  Execute `supabase/migrations/001_create_user_memories.sql` in the Supabase SQL Editor.
 
 ---
 
@@ -156,4 +183,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All tests execute against an isolated in-memory SQLite database (`sqlite:///:memory:`) and never interact with your local MySQL database.
+All 37 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock vector services.
