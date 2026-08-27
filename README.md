@@ -8,20 +8,14 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 5 — AI Research Agent & Research Crew Foundation**
+**Phase 6 — Evidence-Based Research Workflow & Reliable Research Output**
 
-Phase 5 establishes AIRA's first autonomous multi-agent research pipeline using **CrewAI** and **Google Gemini** (`gemini/gemini-2.0-flash`):
-- **Sequential Multi-Agent Research Crew**:
-  1. **Financial Researcher**: Collects live quotes, company profiles, historical trends, fundamental statements, key metrics, and news using CrewAI tools.
-  2. **Investment Analyst**: Analyzes valuation multiples (P/E, P/B), operational margins, balance sheet health, competitive moats, and risk factors.
-  3. **Research Synthesizer**: Produces executive-level structured JSON reports (`ResearchReport`), tailored to the authenticated user's investment preferences.
-- **Single Source of Truth for Financials**: CrewAI tools wrap the existing [FinancialDataService](file:///d:/projects/AIRA/app/services/financial/service.py) (zero direct yfinance duplication).
-- **Personalized Context Injection**: Reuses [MemoryService](file:///d:/projects/AIRA/app/services/memory_service.py) to semantically retrieve user investment preferences strictly scoped to `g.current_user.id`.
-- **Protected Analysis Endpoint**: `POST /api/v1/research/analyze` protected by `@auth_required` with zero client `user_id` trust.
-- **Verifiable Provenance**: Reports attach verified `SourceMetadata` without fabricating citations.
-
-> **Important Scope Clarification**:
-> Phase 5 implements the multi-agent research intelligence workflow. It does **not** yet implement automated order execution, brokerage integration, streaming websockets, or the frontend user interface.
+Phase 6 hardens AIRA's multi-agent research pipeline into a traceable, evidence-grounded intelligence system:
+- **Fact vs. Analysis Separation**: The structured output explicitly isolates verified `facts` (provided directly from `FinancialDataService`) from AI analytical interpretations (`fundamentals`, `valuation`, `market_context`, `risks`, `opportunities`).
+- **Elimination of Fabricated Fallbacks**: Removed silent fallback behavior that previously manufactured generic claims upon unparseable LLM output. Malformed AI responses fail safely with a standardized error response (`INTERNAL_SERVER_ERROR`).
+- **Verified Source Provenance**: `sources` in `ResearchReport` is assembled strictly from verified `SourceMetadata` entries attached to actual financial entities, barring the LLM from inventing citations or URLs.
+- **Pre-Fetched Factual Context**: Ground-truth financials are pre-fetched and injected directly into agent reasoning tasks, minimizing numerical hallucinations.
+- **Strict Multi-Tenant Isolation**: Memory personalization continues to resolve strictly from `g.current_user.id` (JWT), rejecting client-supplied `user_id` parameters.
 
 ---
 
@@ -54,7 +48,7 @@ AIRA/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
-│   │   ├── financial.py      # Normalized research dataclasses & ResearchReport
+│   │   ├── financial.py      # Normalized research dataclasses & ResearchReport (with facts & sources)
 │   │   └── user.py           # User & UserProfile SQLAlchemy models
 │   ├── routes/
 │   │   ├── __init__.py
@@ -71,7 +65,7 @@ AIRA/
 │       │   └── tools.py      # CrewAI tools wrapping FinancialDataService
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
-│       ├── research_service.py  # Research pipeline orchestrator (Memory + Financials + CrewAI)
+│       ├── research_service.py  # Evidence-grounded research pipeline orchestrator
 │       └── financial/
 │           ├── __init__.py
 │           ├── base.py       # BaseFinancialProvider abstract interface
@@ -86,7 +80,8 @@ AIRA/
 │       ├── ADR-005-jwt-authentication-strategy.md
 │       ├── ADR-006-persistent-user-memory-supabase-pgvector.md
 │       ├── ADR-007-financial-data-provider-architecture.md
-│       └── ADR-008-ai-research-agent-crewai-architecture.md
+│       ├── ADR-008-ai-research-agent-crewai-architecture.md
+│       └── ADR-009-evidence-based-research-workflow.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       └── 0001_create_users_and_user_profiles.py
@@ -104,7 +99,7 @@ AIRA/
 │   │   ├── test_memory_service.py     # Memory service unit tests
 │   │   └── test_research_service.py   # Research orchestration service unit tests
 │   └── integration/
-│       ├── test_ai_research.py       # AI research workflow & personalization integration tests
+│       ├── test_ai_research.py       # AI research workflow, facts grounding, & personalization tests
 │       ├── test_auth.py              # Registration, login, auth context tests
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
@@ -135,7 +130,7 @@ All endpoints are versioned under `/api/v1/`.
 | `GET` | `/api/v1/memory` | Yes (`Bearer <token>`) | List recent memories for authenticated user |
 | `GET` | `/api/v1/memory/search` | Yes (`Bearer <token>`) | Semantic vector search (`?q=...&limit=...`) |
 | `DELETE` | `/api/v1/memory/<id>` | Yes (`Bearer <token>`) | Delete a memory owned by authenticated user |
-| `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger AI multi-agent research on a company/symbol |
+| `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger evidence-based AI research on a company/symbol |
 | `GET` | `/api/v1/research/search` | Yes (`Bearer <token>`) | Resolve company name to ticker symbol (`?q=...`) |
 | `GET` | `/api/v1/research/company/<symbol>` | Yes (`Bearer <token>`) | Retrieve company overview & business summary |
 | `GET` | `/api/v1/research/company/<symbol>/quote` | Yes (`Bearer <token>`) | Retrieve latest price quote, day range, & volume |
@@ -218,4 +213,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 63 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 66 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.

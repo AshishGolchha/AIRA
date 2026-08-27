@@ -76,3 +76,27 @@ def test_yfinance_provider_empty_symbol():
     provider = YFinanceProvider()
     with pytest.raises(ValueError, match="cannot be empty"):
         provider.get_company_profile("")
+
+
+def test_research_report_to_dict():
+    """Verify ResearchReport serialization includes facts and sources."""
+    from app.models.financial import ResearchReport
+
+    report = ResearchReport(
+        company="NVIDIA Corporation",
+        symbol="NVDA",
+        summary="Executive research summary.",
+        facts={"current_price": 150.0, "pe_ratio": 25.0},
+        fundamentals="Solid balance sheet.",
+        valuation="Fair multiples.",
+        market_context="Bullish trend.",
+        risks=["Supply chain"],
+        opportunities=["AI expansion"],
+        user_context="Tech focus",
+        sources=[{"provider": "yfinance", "symbol": "NVDA"}],
+    )
+    d = report.to_dict()
+    assert d["company"] == "NVIDIA Corporation"
+    assert d["facts"]["current_price"] == 150.0
+    assert d["facts"]["pe_ratio"] == 25.0
+    assert len(d["sources"]) == 1
