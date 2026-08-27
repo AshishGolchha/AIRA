@@ -2,6 +2,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 
 from app.common.auth import auth_required
 from app.services.financial import FinancialDataService
+from app.services.portfolio_intelligence_service import PortfolioIntelligenceService
 from app.services.portfolio_service import PortfolioService
 
 portfolio_bp = Blueprint("portfolio", __name__, url_prefix="/api/v1/portfolio")
@@ -13,6 +14,24 @@ def _get_portfolio_service() -> PortfolioService:
         return current_app.extensions["portfolio_service"]
     fin_service = current_app.extensions.get("financial_service") or FinancialDataService()
     return PortfolioService(financial_service=fin_service)
+
+
+def _get_portfolio_intelligence_service() -> PortfolioIntelligenceService:
+    """Returns portfolio intelligence service instance, allowing test overrides via app.extensions."""
+    if "portfolio_intelligence_service" in current_app.extensions:
+        return current_app.extensions["portfolio_intelligence_service"]
+    fin_service = current_app.extensions.get("financial_service") or FinancialDataService()
+    pf_service = current_app.extensions.get("portfolio_service")
+    wl_service = current_app.extensions.get("watchlist_service")
+    mem_service = current_app.extensions.get("memory_service")
+    res_service = current_app.extensions.get("research_service")
+    return PortfolioIntelligenceService(
+        portfolio_service=pf_service,
+        watchlist_service=wl_service,
+        financial_service=fin_service,
+        memory_service=mem_service,
+        research_service=res_service,
+    )
 
 
 def _handle_service_error(e: Exception):
@@ -229,6 +248,29 @@ def get_portfolio_snapshot():
             "success": True,
             "data": {
                 "snapshot": snapshot,
+            },
+        }), 200
+    except Exception as e:
+        return _handle_service_error(e)
+
+
+@portfolio_bp.post("/intelligence")
+@auth_required
+def get_portfolio_intelligence():
+    """Generate personalized portfolio and watchlist intelligence report for authenticated user."""
+    data = request.get_json(silent=True) or {}
+    query = data.get("query")
+
+    service = _get_portfolio_intelligence_service()
+    try:
+        intelligence = service.run_portfolio_intelligence(
+            user_id=g.current_user.id,
+            query=query,
+        )
+        return jsonify({
+            "success": True,
+            "data": {
+                "intelligence": intelligence,
             },
         }), 200
     except Exception as e:

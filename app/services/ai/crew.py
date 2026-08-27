@@ -116,3 +116,99 @@ def create_research_crew(
         process=Process.sequential,
         verbose=False,
     )
+
+
+def create_portfolio_intelligence_crew(
+    financial_service: FinancialDataService,
+    query: str,
+    portfolio_context: list[dict[str, Any]],
+    watchlist_context: list[dict[str, Any]],
+    user_context: str = "",
+    facts: dict[str, Any] | None = None,
+    llm: LLM | None = None,
+) -> Crew:
+    """Builds a sequential 3-agent research crew for personalized portfolio and watchlist intelligence."""
+    active_llm = llm or get_crewai_llm()
+    portfolio_json = json.dumps(portfolio_context or [])
+    watchlist_json = json.dumps(watchlist_context or [])
+    facts_json = json.dumps(facts or {})
+
+    # 1. Portfolio & Watchlist Discovery Specialist
+    researcher = Agent(
+        role="Senior Portfolio & Asset Discovery Specialist",
+        goal="Review verified portfolio holdings, deterministic valuations, and watchlist facts without fabricating numbers.",
+        backstory=(
+            "You are an institutional portfolio research analyst. You review verified holding allocations, "
+            "cost bases, market values, and watchlist securities strictly based on verified evidence."
+        ),
+        llm=active_llm,
+        verbose=False,
+    )
+
+    # 2. Portfolio Strategy & Risk Analyst
+    analyst = Agent(
+        role="Quantitative Portfolio Risk & Opportunity Analyst",
+        goal="Evaluate concentration, asset health, risk exposures, and watchlist opportunities grounded strictly in verified evidence.",
+        backstory=(
+            "You are a seasoned portfolio strategist. You critically analyze concentration risks, "
+            "fundamental asset valuations, and potential catalysts across holdings and watchlist items."
+        ),
+        llm=active_llm,
+        verbose=False,
+    )
+
+    # 3. Personalized Intelligence Synthesizer
+    synthesizer = Agent(
+        role="Principal Personalized Investment Intelligence Strategist",
+        goal=f"Synthesize comprehensive portfolio intelligence tailored to user preferences: '{user_context}'.",
+        backstory=(
+            "You are a chief investment strategist. You produce structured, actionable intelligence "
+            "reports linking portfolio facts, watchlist priorities, and user risk preferences without inventing numbers."
+        ),
+        llm=active_llm,
+        verbose=False,
+    )
+
+    task_gather = Task(
+        description=(
+            f"Review verified portfolio holdings data and watchlist items:\n"
+            f"Portfolio Holdings & Valuation: {portfolio_json}\n"
+            f"Watchlist Items & Quotes: {watchlist_json}\n"
+            f"Verified Market Facts: {facts_json}\n"
+            f"Extract factual areas of concentration, valuation divergences, and data coverage."
+        ),
+        expected_output="Structured factual collection of portfolio and watchlist allocations.",
+        agent=researcher,
+    )
+
+    task_analyze = Task(
+        description=(
+            f"Analyze the portfolio holdings and watchlist items:\n"
+            f"1. Identify concentration risks and asset allocation vulnerabilities.\n"
+            f"2. Assess valuation multiples, profitability trends, and balance sheet health across holdings.\n"
+            f"3. Compare watchlist securities against portfolio needs and user investment preferences.\n"
+            f"4. Identify strategic opportunities."
+        ),
+        expected_output="Detailed portfolio risk, opportunity, and watchlist analysis grounded in evidence.",
+        agent=analyst,
+        context=[task_gather],
+    )
+
+    task_synthesize = Task(
+        description=(
+            f"Synthesize the intelligence report answering user query: '{query}'\n"
+            f"User Context & Preferences: {user_context or 'None provided.'}\n"
+            f"Produce a final JSON object with the exact keys: 'summary', 'portfolio_overview', "
+            f"'portfolio_risks', 'portfolio_opportunities', 'watchlist_priorities', 'recommended_research'."
+        ),
+        expected_output="Valid JSON object with summary, portfolio_overview, portfolio_risks, portfolio_opportunities, watchlist_priorities, and recommended_research.",
+        agent=synthesizer,
+        context=[task_gather, task_analyze],
+    )
+
+    return Crew(
+        agents=[researcher, analyst, synthesizer],
+        tasks=[task_gather, task_analyze, task_synthesize],
+        process=Process.sequential,
+        verbose=False,
+    )

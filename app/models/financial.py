@@ -154,3 +154,22 @@ class ResearchReport:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class PortfolioIntelligenceReport:
+    """Structured personalized investment intelligence report covering portfolio and watchlist."""
+
+    summary: str
+    portfolio_overview: str
+    portfolio_risks: list[str]
+    portfolio_opportunities: list[str]
+    watchlist_priorities: list[str]
+    recommended_research: list[str]
+    portfolio_summary: dict[str, Any]
+    user_context: str
+    facts: dict[str, Any]
+    sources: list[dict[str, Any]]
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

@@ -8,13 +8,14 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 8 — User Watchlist & Portfolio Foundation**
+**Phase 9 — Personalized Portfolio & Watchlist Intelligence**
 
-Phase 8 implements the user investment universe and portfolio intelligence foundation for AIRA:
-- **Personal Watchlists (`watchlist_items`)**: Allows authenticated users to track securities with custom notes and priorities (`low`, `normal`, `high`). Enforces unique `(user_id, symbol)` constraints.
-- **Portfolio Holdings Ledger (`portfolio_holdings`)**: Persistent holdings tracking with fractional `quantity` (`NUMERIC(18, 6)`), `average_cost` (`NUMERIC(18, 4)`), and custom position notes.
-- **Deterministic Read-Only Portfolio Snapshots**: Real-time valuation breakdown (`market_value`, `cost_basis`, `unrealized_gain_loss`, `unrealized_gain_loss_percent`) evaluated against live market quotes from `FinancialDataService` with safe zero-cost handling. (Zero LLM involvement in calculations).
-- **Strict Multi-Tenant Isolation**: Watchlist and portfolio endpoints strictly query `WHERE id = :id AND user_id = g.current_user.id`, returning `404 Not Found` for unauthorized or cross-user access.
+Phase 9 implements the personalized intelligence layer unifying the investor's actual portfolio holdings, watchlist securities, profile preferences, private semantic memories, and prior research history:
+- **Personalized Portfolio Intelligence Service (`PortfolioIntelligenceService`)**: Assembles deterministic holding valuations, concentration weights, watchlist quotes, profile preferences, and private semantic memories into a compact factual dataset.
+- **Evidence-Grounded CrewAI Intelligence**: Extends the 3-agent research crew (`Portfolio Researcher`, `Investment Analyst`, `Personalized Research Synthesizer`) to evaluate portfolio concentration risks, opportunities, and watchlist priorities without fabricating numerical data.
+- **Deterministic Math & Zero LLM Arithmetic**: All holding valuations, cost bases, unrealized gain/loss amounts, and portfolio weights are calculated deterministically in Python using `Decimal`.
+- **Strict Multi-Tenant Isolation**: All intelligence inputs (portfolio, watchlist, profile, memories, research history) are resolved exclusively for `g.current_user.id` from verified JWT claims.
+- **Safe Empty-State & Failure Resiliency**: Gracefully handles accounts with empty portfolios/watchlists and safely fails on malformed AI model output with standardized 500 error envelopes.
 
 ---
 
@@ -47,7 +48,7 @@ AIRA/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
-│   │   ├── financial.py      # Normalized research dataclasses & ResearchReport
+│   │   ├── financial.py      # Normalized research dataclasses, ResearchReport, & PortfolioIntelligenceReport
 │   │   ├── portfolio.py      # PortfolioHolding persistent SQLAlchemy model
 │   │   ├── research.py       # ResearchRecord persistent SQLAlchemy model
 │   │   ├── user.py           # User & UserProfile SQLAlchemy models
@@ -57,7 +58,7 @@ AIRA/
 │   │   ├── auth.py           # Authentication routes (register, login, me)
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
-│   │   ├── portfolio.py      # Portfolio holdings CRUD & valuation snapshot endpoints
+│   │   ├── portfolio.py      # Portfolio holdings CRUD, valuation snapshot, & intelligence endpoints
 │   │   ├── profile.py        # User profile routes (get, update)
 │   │   ├── research.py       # Research routes (analyze, history, profile, quote, history, financials, news, search)
 │   │   └── watchlist.py      # Watchlist CRUD & priority filtering endpoints
@@ -65,10 +66,11 @@ AIRA/
 │       ├── __init__.py
 │       ├── ai/
 │       │   ├── __init__.py
-│       │   ├── crew.py       # CrewAI 3-agent sequential research crew definition
+│       │   ├── crew.py       # CrewAI 3-agent research and portfolio intelligence crew definitions
 │       │   └── tools.py      # CrewAI tools wrapping FinancialDataService
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
+│       ├── portfolio_intelligence_service.py # Orchestrator for personalized portfolio & watchlist intelligence
 │       ├── portfolio_service.py # Portfolio holding management & valuation calculation
 │       ├── research_service.py  # Research pipeline orchestrator with persistence
 │       ├── watchlist_service.py # Watchlist management & symbol resolution
@@ -89,7 +91,8 @@ AIRA/
 │       ├── ADR-008-ai-research-agent-crewai-architecture.md
 │       ├── ADR-009-evidence-based-research-workflow.md
 │       ├── ADR-010-research-persistence-and-history.md
-│       └── ADR-011-user-watchlist-and-portfolio-foundation.md
+│       ├── ADR-011-user-watchlist-and-portfolio-foundation.md
+│       └── ADR-012-personalized-portfolio-intelligence.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
@@ -107,6 +110,7 @@ AIRA/
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
 │   │   ├── test_financial_service.py  # Financial service & caching unit tests
 │   │   ├── test_memory_service.py     # Memory service unit tests
+│   │   ├── test_portfolio_intelligence_service.py # Portfolio intelligence unit tests
 │   │   ├── test_portfolio_model.py    # PortfolioHolding model unit tests
 │   │   ├── test_portfolio_service.py  # PortfolioService calculation unit tests
 │   │   ├── test_research_model.py     # ResearchRecord model unit tests
@@ -119,6 +123,7 @@ AIRA/
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
 │       ├── test_portfolio.py         # Portfolio CRUD, snapshot calculations, and isolation tests
+│       ├── test_portfolio_intelligence.py # Portfolio intelligence endpoint & personalization tests
 │       ├── test_profile.py           # Profile endpoints & multi-user isolation tests
 │       ├── test_research.py          # Financial data endpoints integration tests
 │       ├── test_research_history.py  # Research history & multi-tenant persistence tests
@@ -159,6 +164,7 @@ All endpoints are versioned under `/api/v1/`.
 | `PUT` | `/api/v1/portfolio/holdings/<id>` | Yes (`Bearer <token>`) | Update holding quantity, cost, or notes |
 | `DELETE` | `/api/v1/portfolio/holdings/<id>` | Yes (`Bearer <token>`) | Delete a portfolio holding |
 | `GET` | `/api/v1/portfolio/snapshot` | Yes (`Bearer <token>`) | Calculate real-time portfolio valuation & gain/loss |
+| `POST` | `/api/v1/portfolio/intelligence` | Yes (`Bearer <token>`) | Generate personalized portfolio & watchlist intelligence |
 | `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger evidence-based AI research and persist report |
 | `GET` | `/api/v1/research/history` | Yes (`Bearer <token>`) | List paginated research history summaries |
 | `GET` | `/api/v1/research/history/<id>` | Yes (`Bearer <token>`) | Retrieve a full completed research report |
@@ -245,4 +251,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 98 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 107 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
