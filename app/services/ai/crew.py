@@ -1,3 +1,4 @@
+import json
 from typing import Any
 from crewai import LLM, Agent, Crew, Process, Task
 from flask import current_app, has_app_context
@@ -27,19 +28,21 @@ def create_research_crew(
     symbol: str,
     query: str,
     user_context: str = "",
+    facts: dict[str, Any] | None = None,
     llm: LLM | None = None,
 ) -> Crew:
     """Builds a sequential 3-agent research crew for company investment intelligence."""
     active_llm = llm or get_crewai_llm()
     tools = build_financial_tools(financial_service)
+    facts_str = json.dumps(facts or {})
 
     # 1. Financial Data Researcher Agent
     researcher = Agent(
         role="Senior Financial Researcher",
-        goal=f"Gather verified market quotes, company profiles, historical trends, fundamental statements, key metrics, and news for {symbol}.",
+        goal=f"Review verified ground-truth metrics and gather detailed financial context for {symbol}.",
         backstory=(
-            "You are an expert financial data discovery specialist. You use financial tools to retrieve "
-            "factual market data and company metrics without fabricating details."
+            "You are an expert financial data discovery specialist. You cross-reference provided ground-truth "
+            "financial data and tools without ever fabricating financial statistics or metrics."
         ),
         tools=tools,
         llm=active_llm,
@@ -49,10 +52,10 @@ def create_research_crew(
     # 2. Investment Analyst Agent
     analyst = Agent(
         role="Quantitative & Fundamental Investment Analyst",
-        goal=f"Analyze valuation ratios, balance sheet health, operational margins, competitive moat, and risk factors for {symbol}.",
+        goal=f"Analyze valuation ratios, balance sheet health, operational margins, and risks for {symbol}.",
         backstory=(
-            "You are a seasoned equity research analyst. You critically evaluate fundamental data, "
-            "identify risks and growth catalysts, and objectively assess company valuation."
+            "You are a seasoned equity research analyst. You critically evaluate verified fundamental facts, "
+            "identify risks and growth catalysts, and assess company valuation strictly based on evidence."
         ),
         llm=active_llm,
         verbose=False,
@@ -61,35 +64,35 @@ def create_research_crew(
     # 3. Research Synthesizer Agent
     synthesizer = Agent(
         role="Principal Investment Intelligence Synthesizer",
-        goal=f"Synthesize comprehensive research findings into an executive-ready JSON report tailored to the user context: '{user_context}'.",
+        goal=f"Synthesize comprehensive research findings into an executive-ready JSON report tailored to user context: '{user_context}'.",
         backstory=(
             "You are a lead investment strategist. You synthesize quantitative metrics and fundamental "
-            "analysis into clear, structured research reports with verifiable source citations."
+            "analysis into clear, structured research reports without inventing numerical data."
         ),
         llm=active_llm,
         verbose=False,
     )
 
-    # Task 1: Data Gathering
+    # Task 1: Data Gathering & Verification
     task_gather = Task(
         description=(
-            f"Collect all relevant financial and market data for '{symbol}'. "
-            f"Retrieve company profile, current quote, key metrics, recent financials, and latest news using your tools."
+            f"Review the pre-verified ground-truth financial facts for '{symbol}': {facts_str}\n"
+            f"Use tools to supplement with company news, historical trends, or statements if needed."
         ),
-        expected_output="Comprehensive raw data collection of company profile, quote, metrics, financials, and news.",
+        expected_output="Grounded factual data collection for company profile, quote, metrics, financials, and news.",
         agent=researcher,
     )
 
     # Task 2: Fundamental & Valuation Analysis
     task_analyze = Task(
         description=(
-            f"Analyze the gathered data for '{symbol}'. Evaluate:\n"
-            f"1. Valuation multiples (P/E, P/B, forward P/E) vs historical or sector norms.\n"
-            f"2. Profitability, revenue growth, and free cash flow generation.\n"
+            f"Analyze the gathered facts for '{symbol}'. Ground your analysis strictly in verified metrics:\n"
+            f"1. Valuation multiples (P/E, P/B, forward P/E) vs historical/sector norms.\n"
+            f"2. Profitability, revenue scale, and margin trends.\n"
             f"3. Balance sheet health and debt obligations.\n"
             f"4. Key investment risks and competitive moat opportunities."
         ),
-        expected_output="In-depth fundamental, valuation, and risk assessment analysis.",
+        expected_output="In-depth fundamental, valuation, and risk assessment analysis grounded in facts.",
         agent=analyst,
         context=[task_gather],
     )
@@ -100,9 +103,9 @@ def create_research_crew(
             f"Synthesize the research and analysis for user query '{query}' on symbol '{symbol}'.\n"
             f"User Context / Stored Preferences: {user_context or 'None provided.'}\n"
             f"Generate a final JSON object with the exact keys: 'company', 'symbol', 'summary', "
-            f"'fundamentals', 'valuation', 'market_context', 'risks', 'opportunities', 'user_context', 'sources'."
+            f"'fundamentals', 'valuation', 'market_context', 'risks', 'opportunities'."
         ),
-        expected_output="Valid JSON object matching the ResearchReport structure.",
+        expected_output="Valid JSON object with summary, fundamentals, valuation, market_context, risks, and opportunities.",
         agent=synthesizer,
         context=[task_gather, task_analyze],
     )

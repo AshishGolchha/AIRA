@@ -143,6 +143,7 @@ class ResearchReport:
     company: str
     symbol: str
     summary: str
+    facts: dict[str, Any]
     fundamentals: str
     valuation: str
     market_context: str

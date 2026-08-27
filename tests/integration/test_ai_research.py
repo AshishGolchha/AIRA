@@ -14,18 +14,24 @@ def setup_research_service(app):
     mem_service = MemoryService(supabase_client=mock_supabase, embedding_service=mock_embedding)
     fin_service = FinancialDataService(provider=MockFinancialProvider())
 
-    def mock_crew_runner(symbol, company, query, user_context):
+    def mock_crew_runner(symbol, company, query, user_context, facts=None, sources=None):
         return {
             "company": company,
             "symbol": symbol,
             "summary": f"Comprehensive AI investment report for {company} ({symbol}).",
+            "facts": facts or {
+                "name": company,
+                "current_price": 150.0,
+                "pe_ratio": 25.0,
+                "sector": "Technology",
+            },
             "fundamentals": "Strong revenue growth and robust operational margins.",
             "valuation": "Trading at a fair multiple relative to peer averages.",
             "market_context": "Positive institutional sentiment and steady volume.",
             "risks": ["Regulatory scrutiny", "Market volatility"],
             "opportunities": ["Global expansion", "New product launches"],
             "user_context": user_context,
-            "sources": [
+            "sources": sources or [
                 {
                     "provider": "yfinance",
                     "source_url": f"https://finance.yahoo.com/quote/{symbol}",
@@ -74,13 +80,17 @@ def test_ai_research_analyze_authenticated_success(client):
     report = data["data"]["report"]
     assert report["symbol"] == "NVDA"
     assert report["company"] == "NVDA Inc."
+    # Verified facts separation
+    assert "facts" in report
+    assert report["facts"]["current_price"] == 150.0
+    assert report["facts"]["pe_ratio"] == 25.0
     assert "summary" in report
     assert "fundamentals" in report
     assert "valuation" in report
     assert "risks" in report
     assert "opportunities" in report
-    assert len(report["sources"]) == 1
-    assert report["sources"][0]["provider"] == "yfinance"
+    assert len(report["sources"]) >= 1
+    assert report["sources"][0]["provider"] == "mock_provider"
 
 
 def test_ai_research_analyze_unauthenticated(client):
@@ -153,3 +163,25 @@ def test_ai_research_user_memory_isolation_and_personalization(client):
     report_b = res_b.get_json()["data"]["report"]
     assert "User B prefers conservative dividend-paying" in report_b["user_context"]
     assert "User A" not in report_b["user_context"]
+
+
+def test_ai_research_malformed_llm_output_fails_safely(app, client):
+    """Verify that if LLM returns malformed or non-JSON output, API returns safe 500 error instead of fake report."""
+    def broken_runner(**kwargs):
+        return "Non-JSON unparseable output."
+
+    app.extensions["research_service"] = ResearchService(
+        financial_service=FinancialDataService(provider=MockFinancialProvider()),
+        crew_runner=broken_runner,
+    )
+
+    token = _get_auth_token(client, email="malformed_test@example.com")
+    res = client.post(
+        "/api/v1/research/analyze",
+        json={"symbol": "NVDA", "query": "Analyze NVIDIA"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 500
+    data = res.get_json()
+    assert data["success"] is False
+    assert data["error"]["code"] == "INTERNAL_SERVER_ERROR"

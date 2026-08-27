@@ -27,9 +27,8 @@ def test_research_service_symbol_resolution_and_validation():
     assert service._resolve_target_symbol("Nvidia") == "NVDA"
 
 
-def test_research_service_user_memory_context_injection():
-    """Verify user memory is retrieved and injected into the research context."""
-    # 1. Setup mock memory store with user memory
+def test_research_service_evidence_grounding_and_user_memory():
+    """Verify ground truth facts and sources are assembled and passed into research workflow."""
     mock_supabase = MockSupabaseClient()
     mock_embed = MockEmbeddingService()
     mem_service = MemoryService(supabase_client=mock_supabase, embedding_service=mock_embed)
@@ -42,23 +41,26 @@ def test_research_service_user_memory_context_injection():
     provider = MockFinancialProvider()
     fin_service = FinancialDataService(provider=provider)
 
-    captured_context = {}
+    captured_kwargs = {}
 
-    def mock_crew_runner(symbol, company, query, user_context):
-        captured_context["symbol"] = symbol
-        captured_context["company"] = company
-        captured_context["user_context"] = user_context
+    def mock_crew_runner(symbol, company, query, user_context, facts, sources):
+        captured_kwargs["symbol"] = symbol
+        captured_kwargs["company"] = company
+        captured_kwargs["user_context"] = user_context
+        captured_kwargs["facts"] = facts
+        captured_kwargs["sources"] = sources
         return {
             "company": company,
             "symbol": symbol,
-            "summary": "AI research summary",
-            "fundamentals": "Strong fundamentals",
-            "valuation": "Fairly valued",
-            "market_context": "Bullish momentum",
+            "summary": "AI research summary grounded in facts.",
+            "facts": facts,
+            "fundamentals": "Strong fundamentals based on 25.0 PE ratio.",
+            "valuation": "Fairly valued relative to peers.",
+            "market_context": "Positive momentum at $150.0 price.",
             "risks": ["Supply chain risk"],
             "opportunities": ["AI data center growth"],
             "user_context": user_context,
-            "sources": [{"provider": "yfinance", "symbol": symbol}],
+            "sources": sources,
         }
 
     service = ResearchService(
@@ -71,5 +73,30 @@ def test_research_service_user_memory_context_injection():
 
     assert report["symbol"] == "NVDA"
     assert report["company"] == "NVDA Inc."
-    assert "semiconductor stocks" in captured_context["user_context"]
-    assert report["user_context"] == captured_context["user_context"]
+    # Verify factual data directly from provider
+    assert report["facts"]["current_price"] == 150.0
+    assert report["facts"]["pe_ratio"] == 25.0
+    assert report["facts"]["sector"] == "Technology"
+    # Verify sources
+    assert len(report["sources"]) >= 1
+    assert report["sources"][0]["provider"] == "mock_provider"
+    # Verify user context
+    assert "semiconductor stocks" in report["user_context"]
+
+
+def test_research_service_rejects_malformed_llm_output_without_fake_fallbacks():
+    """Verify that unparseable or broken LLM output raises RuntimeError rather than returning fake fallback claims."""
+    provider = MockFinancialProvider()
+    fin_service = FinancialDataService(provider=provider)
+
+    # Runner that returns garbage non-JSON string
+    def bad_crew_runner(**kwargs):
+        return "Sorry, I am an AI and could not format this as JSON."
+
+    service = ResearchService(
+        financial_service=fin_service,
+        crew_runner=bad_crew_runner,
+    )
+
+    with pytest.raises(RuntimeError, match="Failed to produce valid structured research report"):
+        service.run_research(user_id=1, query="Analyze NVDA", symbol="NVDA")
