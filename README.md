@@ -8,18 +8,19 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 3 — Persistent User Memory Foundation**
+**Phase 4 — Financial Data & Research Intelligence Foundation**
 
-Phase 3 implements the persistent user-specific memory infrastructure using Supabase PostgreSQL + `pgvector` and Google Gemini vector embeddings (`text-embedding-004`):
-- **User Memory Tier**: Long-term semantic memory storage with HNSW vector indexing.
-- **Strict User Isolation**: All vector searches (`match_user_memories` RPC) and CRUD operations strictly enforce `WHERE user_id = g.current_user.id`.
-- **Vector Embeddings**: 768-dimensional dense vectors generated via `EmbeddingService` wrapping `google-genai`.
-- **Memory Management API**: `/api/v1/memory` endpoints for creating, listing, semantically searching, and deleting memories.
-- **Exact Duplicate Prevention**: Prevents duplicate memory spam per user.
-- **Dual Database Architecture**: MySQL maintains relational user identity and profiles; Supabase manages high-dimensional vector memory.
+Phase 4 establishes the financial data access, company fundamentals, market quotes, valuation metrics, news retrieval, and evidence tracking foundation for future autonomous research agents (Phase 5 CrewAI):
+- **Provider Abstraction**: Decoupled `BaseFinancialProvider` interface with `YFinanceProvider` delivering real market data via Yahoo Finance (`yfinance`).
+- **Normalized Research Dataclasses**: Structured data models (`CompanyProfile`, `MarketQuote`, `HistoricalPrices`, `FinancialStatement`, `KeyMetrics`, `NewsArticle`).
+- **Evidence & Source Provenance**: Standardized `SourceMetadata` (`provider`, `source_url`, `retrieved_at`, `data_type`, `symbol`) attached to all research entities for verifiable LLM claims.
+- **In-Memory TTL Caching**: `FinancialDataService` provides in-process caching (60s quotes / 300s financials) and symbol regex validation.
+- **Symbol Resolution**: Company name to ticker symbol search (`GET /api/v1/research/search?q=Nvidia`).
+- **Research API Layer**: Dedicated endpoints under `/api/v1/research/` protected by `@auth_required`.
+- **Gemini Embedding Model Update**: Migrated to `gemini-embedding-2` configured at 768 output dimensions (preserving pgvector compatibility).
 
 > **Important Scope Clarification**:
-> Phase 3 implements persistent memory *infrastructure*. It does **not** yet implement CrewAI multi-agent research orchestration, automated conversation memory extraction, financial data ingestion, or company/global knowledge memory.
+> Phase 4 establishes financial data ingestion and provider infrastructure. It does **not** yet implement CrewAI multi-agent reasoning, automated investment recommendations, or the frontend user interface.
 
 ---
 
@@ -30,8 +31,9 @@ Phase 3 implements the persistent user-specific memory infrastructure using Supa
 - **Authentication & Security**: PyJWT, Werkzeug Security
 - **Relational Database & Migrations**: MySQL, SQLAlchemy, Flask-SQLAlchemy, Flask-Migrate (Alembic)
 - **Vector Database**: Supabase PostgreSQL + `pgvector`
-- **Embeddings**: Google Gemini API (`text-embedding-004`, 768 dimensions)
-- **Testing**: Pytest (isolated in-memory SQLite + mock vector services)
+- **Embeddings**: Google Gemini API (`gemini-embedding-2`, 768 dimensions)
+- **Market Data Provider**: `yfinance` (Yahoo Finance API)
+- **Testing**: Pytest (isolated in-memory SQLite + mock financial & vector services)
 - **Configuration**: Python-dotenv
 
 ---
@@ -49,17 +51,24 @@ AIRA/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
+│   │   ├── financial.py      # Normalized research dataclasses & SourceMetadata
 │   │   └── user.py           # User & UserProfile SQLAlchemy models
 │   ├── routes/
 │   │   ├── __init__.py
 │   │   ├── auth.py           # Authentication routes (register, login, me)
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
-│   │   └── profile.py        # User profile routes (get, update)
+│   │   ├── profile.py        # User profile routes (get, update)
+│   │   └── research.py       # Market & company research routes (profile, quote, history, financials, news, search)
 │   └── services/
 │       ├── __init__.py
-│       ├── embedding_service.py # Gemini text-embedding-004 provider
-│       └── memory_service.py    # User-scoped semantic memory service
+│       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
+│       ├── memory_service.py    # User-scoped semantic memory service
+│       └── financial/
+│           ├── __init__.py
+│           ├── base.py       # BaseFinancialProvider abstract interface
+│           ├── provider.py   # YFinanceProvider implementation
+│           └── service.py    # FinancialDataService with TTL caching & symbol validation
 ├── docs/
 │   └── architecture-decisions/
 │       ├── ADR-001-flask-application-factory.md
@@ -67,7 +76,8 @@ AIRA/
 │       ├── ADR-003-multi-user-data-isolation.md
 │       ├── ADR-004-future-memory-architecture.md
 │       ├── ADR-005-jwt-authentication-strategy.md
-│       └── ADR-006-persistent-user-memory-supabase-pgvector.md
+│       ├── ADR-006-persistent-user-memory-supabase-pgvector.md
+│       └── ADR-007-financial-data-provider-architecture.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       └── 0001_create_users_and_user_profiles.py
@@ -78,12 +88,16 @@ AIRA/
 │   ├── conftest.py           # Test fixtures with isolated SQLite database
 │   ├── unit/
 │   │   ├── test_config.py    # Configuration and connection URI tests
-│   │   └── test_memory_service.py # Unit tests for memory and embedding services
+│   │   ├── test_embedding_service.py # Embedding service unit tests
+│   │   ├── test_financial_provider.py # Financial models & provider unit tests
+│   │   ├── test_financial_service.py  # Financial service & caching unit tests
+│   │   └── test_memory_service.py     # Memory service unit tests
 │   └── integration/
 │       ├── test_auth.py      # Registration, login, auth context tests
 │       ├── test_health.py    # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py    # Memory CRUD, vector search, and isolation tests
-│       └── test_profile.py   # Profile endpoints & critical multi-user isolation tests
+│       ├── test_profile.py   # Profile endpoints & multi-user isolation tests
+│       └── test_research.py  # Financial research endpoints integration tests
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Git ignore rules
 ├── README.md                 # Project documentation
@@ -109,6 +123,13 @@ All endpoints are versioned under `/api/v1/`.
 | `GET` | `/api/v1/memory` | Yes (`Bearer <token>`) | List recent memories for authenticated user |
 | `GET` | `/api/v1/memory/search` | Yes (`Bearer <token>`) | Semantic vector search (`?q=...&limit=...`) |
 | `DELETE` | `/api/v1/memory/<id>` | Yes (`Bearer <token>`) | Delete a memory owned by authenticated user |
+| `GET` | `/api/v1/research/search` | Yes (`Bearer <token>`) | Resolve company name to ticker symbol (`?q=...`) |
+| `GET` | `/api/v1/research/company/<symbol>` | Yes (`Bearer <token>`) | Retrieve company overview & business summary |
+| `GET` | `/api/v1/research/company/<symbol>/quote` | Yes (`Bearer <token>`) | Retrieve latest price quote, day range, & volume |
+| `GET` | `/api/v1/research/company/<symbol>/history` | Yes (`Bearer <token>`) | Retrieve OHLCV historical prices (`?period=1mo&interval=1d`) |
+| `GET` | `/api/v1/research/company/<symbol>/financials` | Yes (`Bearer <token>`) | Retrieve financial statements (`?type=income_statement`) |
+| `GET` | `/api/v1/research/company/<symbol>/metrics` | Yes (`Bearer <token>`) | Retrieve valuation & operational ratios (PE, P/B, Beta) |
+| `GET` | `/api/v1/research/company/<symbol>/news` | Yes (`Bearer <token>`) | Retrieve recent company news articles (`?limit=5`) |
 
 ---
 
@@ -154,7 +175,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
 # Gemini API (Embeddings)
 GEMINI_API_KEY=your-gemini-api-key
-GEMINI_EMBEDDING_MODEL=text-embedding-004
+GEMINI_EMBEDDING_MODEL=gemini-embedding-2
 ```
 
 ### 5. Run Database Migrations
@@ -183,4 +204,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 37 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock vector services.
+All 56 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
