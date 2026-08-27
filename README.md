@@ -8,19 +8,20 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 4 — Financial Data & Research Intelligence Foundation**
+**Phase 5 — AI Research Agent & Research Crew Foundation**
 
-Phase 4 establishes the financial data access, company fundamentals, market quotes, valuation metrics, news retrieval, and evidence tracking foundation for future autonomous research agents (Phase 5 CrewAI):
-- **Provider Abstraction**: Decoupled `BaseFinancialProvider` interface with `YFinanceProvider` delivering real market data via Yahoo Finance (`yfinance`).
-- **Normalized Research Dataclasses**: Structured data models (`CompanyProfile`, `MarketQuote`, `HistoricalPrices`, `FinancialStatement`, `KeyMetrics`, `NewsArticle`).
-- **Evidence & Source Provenance**: Standardized `SourceMetadata` (`provider`, `source_url`, `retrieved_at`, `data_type`, `symbol`) attached to all research entities for verifiable LLM claims.
-- **In-Memory TTL Caching**: `FinancialDataService` provides in-process caching (60s quotes / 300s financials) and symbol regex validation.
-- **Symbol Resolution**: Company name to ticker symbol search (`GET /api/v1/research/search?q=Nvidia`).
-- **Research API Layer**: Dedicated endpoints under `/api/v1/research/` protected by `@auth_required`.
-- **Gemini Embedding Model Update**: Migrated to `gemini-embedding-2` configured at 768 output dimensions (preserving pgvector compatibility).
+Phase 5 establishes AIRA's first autonomous multi-agent research pipeline using **CrewAI** and **Google Gemini** (`gemini/gemini-2.0-flash`):
+- **Sequential Multi-Agent Research Crew**:
+  1. **Financial Researcher**: Collects live quotes, company profiles, historical trends, fundamental statements, key metrics, and news using CrewAI tools.
+  2. **Investment Analyst**: Analyzes valuation multiples (P/E, P/B), operational margins, balance sheet health, competitive moats, and risk factors.
+  3. **Research Synthesizer**: Produces executive-level structured JSON reports (`ResearchReport`), tailored to the authenticated user's investment preferences.
+- **Single Source of Truth for Financials**: CrewAI tools wrap the existing [FinancialDataService](file:///d:/projects/AIRA/app/services/financial/service.py) (zero direct yfinance duplication).
+- **Personalized Context Injection**: Reuses [MemoryService](file:///d:/projects/AIRA/app/services/memory_service.py) to semantically retrieve user investment preferences strictly scoped to `g.current_user.id`.
+- **Protected Analysis Endpoint**: `POST /api/v1/research/analyze` protected by `@auth_required` with zero client `user_id` trust.
+- **Verifiable Provenance**: Reports attach verified `SourceMetadata` without fabricating citations.
 
 > **Important Scope Clarification**:
-> Phase 4 establishes financial data ingestion and provider infrastructure. It does **not** yet implement CrewAI multi-agent reasoning, automated investment recommendations, or the frontend user interface.
+> Phase 5 implements the multi-agent research intelligence workflow. It does **not** yet implement automated order execution, brokerage integration, streaming websockets, or the frontend user interface.
 
 ---
 
@@ -28,12 +29,14 @@ Phase 4 establishes the financial data access, company fundamentals, market quot
 
 - **Runtime**: Python 3.10+
 - **Web Framework**: Flask 3.x
+- **Agent Framework**: CrewAI
+- **LLM**: Google Gemini (`gemini/gemini-2.0-flash`)
+- **Embeddings**: Google Gemini API (`gemini-embedding-2`, 768 dimensions)
 - **Authentication & Security**: PyJWT, Werkzeug Security
 - **Relational Database & Migrations**: MySQL, SQLAlchemy, Flask-SQLAlchemy, Flask-Migrate (Alembic)
 - **Vector Database**: Supabase PostgreSQL + `pgvector`
-- **Embeddings**: Google Gemini API (`gemini-embedding-2`, 768 dimensions)
 - **Market Data Provider**: `yfinance` (Yahoo Finance API)
-- **Testing**: Pytest (isolated in-memory SQLite + mock financial & vector services)
+- **Testing**: Pytest (isolated in-memory SQLite + mock financial, vector, & agent services)
 - **Configuration**: Python-dotenv
 
 ---
@@ -51,7 +54,7 @@ AIRA/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
-│   │   ├── financial.py      # Normalized research dataclasses & SourceMetadata
+│   │   ├── financial.py      # Normalized research dataclasses & ResearchReport
 │   │   └── user.py           # User & UserProfile SQLAlchemy models
 │   ├── routes/
 │   │   ├── __init__.py
@@ -59,11 +62,16 @@ AIRA/
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
 │   │   ├── profile.py        # User profile routes (get, update)
-│   │   └── research.py       # Market & company research routes (profile, quote, history, financials, news, search)
+│   │   └── research.py       # Research & AI analysis routes (analyze, profile, quote, history, financials, news, search)
 │   └── services/
 │       ├── __init__.py
+│       ├── ai/
+│       │   ├── __init__.py
+│       │   ├── crew.py       # CrewAI 3-agent sequential research crew definition
+│       │   └── tools.py      # CrewAI tools wrapping FinancialDataService
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
+│       ├── research_service.py  # Research pipeline orchestrator (Memory + Financials + CrewAI)
 │       └── financial/
 │           ├── __init__.py
 │           ├── base.py       # BaseFinancialProvider abstract interface
@@ -77,7 +85,8 @@ AIRA/
 │       ├── ADR-004-future-memory-architecture.md
 │       ├── ADR-005-jwt-authentication-strategy.md
 │       ├── ADR-006-persistent-user-memory-supabase-pgvector.md
-│       └── ADR-007-financial-data-provider-architecture.md
+│       ├── ADR-007-financial-data-provider-architecture.md
+│       └── ADR-008-ai-research-agent-crewai-architecture.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       └── 0001_create_users_and_user_profiles.py
@@ -87,17 +96,20 @@ AIRA/
 ├── tests/
 │   ├── conftest.py           # Test fixtures with isolated SQLite database
 │   ├── unit/
-│   │   ├── test_config.py    # Configuration and connection URI tests
+│   │   ├── test_ai_tools.py          # CrewAI financial tools unit tests
+│   │   ├── test_config.py            # Configuration and connection URI tests
 │   │   ├── test_embedding_service.py # Embedding service unit tests
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
 │   │   ├── test_financial_service.py  # Financial service & caching unit tests
-│   │   └── test_memory_service.py     # Memory service unit tests
+│   │   ├── test_memory_service.py     # Memory service unit tests
+│   │   └── test_research_service.py   # Research orchestration service unit tests
 │   └── integration/
-│       ├── test_auth.py      # Registration, login, auth context tests
-│       ├── test_health.py    # Health endpoint, Request ID, and Error handling tests
-│       ├── test_memory.py    # Memory CRUD, vector search, and isolation tests
-│       ├── test_profile.py   # Profile endpoints & multi-user isolation tests
-│       └── test_research.py  # Financial research endpoints integration tests
+│       ├── test_ai_research.py       # AI research workflow & personalization integration tests
+│       ├── test_auth.py              # Registration, login, auth context tests
+│       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
+│       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
+│       ├── test_profile.py           # Profile endpoints & multi-user isolation tests
+│       └── test_research.py          # Financial research endpoints integration tests
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Git ignore rules
 ├── README.md                 # Project documentation
@@ -123,6 +135,7 @@ All endpoints are versioned under `/api/v1/`.
 | `GET` | `/api/v1/memory` | Yes (`Bearer <token>`) | List recent memories for authenticated user |
 | `GET` | `/api/v1/memory/search` | Yes (`Bearer <token>`) | Semantic vector search (`?q=...&limit=...`) |
 | `DELETE` | `/api/v1/memory/<id>` | Yes (`Bearer <token>`) | Delete a memory owned by authenticated user |
+| `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger AI multi-agent research on a company/symbol |
 | `GET` | `/api/v1/research/search` | Yes (`Bearer <token>`) | Resolve company name to ticker symbol (`?q=...`) |
 | `GET` | `/api/v1/research/company/<symbol>` | Yes (`Bearer <token>`) | Retrieve company overview & business summary |
 | `GET` | `/api/v1/research/company/<symbol>/quote` | Yes (`Bearer <token>`) | Retrieve latest price quote, day range, & volume |
@@ -173,8 +186,9 @@ JWT_ACCESS_TOKEN_EXPIRES_SECONDS=86400
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
-# Gemini API (Embeddings)
+# Gemini AI (LLM & Embeddings)
 GEMINI_API_KEY=your-gemini-api-key
+GEMINI_LLM_MODEL=gemini/gemini-2.0-flash
 GEMINI_EMBEDDING_MODEL=gemini-embedding-2
 ```
 
@@ -204,4 +218,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 56 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 63 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
