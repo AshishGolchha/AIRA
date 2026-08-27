@@ -2,20 +2,21 @@
 
 ## Project Vision
 
-AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, and portfolio valuation tracking.
+AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, portfolio valuation tracking, and deterministic risk/event alerts.
 
 ---
 
 ## Current Phase
 
-**Phase 9 — Personalized Portfolio & Watchlist Intelligence**
+**Phase 10 — Portfolio & Watchlist Alerts Foundation**
 
-Phase 9 implements the personalized intelligence layer unifying the investor's actual portfolio holdings, watchlist securities, profile preferences, private semantic memories, and prior research history:
-- **Personalized Portfolio Intelligence Service (`PortfolioIntelligenceService`)**: Assembles deterministic holding valuations, concentration weights, watchlist quotes, profile preferences, and private semantic memories into a compact factual dataset.
-- **Evidence-Grounded CrewAI Intelligence**: Extends the 3-agent research crew (`Portfolio Researcher`, `Investment Analyst`, `Personalized Research Synthesizer`) to evaluate portfolio concentration risks, opportunities, and watchlist priorities without fabricating numerical data.
-- **Deterministic Math & Zero LLM Arithmetic**: All holding valuations, cost bases, unrealized gain/loss amounts, and portfolio weights are calculated deterministically in Python using `Decimal`.
-- **Strict Multi-Tenant Isolation**: All intelligence inputs (portfolio, watchlist, profile, memories, research history) are resolved exclusively for `g.current_user.id` from verified JWT claims.
-- **Safe Empty-State & Failure Resiliency**: Gracefully handles accounts with empty portfolios/watchlists and safely fails on malformed AI model output with standardized 500 error envelopes.
+Phase 10 establishes the deterministic alert detection and management foundation across user portfolios and watchlists:
+- **Alert Data Model (`Alert`)**: Tracks user-scoped alerts with typed categories (`price_move`, `portfolio_gain`, `portfolio_loss`, `watchlist_move`, `data_quality`), severity levels (`info`, `warning`, `critical`), structured verified `facts`, source metadata provenance, and read/dismissed statuses.
+- **Deterministic Alert Detection Engine (`AlertService`)**: Evaluates portfolio holdings and watchlist items against configurable thresholds (daily price swings, unrealized gain/loss breaches, missing live market quotes) using deterministic Python logic. Zero numerical calculations are performed by LLMs.
+- **Idempotency & Duplicate Prevention**: Automatically prevents duplicate alert flooding by checking active non-dismissed alerts for `(user_id, symbol, alert_type)`.
+- **User-Scoped Alert Management REST APIs**: Endpoints for running alert checks (`POST /api/v1/alerts/check`), listing alerts with pagination and unread/dismissed filters (`GET /api/v1/alerts`), single alert inspection (`GET /api/v1/alerts/<id>`), marking as read (`PUT /api/v1/alerts/<id>/read`), and dismissing (`PUT /api/v1/alerts/<id>/dismiss`).
+- **Strict Multi-Tenant Isolation**: All alert queries and mutations filter strictly by `WHERE id = :id AND user_id = g.current_user.id`, returning `404 Not Found` for cross-user requests to eliminate ID enumeration.
+- *Note: Background notification delivery (email, SMS, WhatsApp, Celery, push notifications) and broker/trading execution are intentionally deferred to future phases.*
 
 ---
 
@@ -43,10 +44,11 @@ AIRA/
 │   ├── common/
 │   │   ├── __init__.py
 │   │   └── auth.py           # Shared JWT generation, verification & @auth_required decorator
-│   ├── config.py             # Environment configurations (Development, Production, Testing)
+│   ├── config.py             # Environment configurations & alert thresholds
 │   ├── extensions.py         # Extension singletons (SQLAlchemy, Migrate)
 │   ├── models/
 │   │   ├── __init__.py
+│   │   ├── alert.py          # Alert persistent SQLAlchemy model
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
 │   │   ├── financial.py      # Normalized research dataclasses, ResearchReport, & PortfolioIntelligenceReport
 │   │   ├── portfolio.py      # PortfolioHolding persistent SQLAlchemy model
@@ -55,6 +57,7 @@ AIRA/
 │   │   └── watchlist.py      # WatchlistItem persistent SQLAlchemy model
 │   ├── routes/
 │   │   ├── __init__.py
+│   │   ├── alerts.py         # Alert routes (check, list, get, read, dismiss)
 │   │   ├── auth.py           # Authentication routes (register, login, me)
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
@@ -68,6 +71,7 @@ AIRA/
 │       │   ├── __init__.py
 │       │   ├── crew.py       # CrewAI 3-agent research and portfolio intelligence crew definitions
 │       │   └── tools.py      # CrewAI tools wrapping FinancialDataService
+│       ├── alert_service.py     # Deterministic alert detection engine & management
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
 │       ├── portfolio_intelligence_service.py # Orchestrator for personalized portfolio & watchlist intelligence
@@ -92,12 +96,14 @@ AIRA/
 │       ├── ADR-009-evidence-based-research-workflow.md
 │       ├── ADR-010-research-persistence-and-history.md
 │       ├── ADR-011-user-watchlist-and-portfolio-foundation.md
-│       └── ADR-012-personalized-portfolio-intelligence.md
+│       ├── ADR-012-personalized-portfolio-intelligence.md
+│       └── ADR-013-alert-detection-and-monitoring-foundation.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
 │       ├── 0002_create_research_records.py
-│       └── 0003_create_watchlist_and_portfolio.py
+│       ├── 0003_create_watchlist_and_portfolio.py
+│       └── 0004_create_alerts.py
 ├── supabase/                 # Supabase pgvector schema and migration scripts
 │   └── migrations/
 │       └── 001_create_user_memories.sql
@@ -105,6 +111,7 @@ AIRA/
 │   ├── conftest.py           # Test fixtures with isolated SQLite database
 │   ├── unit/
 │   │   ├── test_ai_tools.py          # CrewAI financial tools unit tests
+│   │   ├── test_alert_service.py     # Alert detection rules & CRUD unit tests
 │   │   ├── test_config.py            # Configuration and connection URI tests
 │   │   ├── test_embedding_service.py # Embedding service unit tests
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
@@ -119,6 +126,7 @@ AIRA/
 │   │   └── test_watchlist_service.py  # WatchlistService unit tests
 │   └── integration/
 │       ├── test_ai_research.py       # AI research workflow, facts grounding, & personalization tests
+│       ├── test_alerts.py            # Alerts check, list, get, read, dismiss & isolation tests
 │       ├── test_auth.py              # Registration, login, auth context tests
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
@@ -165,6 +173,11 @@ All endpoints are versioned under `/api/v1/`.
 | `DELETE` | `/api/v1/portfolio/holdings/<id>` | Yes (`Bearer <token>`) | Delete a portfolio holding |
 | `GET` | `/api/v1/portfolio/snapshot` | Yes (`Bearer <token>`) | Calculate real-time portfolio valuation & gain/loss |
 | `POST` | `/api/v1/portfolio/intelligence` | Yes (`Bearer <token>`) | Generate personalized portfolio & watchlist intelligence |
+| `POST` | `/api/v1/alerts/check` | Yes (`Bearer <token>`) | Run deterministic alert rules against holdings & watchlist |
+| `GET` | `/api/v1/alerts` | Yes (`Bearer <token>`) | List alerts (`?unread_only=true&include_dismissed=false`) |
+| `GET` | `/api/v1/alerts/<id>` | Yes (`Bearer <token>`) | Retrieve a single alert (404 if not owned) |
+| `PUT` | `/api/v1/alerts/<id>/read` | Yes (`Bearer <token>`) | Mark alert as read |
+| `PUT` | `/api/v1/alerts/<id>/dismiss` | Yes (`Bearer <token>`) | Dismiss alert |
 | `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger evidence-based AI research and persist report |
 | `GET` | `/api/v1/research/history` | Yes (`Bearer <token>`) | List paginated research history summaries |
 | `GET` | `/api/v1/research/history/<id>` | Yes (`Bearer <token>`) | Retrieve a full completed research report |
@@ -223,6 +236,10 @@ SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 GEMINI_API_KEY=your-gemini-api-key
 GEMINI_LLM_MODEL=gemini/gemini-2.0-flash
 GEMINI_EMBEDDING_MODEL=gemini-embedding-2
+
+# Alert Thresholds (Optional)
+ALERT_PRICE_MOVE_THRESHOLD_PERCENT=5.0
+ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT=10.0
 ```
 
 ### 5. Run Database Migrations
@@ -251,4 +268,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 107 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 120 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.

@@ -1,3 +1,4 @@
+from app.models.alert import Alert
 from app.models.base import TimestampMixin
 from app.models.financial import (
     CompanyProfile,
@@ -17,6 +18,7 @@ from app.models.user import User, UserProfile
 from app.models.watchlist import WatchlistItem
 
 __all__ = [
+    "Alert",
     "CompanyProfile",
     "FinancialStatement",
     "HistoricalPrices",
