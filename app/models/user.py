@@ -28,6 +28,22 @@ class User(TimestampMixin, db.Model):
         order_by="desc(ResearchRecord.created_at)",
     )
 
+    # 1-to-many relationship with WatchlistItem
+    watchlist_items = db.relationship(
+        "WatchlistItem",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="desc(WatchlistItem.created_at)",
+    )
+
+    # 1-to-many relationship with PortfolioHolding
+    portfolio_holdings = db.relationship(
+        "PortfolioHolding",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="PortfolioHolding.symbol.asc()",
+    )
+
     def __init__(self, email: str, **kwargs):
         super().__init__(**kwargs)
         self.email = email

@@ -10,8 +10,10 @@ from app.models.financial import (
     ResearchReport,
     SourceMetadata,
 )
+from app.models.portfolio import PortfolioHolding
 from app.models.research import ResearchRecord
 from app.models.user import User, UserProfile
+from app.models.watchlist import WatchlistItem
 
 __all__ = [
     "CompanyProfile",
@@ -20,6 +22,7 @@ __all__ = [
     "KeyMetrics",
     "MarketQuote",
     "NewsArticle",
+    "PortfolioHolding",
     "PricePoint",
     "ResearchRecord",
     "ResearchReport",
@@ -27,4 +30,5 @@ __all__ = [
     "TimestampMixin",
     "User",
     "UserProfile",
+    "WatchlistItem",
 ]

@@ -2,20 +2,19 @@
 
 ## Project Vision
 
-AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, and personalized portfolio tracking.
+AIRA (Autonomous Investment Research Agent) is a multi-user AI investment research intelligence platform designed to assist investors with autonomous company analysis, financial synthesis, competitive intelligence, evidence verification, risk profiling, personalized memory, user watchlists, and portfolio valuation tracking.
 
 ---
 
 ## Current Phase
 
-**Phase 7 — Research Persistence & User Research History**
+**Phase 8 — User Watchlist & Portfolio Foundation**
 
-Phase 7 establishes relational storage and user-scoped research history for completed AI investment research analyses:
-- **Relational Persistence (`research_records`)**: Every completed research analysis is stored in MySQL, preserving verified `facts`, `sources`, analytical conclusions (`fundamentals`, `valuation`, `market_context`, `risks`, `opportunities`), and personalized `user_context`.
-- **Strict Multi-Tenant Isolation**: History listing, single report lookups, and deletions are strictly scoped to `g.current_user.id` resolved from verified JWT claims.
-- **Failure Safety**: Incomplete, broken, or malformed research workflows persist zero incomplete records.
-- **Lightweight History Summaries**: `GET /api/v1/research/history` provides paginated lightweight summaries for efficient listing.
-- **Full Report Inspection & Deletion**: Dedicated `GET` and `DELETE` endpoints under `/api/v1/research/history/<id>`.
+Phase 8 implements the user investment universe and portfolio intelligence foundation for AIRA:
+- **Personal Watchlists (`watchlist_items`)**: Allows authenticated users to track securities with custom notes and priorities (`low`, `normal`, `high`). Enforces unique `(user_id, symbol)` constraints.
+- **Portfolio Holdings Ledger (`portfolio_holdings`)**: Persistent holdings tracking with fractional `quantity` (`NUMERIC(18, 6)`), `average_cost` (`NUMERIC(18, 4)`), and custom position notes.
+- **Deterministic Read-Only Portfolio Snapshots**: Real-time valuation breakdown (`market_value`, `cost_basis`, `unrealized_gain_loss`, `unrealized_gain_loss_percent`) evaluated against live market quotes from `FinancialDataService` with safe zero-cost handling. (Zero LLM involvement in calculations).
+- **Strict Multi-Tenant Isolation**: Watchlist and portfolio endpoints strictly query `WHERE id = :id AND user_id = g.current_user.id`, returning `404 Not Found` for unauthorized or cross-user access.
 
 ---
 
@@ -49,15 +48,19 @@ AIRA/
 │   │   ├── __init__.py
 │   │   ├── base.py           # Base model mixins (TimestampMixin)
 │   │   ├── financial.py      # Normalized research dataclasses & ResearchReport
+│   │   ├── portfolio.py      # PortfolioHolding persistent SQLAlchemy model
 │   │   ├── research.py       # ResearchRecord persistent SQLAlchemy model
-│   │   └── user.py           # User & UserProfile SQLAlchemy models
+│   │   ├── user.py           # User & UserProfile SQLAlchemy models
+│   │   └── watchlist.py      # WatchlistItem persistent SQLAlchemy model
 │   ├── routes/
 │   │   ├── __init__.py
 │   │   ├── auth.py           # Authentication routes (register, login, me)
 │   │   ├── health.py         # Versioned health check endpoint (/api/v1/health)
 │   │   ├── memory.py         # User memory routes (create, list, search, delete)
+│   │   ├── portfolio.py      # Portfolio holdings CRUD & valuation snapshot endpoints
 │   │   ├── profile.py        # User profile routes (get, update)
-│   │   └── research.py       # Research routes (analyze, history, profile, quote, history, financials, news, search)
+│   │   ├── research.py       # Research routes (analyze, history, profile, quote, history, financials, news, search)
+│   │   └── watchlist.py      # Watchlist CRUD & priority filtering endpoints
 │   └── services/
 │       ├── __init__.py
 │       ├── ai/
@@ -66,7 +69,9 @@ AIRA/
 │       │   └── tools.py      # CrewAI tools wrapping FinancialDataService
 │       ├── embedding_service.py # Gemini gemini-embedding-2 provider (768 dims)
 │       ├── memory_service.py    # User-scoped semantic memory service
+│       ├── portfolio_service.py # Portfolio holding management & valuation calculation
 │       ├── research_service.py  # Research pipeline orchestrator with persistence
+│       ├── watchlist_service.py # Watchlist management & symbol resolution
 │       └── financial/
 │           ├── __init__.py
 │           ├── base.py       # BaseFinancialProvider abstract interface
@@ -83,11 +88,13 @@ AIRA/
 │       ├── ADR-007-financial-data-provider-architecture.md
 │       ├── ADR-008-ai-research-agent-crewai-architecture.md
 │       ├── ADR-009-evidence-based-research-workflow.md
-│       └── ADR-010-research-persistence-and-history.md
+│       ├── ADR-010-research-persistence-and-history.md
+│       └── ADR-011-user-watchlist-and-portfolio-foundation.md
 ├── migrations/               # MySQL Alembic database migration scripts
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
-│       └── 0002_create_research_records.py
+│       ├── 0002_create_research_records.py
+│       └── 0003_create_watchlist_and_portfolio.py
 ├── supabase/                 # Supabase pgvector schema and migration scripts
 │   └── migrations/
 │       └── 001_create_user_memories.sql
@@ -100,16 +107,22 @@ AIRA/
 │   │   ├── test_financial_provider.py # Financial models & provider unit tests
 │   │   ├── test_financial_service.py  # Financial service & caching unit tests
 │   │   ├── test_memory_service.py     # Memory service unit tests
+│   │   ├── test_portfolio_model.py    # PortfolioHolding model unit tests
+│   │   ├── test_portfolio_service.py  # PortfolioService calculation unit tests
 │   │   ├── test_research_model.py     # ResearchRecord model unit tests
-│   │   └── test_research_service.py   # Research orchestration service unit tests
+│   │   ├── test_research_service.py   # Research orchestration service unit tests
+│   │   ├── test_watchlist_model.py    # WatchlistItem model unit tests
+│   │   └── test_watchlist_service.py  # WatchlistService unit tests
 │   └── integration/
 │       ├── test_ai_research.py       # AI research workflow, facts grounding, & personalization tests
 │       ├── test_auth.py              # Registration, login, auth context tests
 │       ├── test_health.py            # Health endpoint, Request ID, and Error handling tests
 │       ├── test_memory.py            # Memory CRUD, vector search, and isolation tests
+│       ├── test_portfolio.py         # Portfolio CRUD, snapshot calculations, and isolation tests
 │       ├── test_profile.py           # Profile endpoints & multi-user isolation tests
 │       ├── test_research.py          # Financial data endpoints integration tests
-│       └── test_research_history.py  # Research history & multi-tenant persistence tests
+│       ├── test_research_history.py  # Research history & multi-tenant persistence tests
+│       └── test_watchlist.py         # Watchlist CRUD, priority filtering, and isolation tests
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Git ignore rules
 ├── README.md                 # Project documentation
@@ -135,8 +148,19 @@ All endpoints are versioned under `/api/v1/`.
 | `GET` | `/api/v1/memory` | Yes (`Bearer <token>`) | List recent memories for authenticated user |
 | `GET` | `/api/v1/memory/search` | Yes (`Bearer <token>`) | Semantic vector search (`?q=...&limit=...`) |
 | `DELETE` | `/api/v1/memory/<id>` | Yes (`Bearer <token>`) | Delete a memory owned by authenticated user |
+| `POST` | `/api/v1/watchlist` | Yes (`Bearer <token>`) | Add a security to user's personal watchlist |
+| `GET` | `/api/v1/watchlist` | Yes (`Bearer <token>`) | List watchlist items (supports `?priority=high`) |
+| `GET` | `/api/v1/watchlist/<id>` | Yes (`Bearer <token>`) | Retrieve a single watchlist item |
+| `PUT` | `/api/v1/watchlist/<id>` | Yes (`Bearer <token>`) | Update watchlist item notes or priority |
+| `DELETE` | `/api/v1/watchlist/<id>` | Yes (`Bearer <token>`) | Remove a security from personal watchlist |
+| `POST` | `/api/v1/portfolio/holdings` | Yes (`Bearer <token>`) | Add a portfolio holding position |
+| `GET` | `/api/v1/portfolio/holdings` | Yes (`Bearer <token>`) | List all holdings for authenticated user |
+| `GET` | `/api/v1/portfolio/holdings/<id>` | Yes (`Bearer <token>`) | Retrieve a single portfolio holding |
+| `PUT` | `/api/v1/portfolio/holdings/<id>` | Yes (`Bearer <token>`) | Update holding quantity, cost, or notes |
+| `DELETE` | `/api/v1/portfolio/holdings/<id>` | Yes (`Bearer <token>`) | Delete a portfolio holding |
+| `GET` | `/api/v1/portfolio/snapshot` | Yes (`Bearer <token>`) | Calculate real-time portfolio valuation & gain/loss |
 | `POST` | `/api/v1/research/analyze` | Yes (`Bearer <token>`) | Trigger evidence-based AI research and persist report |
-| `GET` | `/api/v1/research/history` | Yes (`Bearer <token>`) | List paginated research history summaries (`?page=1&limit=20`) |
+| `GET` | `/api/v1/research/history` | Yes (`Bearer <token>`) | List paginated research history summaries |
 | `GET` | `/api/v1/research/history/<id>` | Yes (`Bearer <token>`) | Retrieve a full completed research report |
 | `DELETE` | `/api/v1/research/history/<id>` | Yes (`Bearer <token>`) | Delete a research report owned by user |
 | `GET` | `/api/v1/research/search` | Yes (`Bearer <token>`) | Resolve company name to ticker symbol (`?q=...`) |
@@ -221,4 +245,4 @@ Run the automated test suite with pytest:
 python -m pytest -v
 ```
 
-All 73 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 98 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
