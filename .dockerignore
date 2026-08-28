@@ -1,0 +1,43 @@
+# Git & IDE
+.git/
+.gitignore
+.github/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+# Node.js & Frontend (built separately)
+frontend/
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+
+# Python caches, virtual environments & tests
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+**/.pytest_cache/
+tests/
+.coverage
+htmlcov/
+coverage/
+
+# Docker build logs & artifacts
+docker-compose*.override.yml
+*.log
+test-results/
+playwright-report/

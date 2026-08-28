@@ -33,11 +33,14 @@ def create_app(config_name: str | None = None) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # Setup standard logging
+    # Setup standard structured logging
+    log_level_name = app.config.get("LOG_LEVEL", "INFO").upper()
+    log_level = getattr(logging, log_level_name, logging.INFO)
     logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        level=log_level,
+        format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
     )
+    app.logger.setLevel(log_level)
 
     # Request ID and Request Logging Hooks
     @app.before_request

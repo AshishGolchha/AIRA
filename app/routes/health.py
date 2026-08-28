@@ -6,6 +6,9 @@ from app.extensions import db
 health_bp = Blueprint("health", __name__, url_prefix="/api/v1")
 
 
+from app.version import __version__, __service__
+
+
 @health_bp.get("/health")
 def health_check():
     """
@@ -23,6 +26,20 @@ def health_check():
 def liveness_check():
     """Explicit liveness endpoint alias."""
     return health_check()
+
+
+@health_bp.get("/version")
+def version_check():
+    """
+    Canonical version and service metadata endpoint.
+    Safe for public consumption with zero secret leakage.
+    """
+    return jsonify({
+        "status": "ok",
+        "service": __service__,
+        "version": __version__,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }), 200
 
 
 @health_bp.get("/health/ready")

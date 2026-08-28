@@ -427,21 +427,122 @@ Validates authentication redirection, dashboard telemetry rendering, read-only d
 
 ---
 
-## Production Security & Deployment Architecture
+## Production-Like Deployment (Docker Compose)
 
-1. **Fail-Fast Configuration Validation**:
-   In `FLASK_ENV=production`, `validate_production_config` verifies that `SECRET_KEY` and `JWT_SECRET_KEY` are distinct 32+ character secrets, `DEBUG` is disabled, and production database credentials are provided.
-2. **CORS Allowlist**:
-   Strict origin matching against `CORS_ALLOWED_ORIGINS` with full preflight `OPTIONS` caching.
-3. **Defense-in-Depth Security Headers**:
-   Includes `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `HSTS`, and `Content-Security-Policy`.
-4. **Sliding-Window Rate Limiting**:
-   Protects sensitive and resource-intensive endpoints (`/auth/login`, `/auth/register`, `/research/analyze`, `/portfolio/intelligence`, `/alerts/check`, `/notifications/endpoints`) with standard HTTP 429 responses.
-5. **Decoupled Health Probes**:
-   - `GET /api/v1/health`: Process liveness probe.
-   - `GET /api/v1/health/ready`: Database readiness probe (`SELECT 1`). Zero external provider overhead.
-6. **Continuous Integration**:
-   Automated GitHub Actions workflow (`.github/workflows/ci.yml`) enforcing backend pytest, frontend typecheck, Vitest, production build, and Playwright E2E suites.
+AIRA provides a fully reproducible, local production-like environment with:
+- **Frontend Container**: Nginx 1.27 serving the compiled React 18 / Vite SPA and reverse-proxying `/api/` traffic.
+- **Backend Container**: Multi-threaded Gunicorn WSGI server running Python 3.10 with non-root user security.
+- **Database Container**: MySQL 8.0 with dedicated persistent storage (`mysql_data` volume) and automated healthchecks.
+
+### Architecture Overview
+
+```text
+Browser Client
+     │
+     ▼ (Port 8080)
+┌─────────────────────────────────────────────────────────┐
+│ Nginx Container (aira-frontend)                         │
+│  ├── Serves SPA Static Files (/index.html, /assets/*)   │
+│  └── Reverse Proxies /api/*                             │
+└──────────────────────────┬──────────────────────────────┘
+                           │ internal:5000
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│ Gunicorn WSGI Container (aira-backend)                  │
+│  ├── Flask Application Factory                          │
+│  ├── Request ID Tracing & Logging                       │
+│  ├── Sliding-Window Rate Limiting                       │
+│  └── Decoupled Liveness & Readiness Probes              │
+└──────────────────────────┬──────────────────────────────┘
+                           │ internal:3306
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│ Relational Database (aira-mysql:8.0)                    │
+│  ├── Named Persistent Volume (aira_mysql_data)          │
+│  └── Healthcheck: mysqladmin ping                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Step-by-Step Deployment Runbook
+
+#### 1. Prerequisites
+- Docker Engine 24.0+ and Docker Compose v2.20+
+- Port `8080` available on your host machine (or customize via `PORT` in `.env.docker`)
+
+#### 2. Environment Setup
+Copy the production template:
+```bash
+cp .env.docker.example .env.docker
+```
+Ensure `SECRET_KEY` and `JWT_SECRET_KEY` are distinct random secrets with at least 32 characters.
+
+#### 3. Build & Start the Complete Stack
+```bash
+docker compose --env-file .env.docker up --build -d
+```
+The backend automatically executes Alembic database migrations (`RUN_MIGRATIONS=true`) once the MySQL container becomes healthy.
+
+#### 4. Verify Service Health
+Check container health statuses:
+```bash
+docker compose ps
+```
+Verify process liveness and database readiness probes:
+```bash
+# Liveness Probe (process level)
+curl http://localhost:8080/api/v1/health/live
+
+# Readiness Probe (database level)
+curl http://localhost:8080/api/v1/health/ready
+
+# Version Metadata
+curl http://localhost:8080/api/v1/version
+```
+
+#### 5. Access the Application
+Open your browser at `http://localhost:8080` to interact with the full production AIRA platform.
+
+#### 6. View Container Logs
+```bash
+# Stream all logs
+docker compose logs -f
+
+# View backend WSGI logs with X-Request-ID
+docker compose logs -f backend
+
+# View frontend Nginx access logs
+docker compose logs -f frontend
+```
+
+#### 7. Manual Database Migration (If Needed)
+To run or inspect migrations independently:
+```bash
+docker compose run --rm backend flask db upgrade
+docker compose run --rm backend flask db current
+```
+
+#### 8. Stop the Stack
+```bash
+# Stop containers without removing persistent data
+docker compose down
+
+# Stop containers and remove persistent MySQL volume (intentional reset only)
+docker compose down -v
+```
+
+---
+
+### Troubleshooting Common Deployment Issues
+
+| Issue | Cause | Resolution |
+| :--- | :--- | :--- |
+| `Production configuration validation failed: SECRET_KEY must be...` | `SECRET_KEY` or `JWT_SECRET_KEY` is too short or using default placeholder. | Ensure secrets in `.env.docker` are at least 32 characters. |
+| `backend healthcheck failed (unhealthy)` | MySQL is still initializing or credentials mismatch. | Inspect logs with `docker compose logs mysql` and `docker compose logs backend`. |
+| `502 Bad Gateway` on `/api/*` | Backend container is booting or unreachable from Nginx. | Verify backend health status with `docker compose ps backend`. |
+| Port conflict on `8080` | Host port is already allocated by another service. | Set `PORT=8081` in `.env.docker` and restart. |
+
 
 
 
