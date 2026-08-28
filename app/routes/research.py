@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, g, jsonify, request
 
 from app.common.auth import auth_required
+from app.common.rate_limit import rate_limit
 from app.services.financial import FinancialDataService
 from app.services.research_service import ResearchService
 
@@ -53,6 +54,7 @@ def _handle_service_error(e: Exception):
 
 @research_bp.post("/analyze")
 @auth_required
+@rate_limit(limit=10, window_seconds=60)
 def analyze_company():
     """Execute AI multi-agent research workflow on a company/symbol for authenticated user."""
     data = request.get_json(silent=True) or {}

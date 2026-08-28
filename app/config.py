@@ -48,6 +48,13 @@ class BaseConfig:
     JWT_ACCESS_TOKEN_EXPIRES_SECONDS = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_SECONDS", "86400"))
     CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "")
 
+    # Rate Limiting & Abuse Protection
+    RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() in ("true", "1")
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+
+    # Security Headers
+    SECURITY_HEADERS_ENABLED = os.getenv("SECURITY_HEADERS_ENABLED", "true").lower() in ("true", "1")
+
     # Alert & Monitoring Configuration
     ALERT_PRICE_MOVE_THRESHOLD_PERCENT = float(os.getenv("ALERT_PRICE_MOVE_THRESHOLD_PERCENT", "5.0"))
     ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT = float(os.getenv("ALERT_PORTFOLIO_GAIN_LOSS_THRESHOLD_PERCENT", "10.0"))
@@ -81,11 +88,59 @@ class ProductionConfig(BaseConfig):
 
     def __init__(self):
         self.SQLALCHEMY_DATABASE_URI = build_mysql_uri()
+        validate_production_config(self)
 
 
 class TestingConfig(BaseConfig):
     TESTING = True
+    DEBUG = False
+    RATELIMIT_ENABLED = False
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+
+
+def validate_production_config(config: BaseConfig) -> list[str]:
+    """Validates that production environment has secure, non-default configuration."""
+    errors: list[str] = []
+
+    # 1. SECRET_KEY validation
+    insecure_keys = (
+        "dev-secret-key-change-in-production",
+        "change-this-to-a-secure-random-key-in-production",
+        "",
+    )
+    if not config.SECRET_KEY or config.SECRET_KEY in insecure_keys or len(config.SECRET_KEY) < 32:
+        errors.append(
+            "SECRET_KEY must be a cryptographically secure string with at least 32 characters in production."
+        )
+
+    # 2. JWT_SECRET_KEY validation
+    insecure_jwt_keys = (
+        "dev-secret-key-change-in-production",
+        "change-this-to-a-secure-jwt-secret-key-in-production",
+        "",
+    )
+    if not config.JWT_SECRET_KEY or config.JWT_SECRET_KEY in insecure_jwt_keys or len(config.JWT_SECRET_KEY) < 32:
+        errors.append(
+            "JWT_SECRET_KEY must be a secure secret with at least 32 characters in production."
+        )
+
+    # 3. Database URI validation
+    db_uri = getattr(config, "SQLALCHEMY_DATABASE_URI", "")
+    if not db_uri or "sqlite" in db_uri.lower():
+        errors.append(
+            "Production requires a production-grade relational database (e.g., MySQL via DATABASE_URL)."
+        )
+
+    # 4. Debug Mode check
+    if getattr(config, "DEBUG", False):
+        errors.append("DEBUG mode must be disabled (False) in production.")
+
+    if errors:
+        raise RuntimeError(
+            "Production configuration validation failed:\n- " + "\n- ".join(errors)
+        )
+
+    return errors
 
 
 CONFIG_MAP = {

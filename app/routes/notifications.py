@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, g, jsonify, request
 
 from app.common.auth import auth_required
+from app.common.rate_limit import rate_limit
 from app.extensions import db
 from app.models.notification_endpoint import NotificationEndpoint
 from app.services.notifications import NotificationService, WebhookNotificationProvider
@@ -108,6 +109,7 @@ def list_endpoints():
 
 @notifications_bp.post("/endpoints")
 @auth_required
+@rate_limit(limit=20, window_seconds=60)
 def create_endpoint():
     """Creates a new notification endpoint (e.g. webhook) for authenticated user."""
     data = request.get_json(silent=True) or {}

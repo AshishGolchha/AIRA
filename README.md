@@ -215,7 +215,8 @@ All endpoints are versioned under `/api/v1/`.
 
 | Method | Endpoint | Auth Required | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/health` | No | Service health check |
+| `GET` | `/api/v1/health` | No | Liveness probe verifying process uptime |
+| `GET` | `/api/v1/health/ready` | No | Readiness probe checking primary database connectivity |
 | `GET` | `/api/v1/dashboard` | Yes (`Bearer <token>`) | Complete unified investor dashboard snapshot |
 | `GET` | `/api/v1/dashboard/summary` | Yes (`Bearer <token>`) | Lightweight summary metrics for header widgets |
 | `GET` | `/api/v1/monitoring/status` | No | Automated monitoring operational status and latest run summary |
@@ -396,6 +397,7 @@ npm run build       # Production bundle build
 ### 4. Run Frontend Tests
 ```bash
 npm run test        # Vitest suite (23/23 tests across 11 suites)
+npm run test:e2e    # Playwright browser E2E test suite (5 critical flows)
 ```
 
 ---
@@ -407,7 +409,7 @@ Run the automated backend test suite:
 ```bash
 python -m pytest -v
 ```
-All 179 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 189 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
 
 ### Frontend Tests (Vitest)
 Run the complete frontend test suite:
@@ -415,5 +417,31 @@ Run the complete frontend test suite:
 cd frontend && npm run test
 ```
 All 23 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 11 test suites (`Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
+
+### Browser E2E Tests (Playwright)
+Run the browser-level end-to-end test suite:
+```bash
+cd frontend && npm run test:e2e
+```
+Validates authentication redirection, dashboard telemetry rendering, read-only dashboard contracts, explicit multi-agent AI generation, and full shell navigation under headless Chromium.
+
+---
+
+## Production Security & Deployment Architecture
+
+1. **Fail-Fast Configuration Validation**:
+   In `FLASK_ENV=production`, `validate_production_config` verifies that `SECRET_KEY` and `JWT_SECRET_KEY` are distinct 32+ character secrets, `DEBUG` is disabled, and production database credentials are provided.
+2. **CORS Allowlist**:
+   Strict origin matching against `CORS_ALLOWED_ORIGINS` with full preflight `OPTIONS` caching.
+3. **Defense-in-Depth Security Headers**:
+   Includes `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `HSTS`, and `Content-Security-Policy`.
+4. **Sliding-Window Rate Limiting**:
+   Protects sensitive and resource-intensive endpoints (`/auth/login`, `/auth/register`, `/research/analyze`, `/portfolio/intelligence`, `/alerts/check`, `/notifications/endpoints`) with standard HTTP 429 responses.
+5. **Decoupled Health Probes**:
+   - `GET /api/v1/health`: Process liveness probe.
+   - `GET /api/v1/health/ready`: Database readiness probe (`SELECT 1`). Zero external provider overhead.
+6. **Continuous Integration**:
+   Automated GitHub Actions workflow (`.github/workflows/ci.yml`) enforcing backend pytest, frontend typecheck, Vitest, production build, and Playwright E2E suites.
+
 
 

@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, g, jsonify, request
 
 from app.common.auth import auth_required
+from app.common.rate_limit import rate_limit
 from app.services.financial import FinancialDataService
 from app.services.portfolio_intelligence_service import PortfolioIntelligenceService
 from app.services.portfolio_service import PortfolioService
@@ -256,6 +257,7 @@ def get_portfolio_snapshot():
 
 @portfolio_bp.post("/intelligence")
 @auth_required
+@rate_limit(limit=10, window_seconds=60)
 def get_portfolio_intelligence():
     """Generate personalized portfolio and watchlist intelligence report for authenticated user."""
     data = request.get_json(silent=True) or {}

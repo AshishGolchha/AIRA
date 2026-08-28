@@ -58,6 +58,12 @@ coverage/
 .hypothesis/
 .nox/
 .tox/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+blob-report/
+**/blob-report/
 
 # Logs & Databases
 logs/

@@ -3,6 +3,7 @@ from flask import Blueprint, g, jsonify, request
 from sqlalchemy.exc import IntegrityError
 
 from app.common.auth import auth_required, generate_token
+from app.common.rate_limit import rate_limit
 from app.extensions import db
 from app.models.user import User, UserProfile
 
@@ -12,6 +13,7 @@ EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 @auth_bp.post("/register")
+@rate_limit(limit=10, window_seconds=60)
 def register():
     """Register a new user account and initialize user profile."""
     data = request.get_json(silent=True) or {}
@@ -106,6 +108,7 @@ def register():
 
 
 @auth_bp.post("/login")
+@rate_limit(limit=15, window_seconds=60)
 def login():
     """Authenticate user credentials and issue a JWT access token."""
     data = request.get_json(silent=True) or {}
