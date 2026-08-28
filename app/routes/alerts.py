@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, g, jsonify, request
 
 from app.common.auth import auth_required
+from app.common.rate_limit import rate_limit
 from app.services.alert_service import AlertService
 from app.services.financial import FinancialDataService
 from app.services.portfolio_service import PortfolioService
@@ -50,6 +51,7 @@ def _handle_service_error(e: Exception):
 
 @alerts_bp.post("/check")
 @auth_required
+@rate_limit(limit=30, window_seconds=60)
 def check_alerts():
     """Runs deterministic rule check on user's portfolio and watchlist to create alerts."""
     data = request.get_json(silent=True) or {}

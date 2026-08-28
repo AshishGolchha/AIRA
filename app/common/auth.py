@@ -26,8 +26,13 @@ def decode_token(token: str) -> dict | None:
     """Decodes and validates a JWT access token, returning claims or None if invalid/expired."""
     secret = current_app.config["JWT_SECRET_KEY"]
     try:
-        return jwt.decode(token, secret, algorithms=["HS256"])
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return jwt.decode(
+            token,
+            secret,
+            algorithms=["HS256"],
+            options={"require": ["exp", "iat", "sub"]},
+        )
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, Exception):
         return None
 
 
