@@ -1,0 +1,90 @@
+# ==============================================================================
+# AIRA Production-Like Local Orchestration (Docker Compose)
+# Fully reproducible local stack: Nginx Frontend -> Gunicorn Flask Backend -> MySQL 8.0
+# ==============================================================================
+
+services:
+  # 1. Primary Relational Database
+  mysql:
+    image: mysql:8.0
+    container_name: aira-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_super_secret_password_32chars}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-aira_db}
+      MYSQL_USER: ${MYSQL_USER:-aira_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-aira_password_secure_32chars_long}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - aira-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "aira_user", "-p${MYSQL_PASSWORD:-aira_password_secure_32chars_long}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # 2. Production WSGI Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aira-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      FLASK_ENV: production
+      RUN_MIGRATIONS: "true"
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-aira_user}:${MYSQL_PASSWORD:-aira_password_secure_32chars_long}@mysql:3306/${MYSQL_DATABASE:-aira_db}
+      SECRET_KEY: ${SECRET_KEY:-production-flask-secret-key-min-32-chars-long!}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-production-jwt-secret-key-min-32-chars-length!}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost,http://localhost:8080,http://127.0.0.1:8080}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # AI & Vector Storage Configuration (Optional in local mock mode)
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      # Rate Limiting & Security Configuration
+      RATELIMIT_ENABLED: ${RATELIMIT_ENABLED:-true}
+      SECURITY_HEADERS_ENABLED: ${SECURITY_HEADERS_ENABLED:-true}
+    networks:
+      - aira-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # 3. Static Nginx Web Server & Reverse Proxy
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aira-frontend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - aira-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  aira-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    name: aira_mysql_data

@@ -52,6 +52,9 @@ class BaseConfig:
     RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() in ("true", "1")
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
 
+    # Observability & Logging
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+
     # Security Headers
     SECURITY_HEADERS_ENABLED = os.getenv("SECURITY_HEADERS_ENABLED", "true").lower() in ("true", "1")
 
