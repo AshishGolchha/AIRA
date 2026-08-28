@@ -49,6 +49,12 @@ def create_app(config_name: str | None = None) -> Flask:
     def after_request_hook(response):
         req_id = getattr(g, "request_id", "")
         response.headers["X-Request-ID"] = req_id
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Request-ID"
+        if request.method == "OPTIONS":
+            response.status_code = 200
+
         start = getattr(g, "start_time", time.perf_counter())
         duration_ms = (time.perf_counter() - start) * 1000
         app.logger.info(
