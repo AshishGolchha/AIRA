@@ -99,6 +99,7 @@ export const Research: React.FC = () => {
 
   const handleSelectSecurity = async (sym: string) => {
     setSelectedSymbol(sym);
+    setActiveTab('overview');
     setIsLoadingSecurity(true);
     try {
       const [pRes, qRes, mRes, nRes] = await Promise.allSettled([

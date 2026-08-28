@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import { ToastProvider } from '../context/ToastContext';
 import { Login } from '../pages/Login';
+import { Register } from '../pages/Register';
 import { api } from '../lib/api';
 
 vi.mock('../lib/api', () => ({
@@ -16,7 +17,7 @@ vi.mock('../lib/api', () => ({
   },
 }));
 
-describe('AuthContext and Login Component', () => {
+describe('AuthContext, Login, and Register Components', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
@@ -42,22 +43,14 @@ describe('AuthContext and Login Component', () => {
     const mockUser = {
       id: 1,
       email: 'investor@aira.internal',
-      is_active: true,
+      name: 'Alex Vance',
+      risk_tolerance: 'moderate',
       alerts_enabled: true,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      profile: {
-        id: 1,
-        display_name: 'Test Investor',
-        investment_focus: 'Tech',
-        risk_preference: 'moderate',
-        investment_horizon: 'long_term',
-      },
     };
 
     (api.auth.login as any).mockResolvedValueOnce({
-      access_token: 'mock-jwt-token-123',
-      token_type: 'Bearer',
+      access_token: 'fake_jwt_token_12345',
       user: mockUser,
     });
 
@@ -71,21 +64,84 @@ describe('AuthContext and Login Component', () => {
       </BrowserRouter>
     );
 
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: 'investor@aira.internal' },
-    });
-    fireEvent.change(screen.getByLabelText(/password/i), {
-      target: { value: 'Secret123!' },
-    });
+    const emailInput = screen.getByLabelText(/email address/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitBtn = screen.getByRole('button', { name: /sign in to platform/i });
 
-    fireEvent.click(screen.getByRole('button', { name: /sign in to platform/i }));
+    fireEvent.change(emailInput, { target: { value: 'investor@aira.internal' } });
+    fireEvent.change(passwordInput, { target: { value: 'SecretPassword123!' } });
+    fireEvent.click(submitBtn);
 
     await waitFor(() => {
       expect(api.auth.login).toHaveBeenCalledWith({
         email: 'investor@aira.internal',
-        password: 'Secret123!',
+        password: 'SecretPassword123!',
       });
-      expect(localStorage.getItem('aira_auth_token')).toBe('mock-jwt-token-123');
+      expect(localStorage.getItem('aira_auth_token')).toBe('fake_jwt_token_12345');
+      expect(localStorage.getItem('aira_user')).toContain('investor@aira.internal');
+    });
+  });
+
+  it('displays error message on failed login attempt', async () => {
+    (api.auth.login as any).mockRejectedValueOnce(new Error('Invalid email or password.'));
+
+    render(
+      <BrowserRouter>
+        <ToastProvider>
+          <AuthProvider>
+            <Login />
+          </AuthProvider>
+        </ToastProvider>
+      </BrowserRouter>
+    );
+
+    fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'wrong@aira.internal' } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'wrongpass' } });
+    fireEvent.click(screen.getByRole('button', { name: /sign in to platform/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Invalid email or password.')).toBeInTheDocument();
+    });
+  });
+
+  it('submits registration payload and logs in user', async () => {
+    const mockUser = {
+      id: 2,
+      email: 'newuser@aira.internal',
+      name: 'New Investor',
+      risk_tolerance: 'moderate',
+      alerts_enabled: true,
+      created_at: new Date().toISOString(),
+    };
+
+    (api.auth.register as any).mockResolvedValueOnce({
+      access_token: 'new_user_token_999',
+      user: mockUser,
+    });
+
+    render(
+      <BrowserRouter>
+        <ToastProvider>
+          <AuthProvider>
+            <Register />
+          </AuthProvider>
+        </ToastProvider>
+      </BrowserRouter>
+    );
+
+    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'New Investor' } });
+    fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'newuser@aira.internal' } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'SecurePass888!' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /get started free/i }));
+
+    await waitFor(() => {
+      expect(api.auth.register).toHaveBeenCalledWith({
+        email: 'newuser@aira.internal',
+        password: 'SecurePass888!',
+        display_name: 'New Investor',
+      });
+      expect(localStorage.getItem('aira_auth_token')).toBe('new_user_token_999');
     });
   });
 });

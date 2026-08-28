@@ -51,6 +51,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [logout]);
 
   useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+
+    window.addEventListener('aira:unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('aira:unauthorized', handleUnauthorized);
+    };
+  }, [logout]);
+
+  useEffect(() => {
     const storedUser = localStorage.getItem('aira_user');
     if (storedUser) {
       try {
