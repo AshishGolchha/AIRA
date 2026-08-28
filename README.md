@@ -8,23 +8,30 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 15 — Portfolio Intelligence Persistence & History**
+**Phase 16 — Modern Frontend Application Foundation**
 
-Phase 15 establishes persistent, user-scoped Portfolio Intelligence history:
-- **Persistent Intelligence Model (`PortfolioIntelligenceRecord`)**: Saves complete AI portfolio analysis, overview, risk discussions, opportunities, watchlist priorities, and recommended research together with verified financial facts and source provenance.
-- **Immutable Snapshot Semantics**: Persisted reports freeze portfolio snapshot calculations, market values, and prices at the moment of generation. Future modifications to user holdings do not mutate historical reports.
-- **Strict Fact vs. AI Separation**: Deterministic numbers (cost basis, market value, concentration weights, prices) remain strictly separated from qualitative LLM reasoning.
-- **User-Scoped History API**:
-  - `GET /api/v1/portfolio/intelligence/history`: Paginated lightweight summaries.
-  - `GET /api/v1/portfolio/intelligence/history/<id>`: Full detailed report by ID.
-  - `DELETE /api/v1/portfolio/intelligence/history/<id>`: Delete user's own report.
-- **Fail-Safe Integrity**: Malformed AI output or failed validations persist zero database rows and safely roll back.
-- **Unified Dashboard Integration**: `GET /api/v1/dashboard` seamlessly renders the latest available portfolio intelligence report with zero AI invocations and zero database writes.
+Phase 16 establishes the official production-grade web application for AIRA located in `frontend/`:
+- **Modern Component Architecture**: React 18 with TypeScript, Vite bundler, and Tailwind CSS.
+- **Dark-First Financial Aesthetic**: Deep `#090B10` background, subtle glow gradients, translucent glassmorphism surfaces, and fine border styling.
+- **Strictly Typed API Client**: Centralized HTTP client (`frontend/src/lib/api.ts`) managing Bearer token injection, request ID tracking, and typed errors.
+- **Client-Side Authentication & Guards**: `AuthContext` with automatic localStorage synchronization and `ProtectedRoute` routing guards.
+- **Full Domain Coverage**:
+  - **Auth**: Login & Registration with input validation.
+  - **Dashboard**: Unified read-only investor overview consuming `GET /api/v1/dashboard` (zero AI latency on page load).
+  - **Portfolio**: Real-time snapshot valuation, holding weights, P&L calculations, and Add/Edit/Delete modals.
+  - **Watchlist**: Priority-filtered watchlist with real-time price changes and management modals.
+  - **Alerts**: Real-time telemetry feed, severity badges, trigger check button, mark as read, and dismiss actions.
+  - **Portfolio Intelligence**: AI portfolio & watchlist synthesis generation workspace and historical report inspection.
+  - **Research**: Search resolution, company fundamentals, valuation multiples, news headlines, and deep multi-agent research.
+  - **Notifications**: Channel preferences, SSRF-validated webhook endpoints, and delivery history logs.
+  - **Settings**: Investor focus, risk tolerance, and horizon configuration.
+- **Comprehensive Verification**: 179 Python pytest tests and 9 TypeScript Vitest unit/component tests passing with 100% success.
 
 ---
 
 ## Technology Stack
 
+### Backend
 - **Runtime**: Python 3.10+
 - **Web Framework**: Flask 3.x
 - **Agent Framework**: CrewAI
@@ -36,6 +43,13 @@ Phase 15 establishes persistent, user-scoped Portfolio Intelligence history:
 - **Market Data Provider**: `yfinance` (Yahoo Finance API)
 - **Testing**: Pytest (isolated in-memory SQLite + mock financial, vector, & agent services)
 - **Configuration**: Python-dotenv
+
+### Frontend
+- **Runtime & Bundler**: Node.js 18+, Vite 6, TypeScript 5
+- **UI Framework**: React 18, React Router v6
+- **Styling**: Tailwind CSS, PostCSS, Glassmorphism design tokens
+- **Icons**: Lucide React
+- **Testing**: Vitest, React Testing Library, JSDOM
 
 ---
 
@@ -359,11 +373,46 @@ with app.app_context():
 
 ---
 
+## Running Frontend Application
+
+### 1. Navigate & Install
+```bash
+cd frontend
+npm install
+```
+
+### 2. Run Development Server
+```bash
+npm run dev
+```
+The Vite dev server starts at `http://localhost:5173/` with automatic proxying of `/api` requests to `http://127.0.0.1:5000`.
+
+### 3. Typecheck & Build
+```bash
+npm run typecheck   # Strict TypeScript compilation check
+npm run build       # Production bundle build
+```
+
+### 4. Run Frontend Tests
+```bash
+npm run test        # Vitest suite (9/9 tests)
+```
+
+---
+
 ## Running Tests
 
-Run the automated test suite with pytest:
+### Backend Tests (Pytest)
+Run the automated backend test suite:
 ```bash
 python -m pytest -v
 ```
-
 All 179 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+
+### Frontend Tests (Vitest)
+Run the frontend test suite:
+```bash
+cd frontend && npm run test
+```
+All 9 unit and component tests run with JSDOM and React Testing Library.
+
