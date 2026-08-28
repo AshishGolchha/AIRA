@@ -102,6 +102,14 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={fetchDashboard}
+            leftIcon={<Activity className="w-3.5 h-3.5" />}
+          >
+            Refresh Metrics
+          </Button>
           <Link to="/app/portfolio">
             <Button size="sm" variant="secondary" leftIcon={<PieChart className="w-4 h-4" />}>
               View Portfolio

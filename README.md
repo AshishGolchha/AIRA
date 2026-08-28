@@ -395,7 +395,7 @@ npm run build       # Production bundle build
 
 ### 4. Run Frontend Tests
 ```bash
-npm run test        # Vitest suite (9/9 tests)
+npm run test        # Vitest suite (23/23 tests across 11 suites)
 ```
 
 ---
@@ -410,9 +410,10 @@ python -m pytest -v
 All 179 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
 
 ### Frontend Tests (Vitest)
-Run the frontend test suite:
+Run the complete frontend test suite:
 ```bash
 cd frontend && npm run test
 ```
-All 9 unit and component tests run with JSDOM and React Testing Library.
+All 23 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 11 test suites (`Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
+
 

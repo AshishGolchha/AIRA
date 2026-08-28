@@ -350,6 +350,7 @@ export const Portfolio: React.FC = () => {
             placeholder="e.g. NVDA, AAPL, MSFT"
             value={symbol}
             onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+            disabled={isSubmitting}
             required
           />
           <div className="grid grid-cols-2 gap-3">
@@ -357,18 +358,22 @@ export const Portfolio: React.FC = () => {
               label="Shares Quantity"
               type="number"
               step="any"
+              min="0.000001"
               placeholder="10.5"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
+              disabled={isSubmitting}
               required
             />
             <Input
               label="Average Cost ($)"
               type="number"
               step="any"
+              min="0"
               placeholder="120.00"
               value={averageCost}
               onChange={(e) => setAverageCost(e.target.value)}
+              disabled={isSubmitting}
               required
             />
           </div>
@@ -377,6 +382,7 @@ export const Portfolio: React.FC = () => {
             placeholder="Investment thesis, target exit..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
+            disabled={isSubmitting}
           />
           <div className="flex justify-end gap-2.5 pt-3 border-t border-border-subtle">
             <Button type="button" variant="secondary" size="sm" onClick={() => setIsAddModalOpen(false)}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Mail, User as UserIcon, Eye, EyeOff, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -15,13 +15,20 @@ export const Register: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register } = useAuth();
+  const { register, isAuthenticated, isLoading } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate('/app/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
       setError('Please fill in email and password.');
       return;
     }
@@ -35,7 +42,7 @@ export const Register: React.FC = () => {
 
     try {
       await register({
-        email,
+        email: cleanEmail,
         password,
         display_name: displayName.trim() || undefined,
       });

@@ -280,12 +280,14 @@ export const Watchlist: React.FC = () => {
             placeholder="e.g. AMD, TSLA, PLTR"
             value={symbol}
             onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+            disabled={isSubmitting}
             required
           />
           <Select
             label="Monitoring Priority"
             value={priority}
             onChange={(e) => setPriority(e.target.value as WatchlistPriority)}
+            disabled={isSubmitting}
             options={[
               { value: 'high', label: 'High Priority (Priority Telemetry)' },
               { value: 'normal', label: 'Normal Priority' },
@@ -297,6 +299,7 @@ export const Watchlist: React.FC = () => {
             placeholder="Target buy zone, catalyst date..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
+            disabled={isSubmitting}
           />
           <div className="flex justify-end gap-2.5 pt-3 border-t border-border-subtle">
             <Button type="button" variant="secondary" size="sm" onClick={() => setIsAddModalOpen(false)}>

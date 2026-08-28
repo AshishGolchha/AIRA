@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff, Sparkles, Shield, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -14,13 +14,22 @@ export const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      const from = (location.state as any)?.from?.pathname || '/app/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
       setError('Please enter both email and password.');
       return;
     }
@@ -29,9 +38,10 @@ export const Login: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await login({ email, password });
+      await login({ email: cleanEmail, password });
       showToast('Welcome back to AIRA', 'success');
-      navigate('/app/dashboard');
+      const from = (location.state as any)?.from?.pathname || '/app/dashboard';
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Invalid email or password.');
     } finally {
