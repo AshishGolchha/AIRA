@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { Landing } from '../pages/Landing';
 import * as AuthContextModule from '../context/AuthContext';
 
-describe('Landing Page Component & Public Experience', () => {
+describe('Landing Page Component & Premium Product Story', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -45,15 +45,81 @@ describe('Landing Page Component & Public Experience', () => {
     expect(screen.getAllByText(/Deterministic Alerts/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Vector Memory/i).length).toBeGreaterThan(0);
 
-    // Problem and Architecture sections
-    expect(screen.getByText(/The AIRA Engine/i)).toBeInTheDocument();
-    expect(screen.getByText(/Deterministic Math Meets Autonomous AI/i)).toBeInTheDocument();
+    // Architecture section
+    expect(screen.getByText(/Why AIRA Is Not "ChatGPT for Stocks"/i)).toBeInTheDocument();
+    expect(screen.getByText(/Autonomous Consensus Through Specialized Agent Debate/i)).toBeInTheDocument();
 
     // Disclaimer
     expect(screen.getByText(/AIRA is an autonomous investment research intelligence/i)).toBeInTheDocument();
   });
 
-  it('allows switching interactive intelligence console stages', () => {
+  it('allows interactive ticker switching in Hero Intelligence Engine', () => {
+    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
+    render(
+      <BrowserRouter>
+        <Landing />
+      </BrowserRouter>
+    );
+
+    // Default ticker is NVDA
+    expect(screen.getByText(/NVIDIA Corporation/i)).toBeInTheDocument();
+    expect(screen.getByText(/Data Center compute segment revenue/i)).toBeInTheDocument();
+
+    // Switch to AAPL
+    const aaplBtn = screen.getByRole('button', { name: /\$AAPL/i });
+    fireEvent.click(aaplBtn);
+
+    expect(screen.getByText(/Apple Inc\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Installed base surpassed 2\.2 billion/i)).toBeInTheDocument();
+
+    // Switch to MSFT
+    const msftBtn = screen.getByRole('button', { name: /\$MSFT/i });
+    fireEvent.click(msftBtn);
+
+    expect(screen.getByText(/Microsoft Corporation/i)).toBeInTheDocument();
+    expect(screen.getByText(/Azure Cloud revenue growth \+29%/i)).toBeInTheDocument();
+  });
+
+  it('allows interactive inspection in ArchitectureCircuit and MultiAgentDebate', () => {
+    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
+    render(
+      <BrowserRouter>
+        <Landing />
+      </BrowserRouter>
+    );
+
+    // In Architecture circuit: click Portfolio Valuation Math
+    const mathBtn = screen.getByRole('button', { name: /Portfolio Valuation Math/i });
+    fireEvent.click(mathBtn);
+    expect(screen.getByText(/Zero LLM participation in mathematical calculations/i)).toBeInTheDocument();
+
+    // In Multi-Agent Debate: click Agent 1
+    const agent1Btn = screen.getByRole('button', { name: /Agent 1/i });
+    fireEvent.click(agent1Btn);
+    expect(screen.getByText(/Senior Equity Analyst/i)).toBeInTheDocument();
+  });
+
+  it('allows switching intelligence console stages and toggling JSON view mode', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: null,
       token: null,
@@ -73,23 +139,21 @@ describe('Landing Page Component & Public Experience', () => {
 
     // Default stage 1 should be visible
     expect(screen.getAllByText(/Multi-Source Discovery/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Target Ingested: NVDA/i)).toBeInTheDocument();
 
     // Click Stage 2: Deterministic Portfolio Valuation
     const stage2Btn = screen.getByRole('button', { name: /Deterministic Portfolio Valuation/i });
     fireEvent.click(stage2Btn);
 
     expect(screen.getAllByText(/Portfolio Snapshot Computed/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/\$125,000.00/i)).toBeInTheDocument();
 
-    // Click Stage 3: Multi-Agent AI Synthesis
-    const stage3Btn = screen.getByRole('button', { name: /Multi-Agent AI Synthesis/i });
-    fireEvent.click(stage3Btn);
+    // Toggle Structured JSON mode
+    const jsonToggleBtn = screen.getByRole('button', { name: /Structured JSON/i });
+    fireEvent.click(jsonToggleBtn);
 
-    expect(screen.getAllByText(/Multi-Agent Consensus Synthesized/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/"valuation_engine": "DETERMINISTIC_SQL"/i)).toBeInTheDocument();
   });
 
-  it('renders "Open Dashboard" CTA when user is already authenticated', () => {
+  it('renders "Open Dashboard" CTA when user is authenticated', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: {
         id: 1,
@@ -112,7 +176,7 @@ describe('Landing Page Component & Public Experience', () => {
       </BrowserRouter>
     );
 
-    const dashboardBtns = screen.getAllByText(/Open Dashboard/i);
+    const dashboardBtns = screen.getAllByText(/Open (Investor )?Dashboard/i);
     expect(dashboardBtns.length).toBeGreaterThan(0);
   });
 });

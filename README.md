@@ -8,25 +8,16 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 20A — Public Landing Page, Product Story, WOW Factor & Free Technical SEO**
+**Phase 20B — Premium WOW Landing Experience & Visual Product Story**
 
-Phase 20A establishes the public-facing entry point and product storytelling foundation for AIRA:
-- **Public Landing Page (`/`)**: Cinematic, dark-first landing page with an interactive "AIRA Intelligence Console" simulator showcasing the 6-stage research pipeline.
-- **Clear Product Story & Separation**: Communicates how multi-agent company research, real-time portfolio weighting, deterministic telemetry, and vector memory unite into one continuous intelligence layer.
-- **Public & Protected Route Isolation**: Root `/` serves public visitors, `/login` & `/register` serve authentication, and `/app/*` encapsulates the protected application shell.
-- **Free Technical SEO**: Standard-compliant JSON-LD structured data (`WebApplication`), Open Graph preview cards, Twitter cards, canonical tags, `robots.txt`, and `sitemap.xml`.
-- **Full Domain Coverage**:
-  - **Landing (`/`)**: Public hero, interactive console, capability matrix, and architecture breakdown.
-  - **Auth (`/login`, `/register`)**: Login & Registration with input validation.
-  - **Dashboard (`/app/dashboard`)**: Unified read-only investor overview consuming `GET /api/v1/dashboard`.
-  - **Portfolio (`/app/portfolio`)**: Real-time snapshot valuation, holding weights, P&L calculations, and Add/Edit/Delete modals.
-  - **Watchlist (`/app/watchlist`)**: Priority-filtered watchlist with real-time price changes and management modals.
-  - **Alerts (`/app/alerts`)**: Real-time telemetry feed, severity badges, trigger check button, mark as read, and dismiss actions.
-  - **Portfolio Intelligence (`/app/intelligence`)**: AI portfolio & watchlist synthesis generation workspace and historical report inspection.
-  - **Research (`/app/research`)**: Search resolution, company fundamentals, valuation multiples, news headlines, and deep multi-agent research.
-  - **Notifications (`/app/notifications`)**: Channel preferences, SSRF-validated webhook endpoints, and delivery history logs.
-  - **Settings (`/app/settings`)**: Investor focus, risk tolerance, and horizon configuration.
-- **Comprehensive Verification**: 195 Python pytest tests, 26 TypeScript Vitest unit/component tests across 12 suites, and 6 Playwright E2E browser flows passing with 100% success.
+Phase 20B elevates the public web presence of AIRA into a cinematic, futuristic AI product launch experience:
+- **Interactive Hero Intelligence Engine**: Centerpiece simulator with multi-ticker switching (`$NVDA`, `$AAPL`, `$MSFT`) showing live SEC ingestion feeds, 3-agent deliberation chambers, and grounded thesis synthesis.
+- **Architectural Circuit Visualizer**: Interactive circuit diagram demonstrating the strict separation between the **Autonomous AI Tier** (CrewAI multi-agent synthesis) and the **Deterministic Financial Core** (mathematical portfolio valuation, alert thresholds, retry-safe webhooks).
+- **Multi-Agent Deliberation Simulator**: Interactive visual dialogue between Fundamental, Valuation, and Macro Risk agents converging on an evidence-grounded consensus.
+- **Enhanced Intelligence Console**: 6-stage lifecycle console with report view and structured JSON payload inspection.
+- **Card-Grid Fatigue Elimination**: Varied asymmetric editorial layouts, live conduits, and high-contrast before/after problem framing.
+- **Free Technical SEO & Fast Load**: Standard-compliant JSON-LD structured data (`WebApplication`), Open Graph preview cards, Twitter cards, canonical tags, `robots.txt`, and `sitemap.xml` with zero initial API requests.
+- **Comprehensive Verification**: 195 Python pytest tests, 28 TypeScript Vitest unit/component tests across 12 suites, and 6 Playwright E2E browser flows passing with 100% success.
 
 ---
 
@@ -417,7 +408,7 @@ Run the complete frontend test suite:
 ```bash
 cd frontend && npm run test
 ```
-All 26 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 12 test suites (`Landing`, `Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
+All 28 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 12 test suites (`Landing`, `Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
 
 ### Browser E2E Tests (Playwright)
 Run the browser-level end-to-end test suite:

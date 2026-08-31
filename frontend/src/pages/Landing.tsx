@@ -24,6 +24,9 @@ import { useAuth } from '../context/AuthContext';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { HeroIntelligenceEngine } from '../components/landing/HeroIntelligenceEngine';
+import { ArchitectureCircuit } from '../components/landing/ArchitectureCircuit';
+import { MultiAgentDebateVisual } from '../components/landing/MultiAgentDebateVisual';
 
 interface PipelineStep {
   id: string;
@@ -39,6 +42,7 @@ interface PipelineStep {
     evidence?: string[];
     riskVector?: string;
   };
+  jsonPayload: Record<string, any>;
 }
 
 const PIPELINE_STEPS: PipelineStep[] = [
@@ -48,7 +52,7 @@ const PIPELINE_STEPS: PipelineStep[] = [
     title: 'Multi-Source Discovery',
     category: 'Market Ingestion',
     icon: Search,
-    description: 'Autonomous multi-source ingestion fetching live market quotes, financial statements, and executive news sentiment.',
+    description: 'Autonomous multi-source ingestion fetching live market quotes, SEC filings, and executive news sentiment.',
     sampleOutput: {
       status: 'Target Ingested: NVDA (NVIDIA Corp)',
       metrics: {
@@ -62,6 +66,15 @@ const PIPELINE_STEPS: PipelineStep[] = [
         'SEC 10-Q filing confirmed Data Center compute segment revenue surged to $26.3B.',
         'Gross margin expanded to 75.1% driven by Blackwell architecture demand.',
       ],
+    },
+    jsonPayload: {
+      target: 'NVDA',
+      source: 'SEC_EDGAR_10Q',
+      period: 'Q2_FY25',
+      data_center_rev_usd: 26300000000,
+      gross_margin_pct: 75.1,
+      yoy_growth_pct: 122.4,
+      status: 'INGESTION_VERIFIED',
     },
   },
   {
@@ -84,6 +97,15 @@ const PIPELINE_STEPS: PipelineStep[] = [
         'Cost-basis calculated deterministically via weighted average FIFO accounting.',
       ],
     },
+    jsonPayload: {
+      portfolio_id: 104,
+      valuation_engine: 'DETERMINISTIC_SQL',
+      total_value_usd: 125000.0,
+      cost_basis_usd: 100000.0,
+      unrealized_gain_usd: 25000.0,
+      holding_weight_pct: 60.0,
+      concentration_warning: true,
+    },
   },
   {
     id: 'multi-agent',
@@ -99,6 +121,13 @@ const PIPELINE_STEPS: PipelineStep[] = [
         'Risk Agent: High hyperscaler capex dependency creates cyclical vulnerability if AI ROI moderation occurs.',
       ],
       riskVector: 'Elevated customer concentration (top 4 cloud providers account for ~40% of total revenue).',
+    },
+    jsonPayload: {
+      crew_agents: ['FundamentalAnalyst', 'ValuationSpecialist', 'MacroRiskOfficer'],
+      consensus_confidence_pct: 88,
+      moat_rating: 'WIDE_NETWORK_EFFECT',
+      primary_risk: 'CUSTOMER_CONCENTRATION_TOP_4',
+      llm_model: 'gemini-2.0-flash',
     },
   },
   {
@@ -119,6 +148,13 @@ const PIPELINE_STEPS: PipelineStep[] = [
         'Thesis fits long-term thematic focus, but current 60% portfolio weighting conflicts with moderate risk parameters.',
       ],
     },
+    jsonPayload: {
+      user_profile_id: 42,
+      risk_tolerance: 'MODERATE',
+      horizon: '3_TO_5_YEARS',
+      thematic_fit: true,
+      allocation_rebalance_suggested: true,
+    },
   },
   {
     id: 'monitoring',
@@ -138,6 +174,13 @@ const PIPELINE_STEPS: PipelineStep[] = [
         'Automated idempotent dispatch ensures zero duplicate notifications with exponential retry backoff.',
       ],
     },
+    jsonPayload: {
+      alert_engine: 'DETERMINISTIC_RULES',
+      threshold_pct: 5.0,
+      channels: ['IN_APP', 'WEBHOOK_HMAC_SHA256'],
+      retry_backoff: 'EXPONENTIAL_JITTER',
+      idempotency_key: 'alert_nvda_2026_08_31',
+    },
   },
   {
     id: 'reconciliation',
@@ -153,28 +196,38 @@ const PIPELINE_STEPS: PipelineStep[] = [
         'Historical provenance linked to immutable user audit log for verifiable research recall.',
       ],
     },
+    jsonPayload: {
+      memory_id: 8429,
+      vector_dim: 768,
+      model: 'gemini-embedding-2',
+      storage: 'supabase_pgvector',
+      immutable_audit_logged: true,
+    },
   },
 ];
 
 export const Landing: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [activeStepId, setActiveStepId] = useState<string>('discovery');
+  const [consoleViewMode, setConsoleViewMode] = useState<'report' | 'json' | 'evidence'>('report');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   const activeStep = PIPELINE_STEPS.find((s) => s.id === activeStepId) || PIPELINE_STEPS[0];
 
   return (
     <div className="min-h-screen bg-background text-slate-100 selection:bg-brand-500/30 selection:text-brand-200 overflow-x-hidden font-sans">
-      {/* Background Ambient Glows & Grid */}
+      {/* Ambient Radial Lighting & Subtle Grid Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-brand-600/15 via-brand-cyan/10 to-transparent blur-[120px] rounded-full" />
-        <div className="absolute top-[35%] right-[-10%] w-[600px] h-[600px] bg-brand-500/5 blur-[140px] rounded-full" />
-        <div className="absolute top-[70%] left-[-10%] w-[600px] h-[600px] bg-brand-emerald/5 blur-[140px] rounded-full" />
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:32px_32px] opacity-70" />
+        <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-b from-brand-600/15 via-brand-cyan/10 to-transparent blur-[140px] rounded-full" />
+        <div className="absolute top-[40%] right-[-15%] w-[700px] h-[700px] bg-brand-500/8 blur-[160px] rounded-full" />
+        <div className="absolute top-[75%] left-[-15%] w-[700px] h-[700px] bg-brand-emerald/8 blur-[160px] rounded-full" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-40" />
       </div>
 
-      {/* Top Navigation Bar */}
-      <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-background/80 border-b border-border-subtle/80">
+      {/* ================================================================= */}
+      {/* TOP NAVIGATION BAR */}
+      {/* ================================================================= */}
+      <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/85 border-b border-border-subtle/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded-lg">
@@ -195,10 +248,11 @@ export const Landing: React.FC = () => {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-8 text-sm text-slate-300 font-medium" aria-label="Main Navigation">
-            <a href="#capabilities" className="hover:text-white transition-colors duration-150">Capabilities</a>
-            <a href="#pipeline" className="hover:text-white transition-colors duration-150">Intelligence Console</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors duration-150">How It Works</a>
+            <a href="#hero" className="hover:text-white transition-colors duration-150">Live Engine</a>
             <a href="#architecture" className="hover:text-white transition-colors duration-150">Architecture</a>
+            <a href="#debate" className="hover:text-white transition-colors duration-150">Multi-Agent Debate</a>
+            <a href="#pipeline" className="hover:text-white transition-colors duration-150">Console</a>
+            <a href="#capabilities" className="hover:text-white transition-colors duration-150">Capabilities</a>
           </nav>
 
           {/* Action CTAs */}
@@ -241,10 +295,11 @@ export const Landing: React.FC = () => {
         {mobileMenuOpen && (
           <div className="md:hidden px-4 pt-2 pb-6 bg-surface-200/95 border-b border-border-subtle space-y-4 animate-in slide-in-from-top-2">
             <nav className="flex flex-col space-y-3 text-sm text-slate-300 font-medium">
-              <a href="#capabilities" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Capabilities</a>
-              <a href="#pipeline" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Intelligence Console</a>
-              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">How It Works</a>
+              <a href="#hero" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Live Engine</a>
               <a href="#architecture" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Architecture</a>
+              <a href="#debate" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Multi-Agent Debate</a>
+              <a href="#pipeline" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Console</a>
+              <a href="#capabilities" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Capabilities</a>
             </nav>
             <div className="pt-2 flex flex-col gap-2">
               {isAuthenticated ? (
@@ -272,33 +327,35 @@ export const Landing: React.FC = () => {
         )}
       </header>
 
-      {/* Main Page Content */}
-      <main className="relative z-10 pt-28">
+      {/* ================================================================= */}
+      {/* MAIN CONTENT AREA */}
+      {/* ================================================================= */}
+      <main className="relative z-10 pt-24 sm:pt-28">
         {/* ================================================================= */}
-        {/* 1. HERO SECTION */}
+        {/* 1. HERO SECTION WITH INTERACTIVE INTELLIGENCE ENGINE */}
         {/* ================================================================= */}
-        <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20 text-center">
+        <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-20 text-center">
           {/* Eyebrow Pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-100/90 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-8 shadow-glow-brand animate-in fade-in duration-500">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-100/90 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-6 shadow-glow-brand">
             <Sparkles className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
             <span>Autonomous Investment Research Agent</span>
           </div>
 
           {/* Main H1 Headline */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.1] mb-6">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.08] mb-6">
             Your Investment Research,{' '}
-            <span className="bg-gradient-to-r from-brand-300 via-brand-cyan to-brand-400 bg-clip-text text-transparent">
+            <span className="text-shimmer bg-clip-text text-transparent">
               Running on Autonomous Intelligence.
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed mb-10 font-normal">
-            Turn scattered financial statements, market quotes, news, and portfolio weights into evidence-grounded, multi-agent investment intelligence.
+          <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-10 font-normal">
+            Turn scattered financial filings, balance sheet telemetry, and market noise into grounded, multi-agent investment intelligence with deterministic portfolio precision.
           </p>
 
           {/* Hero CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
             <Link to={isAuthenticated ? '/app/dashboard' : '/register'} className="w-full sm:w-auto">
               <Button size="lg" variant="glow" className="w-full sm:w-auto px-8" rightIcon={<ArrowRight className="w-5 h-5" />}>
                 {isAuthenticated ? 'Open Investor Dashboard' : 'Get Started Free'}
@@ -306,12 +363,17 @@ export const Landing: React.FC = () => {
             </Link>
             <a href="#pipeline" className="w-full sm:w-auto">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto px-6" leftIcon={<Terminal className="w-4 h-4 text-brand-cyan" />}>
-                Explore Intelligence Console
+                Explore Live Pipeline
               </Button>
             </a>
           </div>
 
-          {/* Trust / Capability Strip */}
+          {/* CENTERPIECE: Live Hero Intelligence Engine */}
+          <div className="mb-14">
+            <HeroIntelligenceEngine />
+          </div>
+
+          {/* Trust / Capability Horizontal Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 max-w-5xl mx-auto pt-6 border-t border-border-subtle/60">
             {[
               { icon: Cpu, label: 'Multi-Agent Synthesis' },
@@ -323,7 +385,7 @@ export const Landing: React.FC = () => {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-surface-200/40 border border-border-subtle text-slate-300 text-xs font-medium"
+                className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-surface-200/50 border border-border-subtle text-slate-300 text-xs font-medium"
               >
                 <item.icon className="w-3.5 h-3.5 text-brand-400 shrink-0" />
                 <span>{item.label}</span>
@@ -333,28 +395,144 @@ export const Landing: React.FC = () => {
         </section>
 
         {/* ================================================================= */}
-        {/* 2. WOW FACTOR: INTERACTIVE INTELLIGENCE CONSOLE */}
+        {/* 2. THE FRAGMENTATION VS UNIFICATION SPLIT LENS */}
         {/* ================================================================= */}
-        <section id="pipeline" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <Badge variant="brand" className="mb-3 uppercase tracking-wider">
-              Interactive Preview
+        <section id="problem" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <Badge variant="amber" className="mb-3 uppercase tracking-wider">
+              The Fragmentation Problem
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-              The AIRA Intelligence Console
+              Modern Market Research Is Broken into 10 Isolated Silos
+            </h2>
+            <p className="text-slate-300 text-base">
+              Investors waste hours manually reconciling financial PDFs against portfolio spreadsheets while critical risk thresholds pass unnoticed.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto items-stretch">
+            {/* The Fragmented Reality */}
+            <div className="lg:col-span-6 p-6 sm:p-8 rounded-3xl bg-surface-200/40 border border-red-500/20 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-3 mb-4 border-b border-red-500/20">
+                  <span className="text-xs font-bold uppercase tracking-wider text-red-400">
+                    Traditional Workflow
+                  </span>
+                  <span className="text-[10px] font-mono text-red-400/80 uppercase">DISCONNECTED</span>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-4">Scattered, Stale & Manual</h3>
+                <ul className="space-y-4 text-xs sm:text-sm text-slate-400">
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
+                    <span><strong>10+ Browser Tabs:</strong> Constant tab switching across SEC Edgar, financial portals, and news terminals.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
+                    <span><strong>Desynchronized Notes:</strong> Research documents saved in separate folders that never update with current portfolio weights.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
+                    <span><strong>Blind Alerting:</strong> Basic price-only triggers that lack fundamental context or risk threshold validation.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
+                    <span><strong>Forgotten Theses:</strong> Prior research forgotten, leading to repeated work every quarterly earnings cycle.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-red-500/20 text-[11px] font-mono text-red-400">
+                High Cognitive Overhead • Inefficient Execution
+              </div>
+            </div>
+
+            {/* The AIRA Unified Engine */}
+            <div className="lg:col-span-6 p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-surface-100 to-surface-200 border border-brand-500/40 shadow-glow-brand flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-3 mb-4 border-b border-brand-500/30">
+                  <span className="text-xs font-bold uppercase tracking-wider text-brand-cyan">
+                    The AIRA Continuous Engine
+                  </span>
+                  <span className="text-[10px] font-mono text-brand-emerald uppercase">SYNCHRONIZED</span>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-4">Continuous, Context-Aware Intelligence</h3>
+                <ul className="space-y-4 text-xs sm:text-sm text-slate-200">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
+                    <span><strong>Automated Ingestion:</strong> SEC filings, valuation multiples, and quotes parsed automatically into verified data points.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
+                    <span><strong>Live Portfolio Grounding:</strong> Actual holding percentages and cost basis directly inform qualitative risk synthesis.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
+                    <span><strong>Deterministic Telemetry:</strong> Precise mathematical threshold rules evaluate price swings and drawdowns with retry-safe dispatch.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
+                    <span><strong>Vector Semantic Memory:</strong> Supabase pgvector embeds historical theses to ground subsequent investment reviews.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-brand-500/30 text-[11px] font-mono text-brand-cyan flex items-center justify-between">
+                <span>Unified Intelligence Workflow</span>
+                <span className="text-brand-emerald">Sub-second Read Latency</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================= */}
+        {/* 3. ARCHITECTURE CIRCUIT: DETERMINISTIC MATH VS AUTONOMOUS AI */}
+        {/* ================================================================= */}
+        <section id="architecture" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
+          <ArchitectureCircuit />
+        </section>
+
+        {/* ================================================================= */}
+        {/* 4. MULTI-AGENT DEBATE SIMULATION */}
+        {/* ================================================================= */}
+        <section id="debate" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <Badge variant="brand" className="mb-3 uppercase tracking-wider">
+              Multi-Agent Architecture
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+              Autonomous Consensus Through Specialized Agent Debate
+            </h2>
+            <p className="text-slate-300 text-base">
+              AIRA deploys specialized analytical agents that cross-examine moat durability, multiple expansions, and macro concentration risks before producing a report.
+            </p>
+          </div>
+
+          <MultiAgentDebateVisual />
+        </section>
+
+        {/* ================================================================= */}
+        {/* 5. INTERACTIVE INTELLIGENCE CONSOLE */}
+        {/* ================================================================= */}
+        <section id="pipeline" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <Badge variant="brand" className="mb-3 uppercase tracking-wider">
+              Interactive Console
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+              The 6-Stage Intelligence Lifecycle
             </h2>
             <p className="text-slate-400 text-sm sm:text-base">
-              Observe how raw signals progress through multi-agent reasoning, deterministic portfolio valuation, and telemetry dispatch.
+              Inspect each stage of AIRA's synthesis pipeline, toggle raw telemetry payloads, and examine evidence extraction.
             </p>
           </div>
 
           {/* Console Container */}
-          <GlassCard glow="brand" className="p-4 sm:p-6 lg:p-8 rounded-3xl border-border-strong bg-surface-200/80">
+          <GlassCard glow="brand" className="p-4 sm:p-6 lg:p-8 rounded-3xl border-border-strong bg-surface-200/85">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column: Stage Selector Tabs */}
               <div className="lg:col-span-4 space-y-2">
                 <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 px-3 pb-2 flex items-center justify-between">
-                  <span>Intelligence Pipeline</span>
+                  <span>Lifecycle Stages</span>
                   <Activity className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
                 </div>
 
@@ -401,9 +579,9 @@ export const Landing: React.FC = () => {
               {/* Right Column: Terminal Viewport */}
               <div className="lg:col-span-8 flex flex-col">
                 <div className="flex-1 rounded-2xl bg-surface-400/90 border border-border-subtle p-5 sm:p-6 font-mono flex flex-col justify-between shadow-inner">
-                  {/* Terminal Header */}
+                  {/* Terminal Header & Mode Switcher */}
                   <div>
-                    <div className="flex items-center justify-between pb-4 mb-4 border-b border-border-subtle/80">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-border-subtle/80">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500/80" />
                         <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
@@ -412,18 +590,34 @@ export const Landing: React.FC = () => {
                           aira-engine://pipeline/{activeStep.id}
                         </span>
                       </div>
-                      <span className="text-[10px] text-brand-emerald bg-brand-emerald/10 px-2 py-0.5 rounded-full border border-brand-emerald/20 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-emerald animate-ping" />
-                        SYNTHESIS OK
-                      </span>
+
+                      {/* View Mode Switcher */}
+                      <div className="flex items-center gap-1 bg-surface-200/80 p-1 rounded-lg border border-border-subtle text-[10px]">
+                        <button
+                          onClick={() => setConsoleViewMode('report')}
+                          className={`px-2 py-1 rounded transition-all ${
+                            consoleViewMode === 'report' ? 'bg-brand-500 text-white font-bold' : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          Report View
+                        </button>
+                        <button
+                          onClick={() => setConsoleViewMode('json')}
+                          className={`px-2 py-1 rounded transition-all ${
+                            consoleViewMode === 'json' ? 'bg-brand-500 text-white font-bold' : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          Structured JSON
+                        </button>
+                      </div>
                     </div>
 
                     {/* Step Title & Description */}
-                    <div className="mb-5">
+                    <div className="mb-4">
                       <span className="text-xs font-semibold text-brand-cyan tracking-wider uppercase">
                         Stage {activeStep.stepNumber} — {activeStep.category}
                       </span>
-                      <h4 className="text-lg font-bold text-white font-sans mt-0.5 mb-1.5">
+                      <h4 className="text-lg font-bold text-white font-sans mt-0.5 mb-1">
                         {activeStep.title}
                       </h4>
                       <p className="text-xs text-slate-300 font-sans leading-relaxed">
@@ -431,58 +625,70 @@ export const Landing: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Status Badge */}
-                    <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-200 border border-border-subtle text-xs text-brand-300">
-                      <Terminal className="w-3.5 h-3.5 text-brand-cyan" />
-                      <span>{activeStep.sampleOutput.status}</span>
-                    </div>
-
-                    {/* Key Metrics Grid (if present) */}
-                    {activeStep.sampleOutput.metrics && (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                        {Object.entries(activeStep.sampleOutput.metrics).map(([key, val]) => (
-                          <div key={key} className="p-2.5 rounded-xl bg-surface-200/60 border border-border-subtle">
-                            <div className="text-[10px] text-slate-400 uppercase tracking-tight">{key}</div>
-                            <div className="text-xs sm:text-sm font-bold text-white mt-0.5">{val}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Evidence & Insights */}
-                    {activeStep.sampleOutput.insights && (
-                      <div className="space-y-2 mb-4">
-                        <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                          Synthesized Findings:
+                    {/* Report Mode View */}
+                    {consoleViewMode === 'report' && (
+                      <div>
+                        {/* Status Badge */}
+                        <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-200 border border-border-subtle text-xs text-brand-300">
+                          <Terminal className="w-3.5 h-3.5 text-brand-cyan" />
+                          <span>{activeStep.sampleOutput.status}</span>
                         </div>
-                        {activeStep.sampleOutput.insights.map((ins, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-slate-200 font-sans leading-relaxed">
-                            <ChevronRight className="w-3.5 h-3.5 text-brand-cyan shrink-0 mt-0.5" />
-                            <span>{ins}</span>
+
+                        {/* Key Metrics Grid (if present) */}
+                        {activeStep.sampleOutput.metrics && (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                            {Object.entries(activeStep.sampleOutput.metrics).map(([key, val]) => (
+                              <div key={key} className="p-2.5 rounded-xl bg-surface-200/60 border border-border-subtle">
+                                <div className="text-[10px] text-slate-400 uppercase tracking-tight">{key}</div>
+                                <div className="text-xs sm:text-sm font-bold text-white mt-0.5">{val}</div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
+
+                        {/* Evidence & Insights */}
+                        {activeStep.sampleOutput.insights && (
+                          <div className="space-y-2 mb-3">
+                            <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                              Synthesized Findings:
+                            </div>
+                            {activeStep.sampleOutput.insights.map((ins, i) => (
+                              <div key={i} className="flex items-start gap-2 text-xs text-slate-200 font-sans leading-relaxed">
+                                <ChevronRight className="w-3.5 h-3.5 text-brand-cyan shrink-0 mt-0.5" />
+                                <span>{ins}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {activeStep.sampleOutput.evidence && (
+                          <div className="space-y-2 mb-3">
+                            <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                              Grounding Evidence:
+                            </div>
+                            {activeStep.sampleOutput.evidence.map((ev, i) => (
+                              <div key={i} className="flex items-start gap-2 text-xs text-slate-300 font-sans leading-relaxed bg-surface-200/40 p-2 rounded-lg border border-border-subtle">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald shrink-0 mt-0.5" />
+                                <span>{ev}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {activeStep.sampleOutput.riskVector && (
+                          <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-sans">
+                            <span className="font-semibold text-amber-300">Risk Vector: </span>
+                            {activeStep.sampleOutput.riskVector}
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {activeStep.sampleOutput.evidence && (
-                      <div className="space-y-2 mb-4">
-                        <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                          Grounding Evidence:
-                        </div>
-                        {activeStep.sampleOutput.evidence.map((ev, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-slate-300 font-sans leading-relaxed bg-surface-200/40 p-2 rounded-lg border border-border-subtle">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald shrink-0 mt-0.5" />
-                            <span>{ev}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {activeStep.sampleOutput.riskVector && (
-                      <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-sans">
-                        <span className="font-semibold text-amber-300">Risk Vector: </span>
-                        {activeStep.sampleOutput.riskVector}
-                      </div>
+                    {/* JSON Mode View */}
+                    {consoleViewMode === 'json' && (
+                      <pre className="p-4 rounded-xl bg-surface-300/80 border border-border-subtle text-xs text-brand-cyan overflow-x-auto leading-relaxed">
+                        {JSON.stringify(activeStep.jsonPayload, null, 2)}
+                      </pre>
                     )}
                   </div>
 
@@ -498,163 +704,18 @@ export const Landing: React.FC = () => {
         </section>
 
         {/* ================================================================= */}
-        {/* 3. THE PROBLEM VS AIRA */}
-        {/* ================================================================= */}
-        <section id="problem" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge variant="amber" className="mb-3 uppercase tracking-wider">
-              The Problem
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-              Investment Research is Fragmented. AIRA Unifies It.
-            </h2>
-            <p className="text-slate-300 text-base">
-              Investors today juggle dozens of isolated data sources with no unified intelligence layer connecting research to portfolio reality.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* The Old Way */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-surface-200/40 border border-red-500/20 relative overflow-hidden">
-              <div className="text-xs font-bold uppercase tracking-wider text-red-400 mb-2">
-                Traditional Fragmentation
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">Scattered, Stale & Disconnected</h3>
-              <ul className="space-y-3.5 text-sm text-slate-400">
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                  <span>10+ browser tabs open across SEC filings, news outlets, valuation charts, and stock screeners.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                  <span>Research notes stored in separate documents that never reconcile against actual portfolio holdings.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                  <span>Alerts configured on basic price thresholds with zero thematic or multi-agent context.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                  <span>Investment thesis lost over time, leading to repeated work and forgotten conviction reasoning.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* The AIRA Way */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-surface-200/80 border border-brand-500/40 relative shadow-glow-brand">
-              <div className="text-xs font-bold uppercase tracking-wider text-brand-cyan mb-2">
-                The AIRA Engine
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">Continuous, Context-Aware Intelligence</h3>
-              <ul className="space-y-3.5 text-sm text-slate-200">
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
-                  <span>Multi-agent synthesis extracts fundamental metrics and key risks in seconds.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
-                  <span>Live portfolio weighting directly influences research risk evaluation and diversification alerts.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
-                  <span>Deterministic mathematical telemetry detects drawdowns and price spikes with retry-safe webhook delivery.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
-                  <span>Persistent vector memory (pgvector) ensures historical research grounds future investment decisions.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* ================================================================= */}
-        {/* 4. HOW AIRA WORKS: 6-STEP WORKFLOW */}
-        {/* ================================================================= */}
-        <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge variant="brand" className="mb-3 uppercase tracking-wider">
-              Workflow Architecture
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-              How AIRA Transforms Data into Decisions
-            </h2>
-            <p className="text-slate-300 text-base">
-              A structured 6-step lifecycle that balances autonomous AI reasoning with deterministic mathematical precision.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                num: '01',
-                title: 'Discover & Search',
-                desc: 'Locate equities, tickers, and companies with real-time quote resolution and fundamental data indexing.',
-                icon: Search,
-              },
-              {
-                num: '02',
-                title: 'Ingest Financials',
-                desc: 'Fetch financial statements, valuation multiples, and recent news articles into a structured evidence corpus.',
-                icon: FileText,
-              },
-              {
-                num: '03',
-                title: 'Multi-Agent Synthesis',
-                desc: 'Specialized AI agents debate moat sustainability, valuation risks, and growth catalysts to form a consensus.',
-                icon: Cpu,
-              },
-              {
-                num: '04',
-                title: 'Portfolio Contextualize',
-                desc: 'Weigh research findings against actual user holdings, asset allocation percentages, and watchlist priorities.',
-                icon: PieChart,
-              },
-              {
-                num: '05',
-                title: 'Monitor & Alert',
-                desc: 'Run deterministic background monitoring for price threshold breaches, drawdown limits, and notification delivery.',
-                icon: Bell,
-              },
-              {
-                num: '06',
-                title: 'Retain in Memory',
-                desc: 'Store verified reports in vector memory to track thesis evolution and power continuous recall.',
-                icon: Database,
-              },
-            ].map((step, idx) => (
-              <div
-                key={idx}
-                className="p-6 rounded-3xl bg-surface-200/50 border border-border-subtle hover:border-brand-500/40 hover:bg-surface-200 transition-all duration-200 group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-2xl font-black font-mono text-brand-cyan/60 group-hover:text-brand-cyan transition-colors">
-                    {step.num}
-                  </span>
-                  <div className="w-10 h-10 rounded-xl bg-surface-100 flex items-center justify-center text-slate-300 group-hover:text-brand-300 group-hover:bg-brand-500/10 transition-colors">
-                    <step.icon className="w-5 h-5" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ================================================================= */}
-        {/* 5. CORE CAPABILITIES */}
+        {/* 6. CORE CAPABILITIES MATRIX */}
         {/* ================================================================= */}
         <section id="capabilities" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <Badge variant="brand" className="mb-3 uppercase tracking-wider">
-              Core Capabilities
+              Platform Features
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-              Engineered for Serious Research
+              Comprehensive Investment Research Suite
             </h2>
             <p className="text-slate-300 text-base">
-              Explore the dedicated feature suites that power autonomous investment intelligence across the platform.
+              Dedicated tools engineered for institutional-quality personal investment intelligence.
             </p>
           </div>
 
@@ -669,7 +730,7 @@ export const Landing: React.FC = () => {
                   Multi-agent deep dives analyzing company business models, revenue drivers, valuation multiples, and latest market news.
                 </p>
               </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                 <span>CrewAI + Gemini 2.0</span>
                 <span className="text-brand-cyan font-semibold">Evidence Grounded</span>
               </div>
@@ -685,7 +746,7 @@ export const Landing: React.FC = () => {
                   Whole-portfolio valuation and risk analysis combining exact holding weights, cost-basis accounting, and watchlist priorities.
                 </p>
               </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                 <span>Deterministic Math</span>
                 <span className="text-brand-cyan font-semibold">Asset Weights</span>
               </div>
@@ -701,7 +762,7 @@ export const Landing: React.FC = () => {
                   Tiered watchlist management with priority filters (High, Normal, Low) and automated price delta monitoring.
                 </p>
               </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                 <span>Priority Filters</span>
                 <span className="text-brand-cyan font-semibold">24h Price Feeds</span>
               </div>
@@ -717,7 +778,7 @@ export const Landing: React.FC = () => {
                   Threshold monitoring with multi-channel dispatch (In-App, Email, HMAC-signed Webhooks) and automated retry backoff.
                 </p>
               </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                 <span>Zero Hallucination</span>
                 <span className="text-brand-cyan font-semibold">HMAC Signed</span>
               </div>
@@ -733,7 +794,7 @@ export const Landing: React.FC = () => {
                   Supabase pgvector embedding memory preserving historical research reports to ground subsequent analytical sessions.
                 </p>
               </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                 <span>pgvector Storage</span>
                 <span className="text-brand-cyan font-semibold">Immutable Provenance</span>
               </div>
@@ -749,92 +810,11 @@ export const Landing: React.FC = () => {
                   Customizable risk tolerance (Conservative, Moderate, Aggressive) and investment horizons (Short, Medium, Long-Term).
                 </p>
               </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                 <span>Risk Profiles</span>
                 <span className="text-brand-cyan font-semibold">Tailored Guidance</span>
               </div>
             </GlassCard>
-          </div>
-        </section>
-
-        {/* ================================================================= */}
-        {/* 6. ARCHITECTURE: DETERMINISTIC VS AI SEPARATION */}
-        {/* ================================================================= */}
-        <section id="architecture" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge variant="brand" className="mb-3 uppercase tracking-wider">
-              System Design
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-              Deterministic Math Meets Autonomous AI
-            </h2>
-            <p className="text-slate-300 text-base">
-              AIRA enforces strict architectural boundaries: AI reasoning is never permitted in mathematical calculations, threshold evaluations, or auth.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* AI Tier */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-surface-200/60 border border-brand-500/30">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-brand-500/20 flex items-center justify-center text-brand-cyan">
-                  <Cpu className="w-4 h-4" />
-                </div>
-                <h3 className="text-lg font-bold text-white">Autonomous AI Tier</h3>
-              </div>
-              <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-                Applied strictly to qualitative synthesis, competitive moat evaluations, and evidence-grounded thesis exploration.
-              </p>
-              <ul className="space-y-2 text-xs text-slate-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-                  <span>CrewAI Multi-Agent Coordination</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-                  <span>Google Gemini 2.0 Flash Reasoning</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-                  <span>Evidence Grounding with Cited Citations</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-                  <span>Vector Embedding Memory Synthesis</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Deterministic Tier */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-surface-200/60 border border-brand-emerald/30">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-brand-emerald/20 flex items-center justify-center text-brand-emerald">
-                  <Shield className="w-4 h-4" />
-                </div>
-                <h3 className="text-lg font-bold text-white">Deterministic Rule Tier</h3>
-              </div>
-              <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-                Applied to all mathematical calculations, alert thresholds, authorization guards, and notification retry mechanics.
-              </p>
-              <ul className="space-y-2 text-xs text-slate-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald shrink-0" />
-                  <span>Cost-Basis & Valuation Mathematics</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald shrink-0" />
-                  <span>Price Delta & Drawdown Threshold Logic</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald shrink-0" />
-                  <span>JWT Auth & Multi-Tenant Data Isolation</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald shrink-0" />
-                  <span>Exponential Backoff Webhook Delivery</span>
-                </li>
-              </ul>
-            </div>
           </div>
         </section>
 
@@ -895,10 +875,11 @@ export const Landing: React.FC = () => {
             <div className="space-y-2.5">
               <div className="text-xs font-semibold text-white uppercase tracking-wider">Navigation</div>
               <ul className="space-y-2">
-                <li><a href="#hero" className="hover:text-slate-200 transition-colors">Overview</a></li>
-                <li><a href="#pipeline" className="hover:text-slate-200 transition-colors">Intelligence Console</a></li>
-                <li><a href="#capabilities" className="hover:text-slate-200 transition-colors">Capabilities</a></li>
+                <li><a href="#hero" className="hover:text-slate-200 transition-colors">Live Engine</a></li>
                 <li><a href="#architecture" className="hover:text-slate-200 transition-colors">Architecture</a></li>
+                <li><a href="#debate" className="hover:text-slate-200 transition-colors">Multi-Agent Debate</a></li>
+                <li><a href="#pipeline" className="hover:text-slate-200 transition-colors">Console</a></li>
+                <li><a href="#capabilities" className="hover:text-slate-200 transition-colors">Capabilities</a></li>
               </ul>
             </div>
 
