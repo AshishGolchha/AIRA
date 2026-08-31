@@ -8,24 +8,25 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 16 — Modern Frontend Application Foundation**
+**Phase 20A — Public Landing Page, Product Story, WOW Factor & Free Technical SEO**
 
-Phase 16 establishes the official production-grade web application for AIRA located in `frontend/`:
-- **Modern Component Architecture**: React 18 with TypeScript, Vite bundler, and Tailwind CSS.
-- **Dark-First Financial Aesthetic**: Deep `#090B10` background, subtle glow gradients, translucent glassmorphism surfaces, and fine border styling.
-- **Strictly Typed API Client**: Centralized HTTP client (`frontend/src/lib/api.ts`) managing Bearer token injection, request ID tracking, and typed errors.
-- **Client-Side Authentication & Guards**: `AuthContext` with automatic localStorage synchronization and `ProtectedRoute` routing guards.
+Phase 20A establishes the public-facing entry point and product storytelling foundation for AIRA:
+- **Public Landing Page (`/`)**: Cinematic, dark-first landing page with an interactive "AIRA Intelligence Console" simulator showcasing the 6-stage research pipeline.
+- **Clear Product Story & Separation**: Communicates how multi-agent company research, real-time portfolio weighting, deterministic telemetry, and vector memory unite into one continuous intelligence layer.
+- **Public & Protected Route Isolation**: Root `/` serves public visitors, `/login` & `/register` serve authentication, and `/app/*` encapsulates the protected application shell.
+- **Free Technical SEO**: Standard-compliant JSON-LD structured data (`WebApplication`), Open Graph preview cards, Twitter cards, canonical tags, `robots.txt`, and `sitemap.xml`.
 - **Full Domain Coverage**:
-  - **Auth**: Login & Registration with input validation.
-  - **Dashboard**: Unified read-only investor overview consuming `GET /api/v1/dashboard` (zero AI latency on page load).
-  - **Portfolio**: Real-time snapshot valuation, holding weights, P&L calculations, and Add/Edit/Delete modals.
-  - **Watchlist**: Priority-filtered watchlist with real-time price changes and management modals.
-  - **Alerts**: Real-time telemetry feed, severity badges, trigger check button, mark as read, and dismiss actions.
-  - **Portfolio Intelligence**: AI portfolio & watchlist synthesis generation workspace and historical report inspection.
-  - **Research**: Search resolution, company fundamentals, valuation multiples, news headlines, and deep multi-agent research.
-  - **Notifications**: Channel preferences, SSRF-validated webhook endpoints, and delivery history logs.
-  - **Settings**: Investor focus, risk tolerance, and horizon configuration.
-- **Comprehensive Verification**: 179 Python pytest tests and 9 TypeScript Vitest unit/component tests passing with 100% success.
+  - **Landing (`/`)**: Public hero, interactive console, capability matrix, and architecture breakdown.
+  - **Auth (`/login`, `/register`)**: Login & Registration with input validation.
+  - **Dashboard (`/app/dashboard`)**: Unified read-only investor overview consuming `GET /api/v1/dashboard`.
+  - **Portfolio (`/app/portfolio`)**: Real-time snapshot valuation, holding weights, P&L calculations, and Add/Edit/Delete modals.
+  - **Watchlist (`/app/watchlist`)**: Priority-filtered watchlist with real-time price changes and management modals.
+  - **Alerts (`/app/alerts`)**: Real-time telemetry feed, severity badges, trigger check button, mark as read, and dismiss actions.
+  - **Portfolio Intelligence (`/app/intelligence`)**: AI portfolio & watchlist synthesis generation workspace and historical report inspection.
+  - **Research (`/app/research`)**: Search resolution, company fundamentals, valuation multiples, news headlines, and deep multi-agent research.
+  - **Notifications (`/app/notifications`)**: Channel preferences, SSRF-validated webhook endpoints, and delivery history logs.
+  - **Settings (`/app/settings`)**: Investor focus, risk tolerance, and horizon configuration.
+- **Comprehensive Verification**: 195 Python pytest tests, 26 TypeScript Vitest unit/component tests across 12 suites, and 6 Playwright E2E browser flows passing with 100% success.
 
 ---
 
@@ -409,21 +410,21 @@ Run the automated backend test suite:
 ```bash
 python -m pytest -v
 ```
-All 189 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 195 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
 
 ### Frontend Tests (Vitest)
 Run the complete frontend test suite:
 ```bash
 cd frontend && npm run test
 ```
-All 23 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 11 test suites (`Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
+All 26 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 12 test suites (`Landing`, `Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
 
 ### Browser E2E Tests (Playwright)
 Run the browser-level end-to-end test suite:
 ```bash
 cd frontend && npm run test:e2e
 ```
-Validates authentication redirection, dashboard telemetry rendering, read-only dashboard contracts, explicit multi-agent AI generation, and full shell navigation under headless Chromium.
+Validates public landing page rendering, authentication redirection, dashboard telemetry rendering, read-only dashboard contracts, explicit multi-agent AI generation, and full shell navigation under headless Chromium (6 flows).
 
 ---
 

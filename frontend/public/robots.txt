@@ -1,0 +1,13 @@
+# ==============================================================================
+# AIRA Robots.txt
+# Public crawl directives for search engine bots and web crawlers.
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Disallow: /app/
+Disallow: /api/
+
+Sitemap: https://aira.internal/sitemap.xml

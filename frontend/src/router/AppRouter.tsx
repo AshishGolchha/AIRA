@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AppLayout } from '../components/layout/AppLayout';
 
+import { Landing } from '../pages/Landing';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { Dashboard } from '../pages/Dashboard';
@@ -19,6 +20,9 @@ export const AppRouter: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Landing Page */}
+        <Route path="/" element={<Landing />} />
+
         {/* Public Authentication Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -42,9 +46,6 @@ export const AppRouter: React.FC = () => {
           <Route path="notifications" element={<Notifications />} />
           <Route path="settings" element={<Settings />} />
         </Route>
-
-        {/* Root Redirect to Dashboard or Login */}
-        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
 
         {/* 404 Catch-All */}
         <Route path="*" element={<NotFound />} />
