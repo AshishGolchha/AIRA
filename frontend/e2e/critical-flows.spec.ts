@@ -391,8 +391,21 @@ test.describe('AIRA Critical Browser E2E Workflows', () => {
     });
   });
 
-  test('1. Unauthenticated root navigation redirects to /login', async ({ page }) => {
+  test('1. Public root navigation renders Landing Page with branding and CTAs', async ({ page }) => {
     await page.goto('/');
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Your Investment Research');
+    await expect(page.getByText('Autonomous Investment Research Agent').first()).toBeVisible();
+
+    // Verify primary CTA links to register
+    const getStartedLink = page.getByRole('link', { name: /Get Started/i }).first();
+    await expect(getStartedLink).toBeVisible();
+    await getStartedLink.click();
+    await expect(page).toHaveURL(/.*register/);
+  });
+
+  test('1b. Unauthenticated access to /app/dashboard redirects to /login', async ({ page }) => {
+    await page.goto('/app/dashboard');
     await expect(page).toHaveURL(/.*login/);
     await expect(page.getByRole('heading', { name: /AIRA Intelligence/i })).toBeVisible();
   });
