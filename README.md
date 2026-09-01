@@ -8,16 +8,17 @@ AIRA (Autonomous Investment Research Agent) is a multi-user AI investment resear
 
 ## Current Phase
 
-**Phase 20B — Premium WOW Landing Experience & Visual Product Story**
+**Phase 20C — Cinematic Visualization, Data Storytelling & True WOW-Factor Landing Experience**
 
-Phase 20B elevates the public web presence of AIRA into a cinematic, futuristic AI product launch experience:
-- **Interactive Hero Intelligence Engine**: Centerpiece simulator with multi-ticker switching (`$NVDA`, `$AAPL`, `$MSFT`) showing live SEC ingestion feeds, 3-agent deliberation chambers, and grounded thesis synthesis.
+Phase 20C completes the transformation of the public AIRA homepage into a visual-first, cinematic financial intelligence launch experience:
+- **Interactive Market & Signal Terminal Chart**: Real interactive SVG time-series price curves with pinned SEC filing milestones, agent consensus points, and valuation range bands for `$NVDA`, `$AAPL`, and `$MSFT`.
+- **Portfolio Asset Allocation & Risk/Return Visual Studio**: Interactive SVG Donut chart with animated slice hover effects, sector exposure progress bars, and risk-vs-return scatter plot contextualizing individual stocks within whole-portfolio risk parameters.
+- **Multi-Agent Reasoning Node Network**: Interactive SVG node graph with animated flow conduits connecting the *Evidence Core* to *Fundamental*, *Valuation*, and *Macro Risk* agents.
+- **Raw Data → Intelligence Transformation Flow**: 3-stage animated transformation pipeline showing chaotic raw inputs (PDF filings, RSS news, raw ticks) passing into the AIRA processing core and emerging as structured investment intelligence.
+- **Evidence Grounding Audit Dissection**: Step-by-step visual audit trail tracing SEC 10-Q filing table excerpts directly to numerical metrics and thesis points.
 - **Architectural Circuit Visualizer**: Interactive circuit diagram demonstrating the strict separation between the **Autonomous AI Tier** (CrewAI multi-agent synthesis) and the **Deterministic Financial Core** (mathematical portfolio valuation, alert thresholds, retry-safe webhooks).
-- **Multi-Agent Deliberation Simulator**: Interactive visual dialogue between Fundamental, Valuation, and Macro Risk agents converging on an evidence-grounded consensus.
-- **Enhanced Intelligence Console**: 6-stage lifecycle console with report view and structured JSON payload inspection.
-- **Card-Grid Fatigue Elimination**: Varied asymmetric editorial layouts, live conduits, and high-contrast before/after problem framing.
 - **Free Technical SEO & Fast Load**: Standard-compliant JSON-LD structured data (`WebApplication`), Open Graph preview cards, Twitter cards, canonical tags, `robots.txt`, and `sitemap.xml` with zero initial API requests.
-- **Comprehensive Verification**: 195 Python pytest tests, 28 TypeScript Vitest unit/component tests across 12 suites, and 6 Playwright E2E browser flows passing with 100% success.
+- **Comprehensive Verification**: 195 Python pytest tests, 29 TypeScript Vitest unit/component tests across 12 suites, and 6 Playwright E2E browser flows passing with 100% success.
 
 ---
 
@@ -30,8 +31,8 @@ Phase 20B elevates the public web presence of AIRA into a cinematic, futuristic 
 - **LLM**: Google Gemini (`gemini/gemini-2.0-flash`)
 - **Embeddings**: Google Gemini API (`gemini-embedding-2`, 768 dimensions)
 - **Authentication & Security**: PyJWT, Werkzeug Security
-- **Relational Database & Migrations**: MySQL, SQLAlchemy, Flask-SQLAlchemy, Flask-Migrate (Alembic)
-- **Vector Database**: Supabase PostgreSQL + `pgvector`
+- **Single Primary Database**: Supabase PostgreSQL (Relational Data + `pgvector` Semantic Memory)
+- **ORM & Driver**: SQLAlchemy, Flask-SQLAlchemy, Flask-Migrate (Alembic), `psycopg2-binary`
 - **Market Data Provider**: `yfinance` (Yahoo Finance API)
 - **Testing**: Pytest (isolated in-memory SQLite + mock financial, vector, & agent services)
 - **Configuration**: Python-dotenv
@@ -294,17 +295,17 @@ cp .env.example .env
 Edit `.env` with your settings:
 ```ini
 FLASK_ENV=development
-DATABASE_URL=mysql+pymysql://aira_user:aira_password@localhost:3306/aira_db
+DATABASE_URL=postgresql+psycopg2://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres
 JWT_SECRET_KEY=your-secure-jwt-secret-key
 JWT_ACCESS_TOKEN_EXPIRES_SECONDS=86400
 
-# Supabase (pgvector memory)
+# Supabase (Single Primary Database & Vector Memory)
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
 # Gemini AI (LLM & Embeddings)
 GEMINI_API_KEY=your-gemini-api-key
-GEMINI_LLM_MODEL=gemini/gemini-2.0-flash
+GEMINI_LLM_MODEL=gemini/gemini-3.6-flash
 GEMINI_EMBEDDING_MODEL=gemini-embedding-2
 
 # Alert & Monitoring Configuration
@@ -328,13 +329,10 @@ NOTIFICATION_RETRY_BASE_DELAY_SECONDS=10.0
 NOTIFICATION_RETRY_MAX_DELAY_SECONDS=3600.0
 ```
 
-### 5. Run Database Migrations
-- **MySQL Migrations**:
-  ```bash
-  flask db upgrade
-  ```
-- **Supabase pgvector Schema**:
-  Execute `supabase/migrations/001_create_user_memories.sql` in the Supabase SQL Editor.
+### 5. Supabase Database Schema Initialization
+Execute the consolidated idempotent migration script in your Supabase SQL Editor:
+- [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql)
+This establishes all 13 application and vector tables, indexes, constraints, and RPC functions in a single step.
 
 ---
 
@@ -408,7 +406,7 @@ Run the complete frontend test suite:
 ```bash
 cd frontend && npm run test
 ```
-All 28 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 12 test suites (`Landing`, `Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
+All 29 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 12 test suites (`Landing`, `Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
 
 ### Browser E2E Tests (Playwright)
 Run the browser-level end-to-end test suite:

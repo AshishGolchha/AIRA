@@ -18,8 +18,11 @@ class EmbeddingService:
 
     def _get_client(self) -> genai.Client:
         key = self.api_key
-        if not key and has_app_context():
+        if key is None and has_app_context():
             key = current_app.config.get("GEMINI_API_KEY")
+        if key is None:
+            import os
+            key = os.getenv("GEMINI_API_KEY")
         if not key:
             raise RuntimeError("GEMINI_API_KEY is not configured.")
         return genai.Client(api_key=key)

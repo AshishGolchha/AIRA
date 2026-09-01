@@ -13,12 +13,15 @@ def get_crewai_llm(api_key: str | None = None, model: str | None = None) -> LLM:
     if not key and has_app_context():
         key = current_app.config.get("GEMINI_API_KEY")
     if not key:
+        import os
+        key = os.getenv("GEMINI_API_KEY")
+    if not key:
         raise RuntimeError("GEMINI_API_KEY is not configured.")
 
     model_name = model
     if not model_name and has_app_context():
-        model_name = current_app.config.get("GEMINI_LLM_MODEL", "gemini/gemini-2.0-flash")
-    model_name = model_name or "gemini/gemini-2.0-flash"
+        model_name = current_app.config.get("GEMINI_LLM_MODEL", "gemini/gemini-3.6-flash")
+    model_name = model_name or "gemini/gemini-3.6-flash"
 
     return LLM(model=model_name, api_key=key)
 

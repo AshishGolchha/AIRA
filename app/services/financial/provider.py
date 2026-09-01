@@ -111,17 +111,35 @@ class YFinanceProvider(BaseFinancialProvider):
                 f"No historical prices available for '{clean_symbol}' with period '{period}'."
             )
 
+        def _safe_price(val: Any) -> float:
+            try:
+                import math
+                if val is None or math.isnan(val) or math.isinf(val):
+                    return 0.0
+                return round(float(val), 4)
+            except (ValueError, TypeError):
+                return 0.0
+
+        def _safe_vol(val: Any) -> int:
+            try:
+                import math
+                if val is None or math.isnan(val) or math.isinf(val):
+                    return 0
+                return int(val)
+            except (ValueError, TypeError):
+                return 0
+
         prices: list[PricePoint] = []
         for idx, row in df.iterrows():
             date_str = idx.strftime("%Y-%m-%d") if hasattr(idx, "strftime") else str(idx)
             prices.append(
                 PricePoint(
                     date=date_str,
-                    open=round(float(row.get("Open", 0.0)), 4),
-                    high=round(float(row.get("High", 0.0)), 4),
-                    low=round(float(row.get("Low", 0.0)), 4),
-                    close=round(float(row.get("Close", 0.0)), 4),
-                    volume=int(row.get("Volume", 0)),
+                    open=_safe_price(row.get("Open")),
+                    high=_safe_price(row.get("High")),
+                    low=_safe_price(row.get("Low")),
+                    close=_safe_price(row.get("Close")),
+                    volume=_safe_vol(row.get("Volume")),
                 )
             )
 

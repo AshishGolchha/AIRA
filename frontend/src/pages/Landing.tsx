@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   Sparkles,
   ArrowRight,
-  Shield,
   Search,
   Database,
   Cpu,
@@ -14,9 +13,6 @@ import {
   ChevronRight,
   Terminal,
   Activity,
-  Lock,
-  FileText,
-  Bookmark,
   Menu,
   X,
 } from 'lucide-react';
@@ -25,8 +21,12 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { HeroIntelligenceEngine } from '../components/landing/HeroIntelligenceEngine';
+import { MarketTerminalChart } from '../components/landing/MarketTerminalChart';
+import { PortfolioAllocationVisual } from '../components/landing/PortfolioAllocationVisual';
+import { MultiAgentNetworkVisual } from '../components/landing/MultiAgentNetworkVisual';
+import { DataTransformationFlow } from '../components/landing/DataTransformationFlow';
+import { EvidenceGroundingFlow } from '../components/landing/EvidenceGroundingFlow';
 import { ArchitectureCircuit } from '../components/landing/ArchitectureCircuit';
-import { MultiAgentDebateVisual } from '../components/landing/MultiAgentDebateVisual';
 
 interface PipelineStep {
   id: string;
@@ -127,7 +127,7 @@ const PIPELINE_STEPS: PipelineStep[] = [
       consensus_confidence_pct: 88,
       moat_rating: 'WIDE_NETWORK_EFFECT',
       primary_risk: 'CUSTOMER_CONCENTRATION_TOP_4',
-      llm_model: 'gemini-2.0-flash',
+      llm_model: 'gemini-3.6-flash',
     },
   },
   {
@@ -209,14 +209,14 @@ const PIPELINE_STEPS: PipelineStep[] = [
 export const Landing: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [activeStepId, setActiveStepId] = useState<string>('discovery');
-  const [consoleViewMode, setConsoleViewMode] = useState<'report' | 'json' | 'evidence'>('report');
+  const [consoleViewMode, setConsoleViewMode] = useState<'report' | 'json'>('report');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   const activeStep = PIPELINE_STEPS.find((s) => s.id === activeStepId) || PIPELINE_STEPS[0];
 
   return (
     <div className="min-h-screen bg-background text-slate-100 selection:bg-brand-500/30 selection:text-brand-200 overflow-x-hidden font-sans">
-      {/* Ambient Radial Lighting & Subtle Grid Background */}
+      {/* Ambient Lighting & Grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-b from-brand-600/15 via-brand-cyan/10 to-transparent blur-[140px] rounded-full" />
         <div className="absolute top-[40%] right-[-15%] w-[700px] h-[700px] bg-brand-500/8 blur-[160px] rounded-full" />
@@ -225,7 +225,7 @@ export const Landing: React.FC = () => {
       </div>
 
       {/* ================================================================= */}
-      {/* TOP NAVIGATION BAR */}
+      {/* NAVIGATION BAR */}
       {/* ================================================================= */}
       <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/85 border-b border-border-subtle/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -246,13 +246,14 @@ export const Landing: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm text-slate-300 font-medium" aria-label="Main Navigation">
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-7 text-sm text-slate-300 font-medium" aria-label="Main Navigation">
             <a href="#hero" className="hover:text-white transition-colors duration-150">Live Engine</a>
+            <a href="#market-terminal" className="hover:text-white transition-colors duration-150">Market Terminal</a>
+            <a href="#data-flow" className="hover:text-white transition-colors duration-150">Data Pipeline</a>
+            <a href="#multi-agent-network" className="hover:text-white transition-colors duration-150">Agent Network</a>
+            <a href="#portfolio-allocation" className="hover:text-white transition-colors duration-150">Portfolio</a>
             <a href="#architecture" className="hover:text-white transition-colors duration-150">Architecture</a>
-            <a href="#debate" className="hover:text-white transition-colors duration-150">Multi-Agent Debate</a>
-            <a href="#pipeline" className="hover:text-white transition-colors duration-150">Console</a>
-            <a href="#capabilities" className="hover:text-white transition-colors duration-150">Capabilities</a>
           </nav>
 
           {/* Action CTAs */}
@@ -296,10 +297,11 @@ export const Landing: React.FC = () => {
           <div className="md:hidden px-4 pt-2 pb-6 bg-surface-200/95 border-b border-border-subtle space-y-4 animate-in slide-in-from-top-2">
             <nav className="flex flex-col space-y-3 text-sm text-slate-300 font-medium">
               <a href="#hero" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Live Engine</a>
+              <a href="#market-terminal" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Market Terminal</a>
+              <a href="#data-flow" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Data Pipeline</a>
+              <a href="#multi-agent-network" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Agent Network</a>
+              <a href="#portfolio-allocation" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Portfolio</a>
               <a href="#architecture" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Architecture</a>
-              <a href="#debate" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Multi-Agent Debate</a>
-              <a href="#pipeline" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Console</a>
-              <a href="#capabilities" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Capabilities</a>
             </nav>
             <div className="pt-2 flex flex-col gap-2">
               {isAuthenticated ? (
@@ -332,9 +334,9 @@ export const Landing: React.FC = () => {
       {/* ================================================================= */}
       <main className="relative z-10 pt-24 sm:pt-28">
         {/* ================================================================= */}
-        {/* 1. HERO SECTION WITH INTERACTIVE INTELLIGENCE ENGINE */}
+        {/* 1. HERO SECTION WITH INTELLIGENCE ENGINE CENTERPIECE */}
         {/* ================================================================= */}
-        <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-20 text-center">
+        <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-16 text-center">
           {/* Eyebrow Pill */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-100/90 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-6 shadow-glow-brand">
             <Sparkles className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
@@ -350,179 +352,97 @@ export const Landing: React.FC = () => {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-10 font-normal">
+          <p className="text-base sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed mb-8 font-normal">
             Turn scattered financial filings, balance sheet telemetry, and market noise into grounded, multi-agent investment intelligence with deterministic portfolio precision.
           </p>
 
           {/* Hero CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <Link to={isAuthenticated ? '/app/dashboard' : '/register'} className="w-full sm:w-auto">
               <Button size="lg" variant="glow" className="w-full sm:w-auto px-8" rightIcon={<ArrowRight className="w-5 h-5" />}>
                 {isAuthenticated ? 'Open Investor Dashboard' : 'Get Started Free'}
               </Button>
             </Link>
-            <a href="#pipeline" className="w-full sm:w-auto">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto px-6" leftIcon={<Terminal className="w-4 h-4 text-brand-cyan" />}>
-                Explore Live Pipeline
+            <a href="#market-terminal" className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" className="w-full sm:w-auto px-6" leftIcon={<Activity className="w-4 h-4 text-brand-cyan" />}>
+                Explore Market Terminal
               </Button>
             </a>
           </div>
 
-          {/* CENTERPIECE: Live Hero Intelligence Engine */}
-          <div className="mb-14">
+          {/* Hero Centerpiece: Live Intelligence Simulator */}
+          <div className="mb-12">
             <HeroIntelligenceEngine />
-          </div>
-
-          {/* Trust / Capability Horizontal Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 max-w-5xl mx-auto pt-6 border-t border-border-subtle/60">
-            {[
-              { icon: Cpu, label: 'Multi-Agent Synthesis' },
-              { icon: PieChart, label: 'Real-Time Portfolio' },
-              { icon: Shield, label: 'Deterministic Alerts' },
-              { icon: FileText, label: 'Evidence-Grounded' },
-              { icon: Database, label: 'Vector Memory (pgvector)' },
-              { icon: Lock, label: 'Multi-Tenant Isolation' },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-surface-200/50 border border-border-subtle text-slate-300 text-xs font-medium"
-              >
-                <item.icon className="w-3.5 h-3.5 text-brand-400 shrink-0" />
-                <span>{item.label}</span>
-              </div>
-            ))}
           </div>
         </section>
 
         {/* ================================================================= */}
-        {/* 2. THE FRAGMENTATION VS UNIFICATION SPLIT LENS */}
+        {/* 2. REAL FINANCIAL DATA VISUALIZATION: MARKET TERMINAL */}
         {/* ================================================================= */}
-        <section id="problem" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge variant="amber" className="mb-3 uppercase tracking-wider">
-              The Fragmentation Problem
+        <section id="market-terminal" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-border-subtle/60">
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            <Badge variant="brand" className="mb-2 uppercase tracking-wider">
+              Financial Intelligence Terminal
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-              Modern Market Research Is Broken into 10 Isolated Silos
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+              Interactive Market & Signal Terminal
             </h2>
-            <p className="text-slate-300 text-base">
-              Investors waste hours manually reconciling financial PDFs against portfolio spreadsheets while critical risk thresholds pass unnoticed.
+            <p className="text-slate-300 text-xs sm:text-sm">
+              Explore time-series price curves with pinned SEC filing milestones, agent consensus points, and fundamental multiple bands.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto items-stretch">
-            {/* The Fragmented Reality */}
-            <div className="lg:col-span-6 p-6 sm:p-8 rounded-3xl bg-surface-200/40 border border-red-500/20 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-3 mb-4 border-b border-red-500/20">
-                  <span className="text-xs font-bold uppercase tracking-wider text-red-400">
-                    Traditional Workflow
-                  </span>
-                  <span className="text-[10px] font-mono text-red-400/80 uppercase">DISCONNECTED</span>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-4">Scattered, Stale & Manual</h3>
-                <ul className="space-y-4 text-xs sm:text-sm text-slate-400">
-                  <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                    <span><strong>10+ Browser Tabs:</strong> Constant tab switching across SEC Edgar, financial portals, and news terminals.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                    <span><strong>Desynchronized Notes:</strong> Research documents saved in separate folders that never update with current portfolio weights.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                    <span><strong>Blind Alerting:</strong> Basic price-only triggers that lack fundamental context or risk threshold validation.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
-                    <span><strong>Forgotten Theses:</strong> Prior research forgotten, leading to repeated work every quarterly earnings cycle.</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-red-500/20 text-[11px] font-mono text-red-400">
-                High Cognitive Overhead • Inefficient Execution
-              </div>
-            </div>
-
-            {/* The AIRA Unified Engine */}
-            <div className="lg:col-span-6 p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-surface-100 to-surface-200 border border-brand-500/40 shadow-glow-brand flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-3 mb-4 border-b border-brand-500/30">
-                  <span className="text-xs font-bold uppercase tracking-wider text-brand-cyan">
-                    The AIRA Continuous Engine
-                  </span>
-                  <span className="text-[10px] font-mono text-brand-emerald uppercase">SYNCHRONIZED</span>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-4">Continuous, Context-Aware Intelligence</h3>
-                <ul className="space-y-4 text-xs sm:text-sm text-slate-200">
-                  <li className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
-                    <span><strong>Automated Ingestion:</strong> SEC filings, valuation multiples, and quotes parsed automatically into verified data points.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
-                    <span><strong>Live Portfolio Grounding:</strong> Actual holding percentages and cost basis directly inform qualitative risk synthesis.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
-                    <span><strong>Deterministic Telemetry:</strong> Precise mathematical threshold rules evaluate price swings and drawdowns with retry-safe dispatch.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-brand-cyan mt-0.5 shrink-0" />
-                    <span><strong>Vector Semantic Memory:</strong> Supabase pgvector embeds historical theses to ground subsequent investment reviews.</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-brand-500/30 text-[11px] font-mono text-brand-cyan flex items-center justify-between">
-                <span>Unified Intelligence Workflow</span>
-                <span className="text-brand-emerald">Sub-second Read Latency</span>
-              </div>
-            </div>
-          </div>
+          <MarketTerminalChart />
         </section>
 
         {/* ================================================================= */}
-        {/* 3. ARCHITECTURE CIRCUIT: DETERMINISTIC MATH VS AUTONOMOUS AI */}
+        {/* 3. RAW DATA → INTELLIGENCE TRANSFORMATION FLOW */}
         {/* ================================================================= */}
-        <section id="architecture" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
+        <section id="data-flow" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-border-subtle/60">
+          <DataTransformationFlow />
+        </section>
+
+        {/* ================================================================= */}
+        {/* 4. MULTI-AGENT REASONING NETWORK */}
+        {/* ================================================================= */}
+        <section id="multi-agent-network" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-border-subtle/60">
+          <MultiAgentNetworkVisual />
+        </section>
+
+        {/* ================================================================= */}
+        {/* 5. PORTFOLIO ALLOCATION & RISK/RETURN MATRIX */}
+        {/* ================================================================= */}
+        <section id="portfolio-allocation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-border-subtle/60">
+          <PortfolioAllocationVisual />
+        </section>
+
+        {/* ================================================================= */}
+        {/* 6. ARCHITECTURE CIRCUIT: AI REASONING VS DETERMINISTIC MATH */}
+        {/* ================================================================= */}
+        <section id="architecture" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-border-subtle/60">
           <ArchitectureCircuit />
         </section>
 
         {/* ================================================================= */}
-        {/* 4. MULTI-AGENT DEBATE SIMULATION */}
+        {/* 7. EVIDENCE GROUNDING DISSECTION AUDIT TRAIL */}
         {/* ================================================================= */}
-        <section id="debate" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
-          <div className="text-center max-w-3xl mx-auto mb-14">
-            <Badge variant="brand" className="mb-3 uppercase tracking-wider">
-              Multi-Agent Architecture
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-              Autonomous Consensus Through Specialized Agent Debate
-            </h2>
-            <p className="text-slate-300 text-base">
-              AIRA deploys specialized analytical agents that cross-examine moat durability, multiple expansions, and macro concentration risks before producing a report.
-            </p>
-          </div>
-
-          <MultiAgentDebateVisual />
+        <section id="evidence-grounding" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-border-subtle/60">
+          <EvidenceGroundingFlow />
         </section>
 
         {/* ================================================================= */}
-        {/* 5. INTERACTIVE INTELLIGENCE CONSOLE */}
+        {/* 8. INTERACTIVE 6-STAGE INTELLIGENCE CONSOLE */}
         {/* ================================================================= */}
-        <section id="pipeline" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <Badge variant="brand" className="mb-3 uppercase tracking-wider">
+        <section id="pipeline" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-border-subtle/60">
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            <Badge variant="brand" className="mb-2 uppercase tracking-wider">
               Interactive Console
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
               The 6-Stage Intelligence Lifecycle
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base">
-              Inspect each stage of AIRA's synthesis pipeline, toggle raw telemetry payloads, and examine evidence extraction.
+            <p className="text-slate-400 text-xs sm:text-sm">
+              Inspect each stage of AIRA's synthesis pipeline, toggle structured JSON payloads, and examine evidence extraction.
             </p>
           </div>
 
@@ -543,7 +463,7 @@ export const Landing: React.FC = () => {
                     <button
                       key={step.id}
                       onClick={() => setActiveStepId(step.id)}
-                      className={`w-full text-left p-3.5 rounded-2xl transition-all duration-200 border flex items-start gap-3.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
+                      className={`w-full text-left p-3 rounded-2xl transition-all duration-200 border flex items-start gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
                         isActive
                           ? 'bg-brand-500/15 border-brand-500/40 text-white shadow-glow-brand'
                           : 'bg-surface-100/40 border-border-subtle text-slate-400 hover:bg-surface-100 hover:text-slate-200'
@@ -560,14 +480,14 @@ export const Landing: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-mono font-semibold text-brand-cyan">
+                          <span className="text-[11px] font-mono font-semibold text-brand-cyan">
                             STAGE {step.stepNumber}
                           </span>
                           <span className="text-[10px] text-slate-400 uppercase tracking-wider">
                             {step.category}
                           </span>
                         </div>
-                        <h3 className="text-sm font-semibold truncate mt-0.5">
+                        <h3 className="text-xs sm:text-sm font-semibold truncate mt-0.5">
                           {step.title}
                         </h3>
                       </div>
@@ -634,7 +554,7 @@ export const Landing: React.FC = () => {
                           <span>{activeStep.sampleOutput.status}</span>
                         </div>
 
-                        {/* Key Metrics Grid (if present) */}
+                        {/* Key Metrics Grid */}
                         {activeStep.sampleOutput.metrics && (
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                             {Object.entries(activeStep.sampleOutput.metrics).map(([key, val]) => (
@@ -646,7 +566,7 @@ export const Landing: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Evidence & Insights */}
+                        {/* Insights */}
                         {activeStep.sampleOutput.insights && (
                           <div className="space-y-2 mb-3">
                             <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
@@ -661,6 +581,7 @@ export const Landing: React.FC = () => {
                           </div>
                         )}
 
+                        {/* Evidence */}
                         {activeStep.sampleOutput.evidence && (
                           <div className="space-y-2 mb-3">
                             <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
@@ -675,6 +596,7 @@ export const Landing: React.FC = () => {
                           </div>
                         )}
 
+                        {/* Risk Vector */}
                         {activeStep.sampleOutput.riskVector && (
                           <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-sans">
                             <span className="font-semibold text-amber-300">Risk Vector: </span>
@@ -704,127 +626,12 @@ export const Landing: React.FC = () => {
         </section>
 
         {/* ================================================================= */}
-        {/* 6. CORE CAPABILITIES MATRIX */}
+        {/* 9. FINAL CALL TO ACTION */}
         {/* ================================================================= */}
-        <section id="capabilities" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <Badge variant="brand" className="mb-3 uppercase tracking-wider">
-              Platform Features
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-              Comprehensive Investment Research Suite
-            </h2>
-            <p className="text-slate-300 text-base">
-              Dedicated tools engineered for institutional-quality personal investment intelligence.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <GlassCard className="p-6 rounded-3xl flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-cyan mb-4">
-                  <Cpu className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Autonomous Company Research</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                  Multi-agent deep dives analyzing company business models, revenue drivers, valuation multiples, and latest market news.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>CrewAI + Gemini 2.0</span>
-                <span className="text-brand-cyan font-semibold">Evidence Grounded</span>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-6 rounded-3xl flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-cyan mb-4">
-                  <PieChart className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Portfolio Intelligence</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                  Whole-portfolio valuation and risk analysis combining exact holding weights, cost-basis accounting, and watchlist priorities.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>Deterministic Math</span>
-                <span className="text-brand-cyan font-semibold">Asset Weights</span>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-6 rounded-3xl flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-cyan mb-4">
-                  <Bookmark className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">High-Conviction Watchlists</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                  Tiered watchlist management with priority filters (High, Normal, Low) and automated price delta monitoring.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>Priority Filters</span>
-                <span className="text-brand-cyan font-semibold">24h Price Feeds</span>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-6 rounded-3xl flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-cyan mb-4">
-                  <Bell className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Deterministic Alert Telemetry</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                  Threshold monitoring with multi-channel dispatch (In-App, Email, HMAC-signed Webhooks) and automated retry backoff.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>Zero Hallucination</span>
-                <span className="text-brand-cyan font-semibold">HMAC Signed</span>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-6 rounded-3xl flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-cyan mb-4">
-                  <Database className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Persistent Semantic Memory</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                  Supabase pgvector embedding memory preserving historical research reports to ground subsequent analytical sessions.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>pgvector Storage</span>
-                <span className="text-brand-cyan font-semibold">Immutable Provenance</span>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-6 rounded-3xl flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-cyan mb-4">
-                  <Sliders className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Investor Personalization</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                  Customizable risk tolerance (Conservative, Moderate, Aggressive) and investment horizons (Short, Medium, Long-Term).
-                </p>
-              </div>
-              <div className="pt-4 border-t border-border-subtle/60 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>Risk Profiles</span>
-                <span className="text-brand-cyan font-semibold">Tailored Guidance</span>
-              </div>
-            </GlassCard>
-          </div>
-        </section>
-
-        {/* ================================================================= */}
-        {/* 7. FINAL CALL TO ACTION */}
-        {/* ================================================================= */}
-        <section id="get-started" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 border-t border-border-subtle/60">
+        <section id="get-started" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
           <GlassCard glow="brand" className="p-8 sm:p-12 lg:p-16 rounded-3xl text-center max-w-4xl mx-auto relative overflow-hidden">
             <div className="relative z-10">
-              <Badge variant="brand" className="mb-4 uppercase tracking-wider">
+              <Badge variant="brand" className="mb-3 uppercase tracking-wider">
                 Start Exploring Today
               </Badge>
               <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
@@ -853,12 +660,12 @@ export const Landing: React.FC = () => {
       </main>
 
       {/* ================================================================= */}
-      {/* 8. FOOTER */}
+      {/* 10. FOOTER */}
       {/* ================================================================= */}
-      <footer className="border-t border-border-subtle/80 bg-surface-300/60 pt-16 pb-12 text-slate-400 text-xs">
+      <footer className="border-t border-border-subtle/80 bg-surface-300/60 pt-14 pb-10 text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-border-subtle">
-            {/* Column 1: Brand */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-border-subtle">
+            {/* Brand */}
             <div className="space-y-3 md:col-span-2">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand-600 to-brand-cyan flex items-center justify-center text-white">
@@ -871,19 +678,20 @@ export const Landing: React.FC = () => {
               </p>
             </div>
 
-            {/* Column 2: Navigation */}
+            {/* Navigation */}
             <div className="space-y-2.5">
               <div className="text-xs font-semibold text-white uppercase tracking-wider">Navigation</div>
               <ul className="space-y-2">
                 <li><a href="#hero" className="hover:text-slate-200 transition-colors">Live Engine</a></li>
+                <li><a href="#market-terminal" className="hover:text-slate-200 transition-colors">Market Terminal</a></li>
+                <li><a href="#data-flow" className="hover:text-slate-200 transition-colors">Data Pipeline</a></li>
+                <li><a href="#multi-agent-network" className="hover:text-slate-200 transition-colors">Agent Network</a></li>
+                <li><a href="#portfolio-allocation" className="hover:text-slate-200 transition-colors">Portfolio</a></li>
                 <li><a href="#architecture" className="hover:text-slate-200 transition-colors">Architecture</a></li>
-                <li><a href="#debate" className="hover:text-slate-200 transition-colors">Multi-Agent Debate</a></li>
-                <li><a href="#pipeline" className="hover:text-slate-200 transition-colors">Console</a></li>
-                <li><a href="#capabilities" className="hover:text-slate-200 transition-colors">Capabilities</a></li>
               </ul>
             </div>
 
-            {/* Column 3: Platform Access */}
+            {/* Access */}
             <div className="space-y-2.5">
               <div className="text-xs font-semibold text-white uppercase tracking-wider">Access</div>
               <ul className="space-y-2">
@@ -895,7 +703,7 @@ export const Landing: React.FC = () => {
           </div>
 
           {/* Bottom Copyright & Financial Disclaimer */}
-          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+          <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
             <div>
               &copy; {new Date().getFullYear()} AIRA. All rights reserved. Version 1.0.0.
             </div>

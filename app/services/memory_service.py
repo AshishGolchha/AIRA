@@ -44,10 +44,15 @@ class MemoryService:
     def _get_supabase_client(self) -> Client:
         if self._supabase:
             return self._supabase
-        if not has_app_context():
-            raise RuntimeError("Supabase client cannot be initialized outside application context.")
-        url = current_app.config.get("SUPABASE_URL")
-        key = current_app.config.get("SUPABASE_SERVICE_ROLE_KEY")
+        url = None
+        key = None
+        if has_app_context():
+            url = current_app.config.get("SUPABASE_URL")
+            key = current_app.config.get("SUPABASE_SERVICE_ROLE_KEY")
+        if not url or not key:
+            import os
+            url = os.getenv("SUPABASE_URL")
+            key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
         if not url or not key:
             raise RuntimeError(
                 "Supabase configuration missing. SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required."

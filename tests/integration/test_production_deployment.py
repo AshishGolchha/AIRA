@@ -43,7 +43,7 @@ def test_production_config_validation_rules():
     class BadKeyConfig(BaseConfig):
         SECRET_KEY = "too-short"
         JWT_SECRET_KEY = "also-too-short"
-        SQLALCHEMY_DATABASE_URI = "mysql+pymysql://user:pass@localhost/db"
+        SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://user:pass@localhost:5432/db"
         DEBUG = False
 
     with pytest.raises(RuntimeError) as exc_info:
@@ -63,7 +63,7 @@ def test_production_config_validation_rules():
     class DebugProdConfig(BaseConfig):
         SECRET_KEY = "a" * 32
         JWT_SECRET_KEY = "b" * 32
-        SQLALCHEMY_DATABASE_URI = "mysql+pymysql://user:pass@localhost/db"
+        SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://user:pass@localhost:5432/db"
         DEBUG = True
 
     with pytest.raises(RuntimeError) as exc_info:
@@ -76,7 +76,7 @@ def test_valid_production_config_passes():
     class ValidProdConfig(BaseConfig):
         SECRET_KEY = "x" * 48
         JWT_SECRET_KEY = "y" * 48
-        SQLALCHEMY_DATABASE_URI = "mysql+pymysql://aira_user:pass@db:3306/aira_db"
+        SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://postgres:pass@db.orzexfwqdahwwzjkxuqo.supabase.co:5432/postgres"
         DEBUG = False
 
     errors = validate_production_config(ValidProdConfig())
@@ -112,10 +112,8 @@ def test_dockerfile_and_compose_structural_invariants():
 
     # 4. Docker Compose
     compose_yaml = (root_dir / "docker-compose.yml").read_text(encoding="utf-8")
-    assert "mysql:" in compose_yaml
     assert "backend:" in compose_yaml
     assert "frontend:" in compose_yaml
-    assert "mysql_data:" in compose_yaml
     assert "aira-network" in compose_yaml
     assert "condition: service_healthy" in compose_yaml
 

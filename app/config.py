@@ -5,40 +5,51 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def build_mysql_uri() -> str:
-    """Constructs MySQL database URI from environment variables."""
+def build_database_uri() -> str:
+    """Constructs PostgreSQL / Supabase database URI from environment variables."""
     database_url = os.getenv("DATABASE_URL")
     if database_url:
+        # Standardize PostgreSQL dialect for SQLAlchemy
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif database_url.startswith("postgresql://") and not database_url.startswith("postgresql+"):
+            database_url = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
         return database_url
 
-    user = os.getenv("MYSQL_USER")
-    password = os.getenv("MYSQL_PASSWORD")
-    host = os.getenv("MYSQL_HOST")
-    port = os.getenv("MYSQL_PORT", "3306")
-    db_name = os.getenv("MYSQL_DATABASE")
+    # Fallback to individual PostgreSQL components if provided
+    user = os.getenv("PGUSER") or os.getenv("POSTGRES_USER")
+    password = os.getenv("PGPASSWORD") or os.getenv("POSTGRES_PASSWORD")
+    host = os.getenv("PGHOST") or os.getenv("POSTGRES_HOST")
+    port = os.getenv("PGPORT") or os.getenv("POSTGRES_PORT", "5432")
+    db_name = os.getenv("PGDATABASE") or os.getenv("POSTGRES_DB") or os.getenv("POSTGRES_DATABASE", "postgres")
 
     if all([user, password is not None, host, port, db_name]):
         encoded_password = quote_plus(password)
-        return f"mysql+pymysql://{user}:{encoded_password}@{host}:{port}/{db_name}"
+        return f"postgresql+psycopg2://{user}:{encoded_password}@{host}:{port}/{db_name}"
 
     raise RuntimeError(
-        "MySQL database configuration missing. Please provide DATABASE_URL "
-        "or MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USER, and MYSQL_PASSWORD."
+        "Database configuration missing. Please provide DATABASE_URL "
+        "(e.g. postgresql+psycopg2://postgres:[PASSWORD]@[HOST]:[PORT]/postgres) "
+        "or PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE."
     )
+
+
+# Alias for backward compatibility
+build_mysql_uri = build_database_uri
 
 
 class BaseConfig:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Supabase (Persistent User Memory)
+    # Supabase (Persistent User Memory & Relational Database)
     SUPABASE_URL = os.getenv("SUPABASE_URL", "")
     SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
     SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
     # Gemini AI & Embeddings
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_LLM_MODEL = os.getenv("GEMINI_LLM_MODEL", "gemini/gemini-2.0-flash")
+    GEMINI_LLM_MODEL = os.getenv("GEMINI_LLM_MODEL", "gemini/gemini-3.6-flash")
     GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-2")
     EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "768"))
     MEMORY_SIMILARITY_THRESHOLD = float(os.getenv("MEMORY_SIMILARITY_THRESHOLD", "0.5"))
@@ -83,14 +94,14 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
 
     def __init__(self):
-        self.SQLALCHEMY_DATABASE_URI = build_mysql_uri()
+        self.SQLALCHEMY_DATABASE_URI = build_database_uri()
 
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
 
     def __init__(self):
-        self.SQLALCHEMY_DATABASE_URI = build_mysql_uri()
+        self.SQLALCHEMY_DATABASE_URI = build_database_uri()
         validate_production_config(self)
 
 
@@ -131,7 +142,7 @@ def validate_production_config(config: BaseConfig) -> list[str]:
     db_uri = getattr(config, "SQLALCHEMY_DATABASE_URI", "")
     if not db_uri or "sqlite" in db_uri.lower():
         errors.append(
-            "Production requires a production-grade relational database (e.g., MySQL via DATABASE_URL)."
+            "Production requires a production-grade relational database (e.g., Supabase PostgreSQL via DATABASE_URL)."
         )
 
     # 4. Debug Mode check

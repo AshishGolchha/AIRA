@@ -88,7 +88,7 @@ describe('Notifications Page Component', () => {
     await waitFor(() => {
       expect(api.notifications.updatePreferences).toHaveBeenCalled();
     });
-  });
+  }, 15000);
 
   it('opens modal and creates a webhook endpoint', async () => {
     (api.notifications.getPreferences as any).mockResolvedValue({

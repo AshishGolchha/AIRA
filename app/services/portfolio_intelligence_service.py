@@ -276,13 +276,27 @@ class PortfolioIntelligenceService:
         try:
             parsed = json.loads(cleaned)
             if isinstance(parsed, dict) and parsed.get("summary"):
+                def _to_str(val: Any, default: str) -> str:
+                    if val is None:
+                        return default
+                    if isinstance(val, (dict, list)):
+                        return json.dumps(val, indent=2)
+                    return str(val)
+
+                def _to_list(val: Any) -> list[str]:
+                    if val is None:
+                        return []
+                    if isinstance(val, list):
+                        return [str(item) for item in val]
+                    return [str(val)]
+
                 report = PortfolioIntelligenceReport(
-                    summary=parsed["summary"],
-                    portfolio_overview=parsed.get("portfolio_overview") or "Portfolio and watchlist reviewed against current market context.",
-                    portfolio_risks=parsed.get("portfolio_risks") or [],
-                    portfolio_opportunities=parsed.get("portfolio_opportunities") or [],
-                    watchlist_priorities=parsed.get("watchlist_priorities") or [],
-                    recommended_research=parsed.get("recommended_research") or [],
+                    summary=str(parsed["summary"]),
+                    portfolio_overview=_to_str(parsed.get("portfolio_overview"), "Portfolio and watchlist reviewed against current market context."),
+                    portfolio_risks=_to_list(parsed.get("portfolio_risks")),
+                    portfolio_opportunities=_to_list(parsed.get("portfolio_opportunities")),
+                    watchlist_priorities=_to_list(parsed.get("watchlist_priorities")),
+                    recommended_research=_to_list(parsed.get("recommended_research")),
                     portfolio_summary=snapshot,
                     user_context=user_context,
                     facts=facts,
