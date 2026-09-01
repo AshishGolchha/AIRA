@@ -195,7 +195,7 @@ def test_production_config_validation():
     class DummyInsecureConfig(BaseConfig):
         SECRET_KEY = "dev-secret-key-change-in-production"
         JWT_SECRET_KEY = "a-very-long-and-secure-jwt-secret-key-for-prod-32-chars"
-        SQLALCHEMY_DATABASE_URI = "mysql+pymysql://u:p@localhost:3306/db"
+        SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://u:p@db.project.supabase.co:5432/postgres"
         DEBUG = False
 
     with pytest.raises(RuntimeError) as excinfo:
@@ -206,7 +206,7 @@ def test_production_config_validation():
     class DummyInsecureJWTConfig(BaseConfig):
         SECRET_KEY = "a-very-long-and-secure-secret-key-for-production-32-chars"
         JWT_SECRET_KEY = "short"
-        SQLALCHEMY_DATABASE_URI = "mysql+pymysql://u:p@localhost:3306/db"
+        SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://u:p@db.project.supabase.co:5432/postgres"
         DEBUG = False
 
     with pytest.raises(RuntimeError) as excinfo:
@@ -228,7 +228,7 @@ def test_production_config_validation():
     class ValidProdConfig(BaseConfig):
         SECRET_KEY = "a-very-long-and-secure-secret-key-for-production-32-chars"
         JWT_SECRET_KEY = "a-very-long-and-secure-jwt-secret-key-for-prod-32-chars"
-        SQLALCHEMY_DATABASE_URI = "mysql+pymysql://user:pass@rds.amazonaws.com:3306/aira"
+        SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://postgres:pass@db.orzexfwqdahwwzjkxuqo.supabase.co:5432/postgres"
         DEBUG = False
 
     errors = validate_production_config(ValidProdConfig())

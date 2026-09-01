@@ -225,16 +225,30 @@ class ResearchService:
         try:
             parsed = json.loads(cleaned)
             if isinstance(parsed, dict) and parsed.get("summary"):
+                def _to_str(val: Any, default: str) -> str:
+                    if val is None:
+                        return default
+                    if isinstance(val, (dict, list)):
+                        return json.dumps(val, indent=2)
+                    return str(val)
+
+                def _to_list(val: Any) -> list[str]:
+                    if val is None:
+                        return []
+                    if isinstance(val, list):
+                        return [str(item) for item in val]
+                    return [str(val)]
+
                 report = ResearchReport(
-                    company=parsed.get("company") or company_name,
-                    symbol=parsed.get("symbol") or symbol,
-                    summary=parsed["summary"],
+                    company=str(parsed.get("company") or company_name),
+                    symbol=str(parsed.get("symbol") or symbol),
+                    summary=str(parsed["summary"]),
                     facts=facts,
-                    fundamentals=parsed.get("fundamentals") or "Fundamental metrics analyzed against industry benchmarks.",
-                    valuation=parsed.get("valuation") or "Valuation ratios evaluated.",
-                    market_context=parsed.get("market_context") or "Market context and trading trends analyzed.",
-                    risks=parsed.get("risks") or [],
-                    opportunities=parsed.get("opportunities") or [],
+                    fundamentals=_to_str(parsed.get("fundamentals"), "Fundamental metrics analyzed against industry benchmarks."),
+                    valuation=_to_str(parsed.get("valuation"), "Valuation ratios evaluated."),
+                    market_context=_to_str(parsed.get("market_context"), "Market context and trading trends analyzed."),
+                    risks=_to_list(parsed.get("risks")),
+                    opportunities=_to_list(parsed.get("opportunities")),
                     user_context=user_context,
                     sources=sources,
                 )

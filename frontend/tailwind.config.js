@@ -52,6 +52,7 @@ export default {
         'shimmer': 'shimmer 2.5s infinite',
         'float': 'float 6s ease-in-out infinite',
         'data-pulse': 'dataPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'dash-flow': 'dashFlow 20s linear infinite',
       },
       keyframes: {
         scanline: {
@@ -69,6 +70,9 @@ export default {
         dataPulse: {
           '0%, 100%': { opacity: '0.4', transform: 'scale(0.98)' },
           '50%': { opacity: '1', transform: 'scale(1.02)' },
+        },
+        dashFlow: {
+          to: { strokeDashoffset: '-1000' },
         },
       },
     },
