@@ -198,10 +198,10 @@ export const Notifications: React.FC = () => {
                 </label>
 
                 <div className="space-y-2">
-                  <label className="flex items-center justify-between p-3 rounded-xl bg-surface-100/60 border border-border-subtle hover:border-border-strong cursor-pointer transition-colors">
+                  <label className="flex items-center justify-between p-3 rounded-xl bg-surface-100/60 dark:bg-surface-100/60 border border-border-subtle hover:border-border-strong cursor-pointer transition-colors">
                     <div>
-                      <div className="text-xs font-semibold text-white">In-App Notification Stream</div>
-                      <div className="text-[11px] text-slate-400">Display instant toast and badge alerts in dashboard.</div>
+                      <div className="text-xs font-semibold text-slate-900 dark:text-white">In-App Notification Stream</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">Display instant toast and badge alerts in dashboard.</div>
                     </div>
                     <input
                       type="checkbox"
@@ -211,10 +211,10 @@ export const Notifications: React.FC = () => {
                     />
                   </label>
 
-                  <label className="flex items-center justify-between p-3 rounded-xl bg-surface-100/60 border border-border-subtle hover:border-border-strong cursor-pointer transition-colors">
+                  <label className="flex items-center justify-between p-3 rounded-xl bg-surface-100/60 dark:bg-surface-100/60 border border-border-subtle hover:border-border-strong cursor-pointer transition-colors">
                     <div>
-                      <div className="text-xs font-semibold text-white">Email Digest & Alerts</div>
-                      <div className="text-[11px] text-slate-400">Send critical alerts to verified registered email.</div>
+                      <div className="text-xs font-semibold text-slate-900 dark:text-white">Email Digest & Alerts</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">Send critical alerts to verified registered email.</div>
                     </div>
                     <input
                       type="checkbox"
@@ -224,10 +224,10 @@ export const Notifications: React.FC = () => {
                     />
                   </label>
 
-                  <label className="flex items-center justify-between p-3 rounded-xl bg-surface-100/60 border border-border-subtle hover:border-border-strong cursor-pointer transition-colors">
+                  <label className="flex items-center justify-between p-3 rounded-xl bg-surface-100/60 dark:bg-surface-100/60 border border-border-subtle hover:border-border-strong cursor-pointer transition-colors">
                     <div>
-                      <div className="text-xs font-semibold text-white">External Webhooks</div>
-                      <div className="text-[11px] text-slate-400">Deliver signed HMAC payloads to custom endpoints.</div>
+                      <div className="text-xs font-semibold text-slate-900 dark:text-white">External Webhooks</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">Deliver signed HMAC payloads to custom endpoints.</div>
                     </div>
                     <input
                       type="checkbox"
@@ -253,7 +253,7 @@ export const Notifications: React.FC = () => {
 
               {/* Alert Types Multi-Select */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
                   Included Alert Categories
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -271,12 +271,12 @@ export const Notifications: React.FC = () => {
                         onClick={() => handleToggleAlertType(cat.id)}
                         className={`px-3 py-2 rounded-xl text-xs font-medium border text-left flex items-center justify-between transition-colors ${
                           isChecked
-                            ? 'bg-brand-600/10 border-brand-500/40 text-brand-200'
-                            : 'bg-surface-100/40 border-border-subtle text-slate-400 hover:text-slate-200'
+                            ? 'bg-brand-500/15 dark:bg-brand-600/10 border-brand-500 text-brand-700 dark:text-brand-200'
+                            : 'bg-surface-50 dark:bg-surface-100/40 border-border-subtle text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
                       >
                         <span>{cat.label}</span>
-                        {isChecked && <CheckCircle className="w-3.5 h-3.5 text-brand-400" />}
+                        {isChecked && <CheckCircle className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" />}
                       </button>
                     );
                   })}
@@ -302,8 +302,8 @@ export const Notifications: React.FC = () => {
           <GlassCard className="p-6">
             <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-border-subtle">
               <div className="flex items-center gap-2">
-                <LinkIcon className="w-4 h-4 text-cyan-400" />
-                <h3 className="text-sm font-semibold text-white">Webhook Endpoints ({endpoints.length})</h3>
+                <LinkIcon className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Webhook Endpoints ({endpoints.length})</h3>
               </div>
               <Button
                 onClick={() => {
@@ -321,7 +321,7 @@ export const Notifications: React.FC = () => {
             </div>
 
             {endpoints.length === 0 ? (
-              <div className="p-8 rounded-2xl border border-dashed border-border-strong text-center text-xs text-slate-500 bg-surface-200/30">
+              <div className="p-8 rounded-2xl border border-dashed border-border-strong text-center text-xs text-slate-500 bg-surface-100 dark:bg-surface-200/30">
                 No webhook endpoints registered. Add an HTTPS webhook endpoint to receive machine-readable alert notifications.
               </div>
             ) : (
@@ -329,16 +329,16 @@ export const Notifications: React.FC = () => {
                 {endpoints.map((ep) => (
                   <div
                     key={ep.id}
-                    className="p-3.5 rounded-xl bg-surface-100/60 border border-border-subtle flex items-start justify-between gap-3 hover:border-border-strong transition-colors"
+                    className="p-3.5 rounded-xl bg-surface-50 dark:bg-surface-100/60 border border-border-subtle flex items-start justify-between gap-3 hover:border-border-strong transition-colors"
                   >
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-semibold text-white truncate max-w-sm">
+                        <span className="font-mono text-xs font-semibold text-slate-900 dark:text-white truncate max-w-sm">
                           {ep.endpoint_url}
                         </span>
                         <StatusBadge status={ep.is_enabled ? 'active' : 'disabled'} size="sm" />
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                      <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                         <span>Channel: {ep.channel}</span>
                         <span>• Added {formatDate(ep.created_at)}</span>
                       </div>
@@ -349,7 +349,7 @@ export const Notifications: React.FC = () => {
                         setSelectedEndpoint(ep);
                         setIsDeleteEndpointModalOpen(true);
                       }}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
                       title="Delete Webhook"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -366,8 +366,8 @@ export const Notifications: React.FC = () => {
       <GlassCard className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-slate-400" />
-            <h3 className="text-sm font-semibold text-white">Recent Delivery Audit Trail ({deliveries.length})</h3>
+            <Clock className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Recent Delivery Audit Trail ({deliveries.length})</h3>
           </div>
         </div>
 
@@ -391,19 +391,19 @@ export const Notifications: React.FC = () => {
               {deliveries.map((del) => (
                 <TableRow key={del.id}>
                   <TableCell>
-                    <span className="font-mono text-xs font-semibold text-white uppercase">{del.channel}</span>
+                    <span className="font-mono text-xs font-semibold text-slate-900 dark:text-white uppercase">{del.channel}</span>
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={del.status} size="sm" />
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-slate-300">#{del.alert_id}</TableCell>
-                  <TableCell className="font-mono text-xs text-slate-300">{del.attempt_count}</TableCell>
+                  <TableCell className="font-mono text-xs text-slate-700 dark:text-slate-300">#{del.alert_id}</TableCell>
+                  <TableCell className="font-mono text-xs text-slate-700 dark:text-slate-300">{del.attempt_count}</TableCell>
                   <TableCell>
-                    <span className="text-xs text-rose-300 line-clamp-1 max-w-xs font-mono">
+                    <span className="text-xs text-rose-600 dark:text-rose-300 line-clamp-1 max-w-xs font-mono">
                       {del.error_message || '—'}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right font-mono text-xs text-slate-400">
+                  <TableCell className="text-right font-mono text-xs text-slate-500 dark:text-slate-400">
                     {formatDate(del.created_at)}
                   </TableCell>
                 </TableRow>
@@ -420,7 +420,7 @@ export const Notifications: React.FC = () => {
         title="Configure Webhook Endpoint"
       >
         <form onSubmit={handleCreateEndpoint} className="space-y-4">
-          {endpointError && <p className="text-xs text-rose-400">{endpointError}</p>}
+          {endpointError && <p className="text-xs text-rose-600 dark:text-rose-400">{endpointError}</p>}
           <Input
             label="Webhook URL"
             type="url"
@@ -456,8 +456,8 @@ export const Notifications: React.FC = () => {
         title="Remove Webhook Endpoint"
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-300">
-            Are you sure you want to delete <strong className="text-white">{selectedEndpoint?.endpoint_url}</strong>?
+          <p className="text-xs text-slate-700 dark:text-slate-300">
+            Are you sure you want to delete <strong className="text-slate-900 dark:text-white">{selectedEndpoint?.endpoint_url}</strong>?
           </p>
           <div className="flex justify-end gap-2.5 pt-3 border-t border-border-subtle">
             <Button variant="secondary" size="sm" onClick={() => setIsDeleteEndpointModalOpen(false)}>

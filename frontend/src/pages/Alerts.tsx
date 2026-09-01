@@ -136,7 +136,7 @@ export const Alerts: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-xs text-slate-300 select-none cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 select-none cursor-pointer">
             <input
               type="checkbox"
               checked={unreadOnly}
@@ -172,43 +172,43 @@ export const Alerts: React.FC = () => {
               key={alert.id}
               className={`p-5 transition-all duration-200 ${
                 !alert.is_read
-                  ? 'border-border-strong bg-surface-100/90 shadow-md'
-                  : 'border-border-subtle bg-surface-200/50 opacity-80'
+                  ? 'border-border-strong bg-surface-50 dark:bg-surface-100/90 shadow-sm'
+                  : 'border-border-subtle bg-surface-100/50 dark:bg-surface-200/50 opacity-80'
               }`}
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div className="space-y-1.5 flex-1">
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="font-bold text-base text-white">{alert.symbol}</span>
+                    <span className="font-bold text-base text-slate-900 dark:text-white">{alert.symbol}</span>
                     <StatusBadge status={alert.severity} size="md" />
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-surface-100 border border-border-subtle text-slate-400 font-mono">
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-surface-100 dark:bg-surface-100 border border-border-subtle text-slate-600 dark:text-slate-400 font-mono">
                       {alert.alert_type.replace(/_/g, ' ')}
                     </span>
                     {!alert.is_read && (
-                      <span className="w-2 h-2 rounded-full bg-brand-400 animate-ping" />
+                      <span className="w-2 h-2 rounded-full bg-brand-500 animate-ping" />
                     )}
                   </div>
 
-                  <h4 className="text-sm font-semibold text-white pt-1">{alert.title}</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed">{alert.message}</p>
+                  <h4 className="text-sm font-semibold text-slate-900 dark:text-white pt-1">{alert.title}</h4>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{alert.message}</p>
 
                   {alert.context_data && Object.keys(alert.context_data).length > 0 && (
-                    <div className="mt-3 p-3 rounded-xl bg-surface-300/80 border border-border-subtle/80 text-[11px] font-mono text-slate-400 space-y-1">
-                      <div className="text-slate-400 uppercase tracking-wider text-[10px] font-semibold mb-1">
+                    <div className="mt-3 p-3 rounded-xl bg-surface-100 dark:bg-surface-300/80 border border-border-subtle/80 text-[11px] font-mono text-slate-600 dark:text-slate-400 space-y-1">
+                      <div className="text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] font-semibold mb-1">
                         Deterministic Context Metrics
                       </div>
                       <div className="flex flex-wrap gap-4">
                         {Object.entries(alert.context_data).map(([k, v]) => (
                           <div key={k} className="flex items-center gap-1.5">
-                            <span className="text-slate-400">{k}:</span>
-                            <span className="text-slate-200 font-semibold">{String(v)}</span>
+                            <span className="text-slate-500 dark:text-slate-400">{k}:</span>
+                            <span className="text-slate-900 dark:text-slate-200 font-semibold">{String(v)}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  <div className="text-[11px] text-slate-400 font-mono pt-1">
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono pt-1">
                     Detected on {formatDate(alert.created_at)}
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export const Alerts: React.FC = () => {
                       size="sm"
                       variant="secondary"
                       onClick={() => handleMarkAsRead(alert.id)}
-                      leftIcon={<CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+                      leftIcon={<CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
                     >
                       Mark Read
                     </Button>
@@ -229,7 +229,7 @@ export const Alerts: React.FC = () => {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleDismiss(alert.id)}
-                    className="text-slate-400 hover:text-rose-400"
+                    className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
                     leftIcon={<XCircle className="w-3.5 h-3.5" />}
                   >
                     Dismiss

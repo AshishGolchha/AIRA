@@ -185,26 +185,26 @@ export const MarketTerminalChart: React.FC = () => {
   const activePoint = hoveredIdx !== null ? points[hoveredIdx] : points[points.length - 1];
 
   return (
-    <div className="w-full rounded-3xl bg-surface-200/90 border border-border-strong p-5 sm:p-7 backdrop-blur-xl font-sans text-left shadow-2xl relative overflow-hidden">
+    <div className="w-full rounded-3xl bg-surface-50/95 dark:bg-surface-200/90 border border-border-strong p-5 sm:p-7 backdrop-blur-xl font-sans text-left shadow-xl dark:shadow-2xl relative overflow-hidden transition-colors duration-200">
       {/* Background Subtle Grid Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-40 dark:opacity-20 pointer-events-none" />
 
       {/* Terminal Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 mb-4 border-b border-border-subtle relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-brand-500/15 border border-brand-500/30 flex items-center justify-center text-brand-cyan">
+          <div className="w-9 h-9 rounded-xl bg-brand-500/10 dark:bg-brand-500/15 border border-brand-500/30 flex items-center justify-center text-brand-600 dark:text-brand-cyan">
             <Activity className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white tracking-tight">{activeData.companyName}</span>
-              <span className="text-xs font-mono text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded border border-brand-cyan/20">
+              <span className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{activeData.companyName}</span>
+              <span className="text-xs font-mono text-brand-700 dark:text-brand-cyan bg-brand-500/10 dark:bg-brand-cyan/10 px-2 py-0.5 rounded border border-brand-500/20 dark:border-brand-cyan/20">
                 ${activeData.symbol}
               </span>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-base font-extrabold text-white font-mono">{activeData.currentPrice}</span>
-              <span className="text-xs font-semibold text-brand-emerald flex items-center gap-0.5 font-mono">
+              <span className="text-base font-extrabold text-slate-900 dark:text-white font-mono">{activeData.currentPrice}</span>
+              <span className="text-xs font-semibold text-emerald-600 dark:text-brand-emerald flex items-center gap-0.5 font-mono">
                 <TrendingUp className="w-3 h-3" />
                 {activeData.change}
               </span>
@@ -213,7 +213,7 @@ export const MarketTerminalChart: React.FC = () => {
         </div>
 
         {/* Ticker Selector Switcher */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-100/90 border border-border-subtle text-xs font-mono">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-100 dark:bg-surface-100/90 border border-border-subtle text-xs font-mono">
           {Object.keys(MARKET_DATA).map((sym) => (
             <button
               key={sym}
@@ -223,8 +223,8 @@ export const MarketTerminalChart: React.FC = () => {
               }}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
                 selectedTicker === sym
-                  ? 'bg-brand-500 text-white shadow-glow-brand'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-brand-600 text-white shadow-sm dark:shadow-glow-brand'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               ${sym}
@@ -243,7 +243,7 @@ export const MarketTerminalChart: React.FC = () => {
           <defs>
             {/* Area Gradient */}
             <linearGradient id={`chartGrad-${selectedTicker}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.35" />
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
               <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0" />
             </linearGradient>
             {/* Line Gradient */}
@@ -264,7 +264,8 @@ export const MarketTerminalChart: React.FC = () => {
                 y1={y}
                 x2={svgWidth - paddingX}
                 y2={y}
-                stroke="rgba(255, 255, 255, 0.07)"
+                stroke="currentColor"
+                className="text-slate-200 dark:text-slate-800"
                 strokeDasharray="4 4"
               />
             );
@@ -316,7 +317,7 @@ export const MarketTerminalChart: React.FC = () => {
                     cx={x}
                     cy={y}
                     r={isHovered ? 8 : 6}
-                    fill="#0e1118"
+                    fill="#ffffff"
                     stroke={
                       pt.signalType === 'ingestion'
                         ? '#06b6d4'
@@ -334,7 +335,7 @@ export const MarketTerminalChart: React.FC = () => {
                   cx={x}
                   cy={y}
                   r={isHovered ? 4 : isMilestone ? 3 : 2}
-                  fill={isMilestone ? '#ffffff' : '#818cf8'}
+                  fill={isMilestone ? (pt.signalType === 'alert' ? '#10b981' : '#6366f1') : '#818cf8'}
                 />
               </g>
             );
@@ -344,15 +345,15 @@ export const MarketTerminalChart: React.FC = () => {
 
       {/* Interactive Signal Callout Inspector */}
       {activePoint && (
-        <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-surface-100/90 border border-brand-500/30 flex flex-wrap items-center justify-between gap-3 text-xs relative z-10 animate-in fade-in duration-200">
+        <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-surface-100 dark:bg-surface-100/90 border border-brand-500/30 flex flex-wrap items-center justify-between gap-3 text-xs relative z-10 animate-in fade-in duration-200">
           <div className="flex items-center gap-3">
             <div
               className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                 activePoint.signalType === 'ingestion'
-                  ? 'bg-brand-cyan/20 text-brand-cyan'
+                  ? 'bg-brand-cyan/20 text-brand-600 dark:text-brand-cyan'
                   : activePoint.signalType === 'consensus'
-                  ? 'bg-brand-500/20 text-brand-300'
-                  : 'bg-brand-emerald/20 text-brand-emerald'
+                  ? 'bg-brand-500/20 text-brand-700 dark:text-brand-300'
+                  : 'bg-emerald-500/20 text-emerald-700 dark:text-brand-emerald'
               }`}
             >
               {activePoint.signalType === 'ingestion' ? (
@@ -365,20 +366,20 @@ export const MarketTerminalChart: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2 font-mono">
-                <span className="text-white font-bold">{activePoint.date}: ${activePoint.price.toFixed(2)}</span>
+                <span className="text-slate-900 dark:text-white font-bold">{activePoint.date}: ${activePoint.price.toFixed(2)}</span>
                 {activePoint.label && (
-                  <span className="text-[10px] uppercase font-bold text-brand-cyan px-1.5 py-0.5 rounded bg-brand-cyan/10 border border-brand-cyan/20">
+                  <span className="text-[10px] uppercase font-bold text-brand-700 dark:text-brand-cyan px-1.5 py-0.5 rounded bg-brand-500/10 dark:bg-brand-cyan/10 border border-brand-500/20 dark:border-brand-cyan/20">
                     {activePoint.label}
                   </span>
                 )}
               </div>
-              <p className="text-slate-300 text-xs mt-0.5 leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5 leading-relaxed">
                 {activePoint.signalDetail || 'Baseline price trajectory tracked in continuous telemetry stream.'}
               </p>
             </div>
           </div>
 
-          <div className="text-[11px] font-mono text-slate-400 bg-surface-200/80 px-2.5 py-1 rounded-lg border border-border-subtle shrink-0">
+          <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 bg-surface-200/80 px-2.5 py-1 rounded-lg border border-border-subtle shrink-0">
             Hover point to inspect signal
           </div>
         </div>
@@ -386,25 +387,25 @@ export const MarketTerminalChart: React.FC = () => {
 
       {/* Fundamental Valuation Multiples Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4 pt-4 border-t border-border-subtle text-xs relative z-10">
-        <div className="p-2.5 rounded-xl bg-surface-100/60 border border-border-subtle">
-          <span className="text-[10px] text-slate-400 font-mono uppercase block">Trailing P/E</span>
-          <span className="text-sm font-bold text-white font-mono mt-0.5 block">{activeData.peRatio}</span>
+        <div className="p-2.5 rounded-xl bg-surface-100/80 dark:bg-surface-100/60 border border-border-subtle">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono uppercase block">Trailing P/E</span>
+          <span className="text-sm font-bold text-slate-900 dark:text-white font-mono mt-0.5 block">{activeData.peRatio}</span>
         </div>
-        <div className="p-2.5 rounded-xl bg-surface-100/60 border border-border-subtle">
-          <span className="text-[10px] text-slate-400 font-mono uppercase block">EV / EBITDA</span>
-          <span className="text-sm font-bold text-white font-mono mt-0.5 block">{activeData.evEbitda}</span>
+        <div className="p-2.5 rounded-xl bg-surface-100/80 dark:bg-surface-100/60 border border-border-subtle">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono uppercase block">EV / EBITDA</span>
+          <span className="text-sm font-bold text-slate-900 dark:text-white font-mono mt-0.5 block">{activeData.evEbitda}</span>
         </div>
-        <div className="p-2.5 rounded-xl bg-surface-100/60 border border-border-subtle">
-          <span className="text-[10px] text-slate-400 font-mono uppercase block">Free Cash Flow Yield</span>
-          <span className="text-sm font-bold text-brand-emerald font-mono mt-0.5 block">{activeData.fcfYield}</span>
+        <div className="p-2.5 rounded-xl bg-surface-100/80 dark:bg-surface-100/60 border border-border-subtle">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono uppercase block">Free Cash Flow Yield</span>
+          <span className="text-sm font-bold text-emerald-600 dark:text-brand-emerald font-mono mt-0.5 block">{activeData.fcfYield}</span>
         </div>
-        <div className="p-2.5 rounded-xl bg-surface-100/60 border border-border-subtle">
-          <span className="text-[10px] text-slate-400 font-mono uppercase block">52-Week Range</span>
+        <div className="p-2.5 rounded-xl bg-surface-100/80 dark:bg-surface-100/60 border border-border-subtle">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono uppercase block">52-Week Range</span>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] text-slate-400 font-mono">${activeData.range52w.low}</span>
-            <div className="flex-1 h-1.5 rounded-full bg-surface-300 relative overflow-hidden">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${activeData.range52w.low}</span>
+            <div className="flex-1 h-1.5 rounded-full bg-surface-200 dark:bg-surface-300 relative overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-brand-500 to-brand-cyan rounded-full"
+                className="h-full bg-gradient-to-r from-brand-600 to-cyan-500 rounded-full"
                 style={{
                   width: `${
                     ((activeData.range52w.current - activeData.range52w.low) /
@@ -414,7 +415,7 @@ export const MarketTerminalChart: React.FC = () => {
                 }}
               />
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">${activeData.range52w.high}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${activeData.range52w.high}</span>
           </div>
         </div>
       </div>

@@ -20,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { HeroIntelligenceEngine } from '../components/landing/HeroIntelligenceEngine';
 import { MarketTerminalChart } from '../components/landing/MarketTerminalChart';
 import { PortfolioAllocationVisual } from '../components/landing/PortfolioAllocationVisual';
@@ -138,62 +139,53 @@ const PIPELINE_STEPS: PipelineStep[] = [
     icon: Sliders,
     description: 'Contextualizes research against individual risk preferences (Moderate) and investment time horizon (5+ Years).',
     sampleOutput: {
-      status: 'Personalized Alignment Matrix',
-      metrics: {
-        'Target Risk Profile': 'Moderate Growth',
-        'Time Horizon': 'Long-Term (3-5 yrs)',
-        'Focus Theme': 'Artificial Intelligence Infrastructure',
-      },
+      status: 'Profile Alignment Applied',
       insights: [
-        'Thesis fits long-term thematic focus, but current 60% portfolio weighting conflicts with moderate risk parameters.',
+        'Matches investor medium-to-long term horizon (5+ yrs) given enterprise platform transition.',
+        'Risk rating flagged as High Growth / High Multiple relative to moderate preference profile.',
       ],
     },
     jsonPayload: {
-      user_profile_id: 42,
-      risk_tolerance: 'MODERATE',
-      horizon: '3_TO_5_YEARS',
-      thematic_fit: true,
-      allocation_rebalance_suggested: true,
+      profile_risk: 'moderate',
+      profile_horizon: '5+_years',
+      fit_score_pct: 82,
+      recommendation: 'MAINTAIN_CURRENT_ALLOCATION_TRIM_ON_EXTREME_VALUATION',
     },
   },
   {
-    id: 'monitoring',
+    id: 'telemetry',
     stepNumber: '05',
-    title: 'Deterministic Telemetry & Alerts',
-    category: 'Rule Engine',
+    title: 'Deterministic Risk Telemetry',
+    category: 'Risk Engine',
     icon: Bell,
-    description: 'Automated monitoring evaluates price swings and portfolio drawdowns using strict mathematical rules.',
+    description: 'Deterministic background monitoring engine tracking earnings date alerts, stop-loss drifts, and valuation re-ratings.',
     sampleOutput: {
-      status: 'Telemetry Active (15s polling)',
-      metrics: {
-        'Price Move Rule': 'Trigger on >5.0% 24h delta',
-        'Drawdown Rule': 'Trigger on >10.0% portfolio shift',
-        'Delivery Channels': 'In-App + Signed Webhooks',
-      },
+      status: 'Telemetry Alert Condition Met',
       insights: [
-        'Automated idempotent dispatch ensures zero duplicate notifications with exponential retry backoff.',
+        'Quarterly Earnings release date confirmed for November 20, 2024.',
+        'Trailing multiple expanded beyond 3-standard-deviation rolling band (+3.2σ).',
       ],
     },
     jsonPayload: {
-      alert_engine: 'DETERMINISTIC_RULES',
-      threshold_pct: 5.0,
-      channels: ['IN_APP', 'WEBHOOK_HMAC_SHA256'],
-      retry_backoff: 'EXPONENTIAL_JITTER',
-      idempotency_key: 'alert_nvda_2026_08_31',
+      alert_id: 5092,
+      trigger: 'VALUATION_MULTIPLE_EXPANSION_THRESHOLD',
+      severity: 'WARNING',
+      notification_dispatched: true,
+      channels: ['in_app', 'webhook'],
     },
   },
   {
-    id: 'reconciliation',
+    id: 'vector-memory',
     stepNumber: '06',
-    title: 'Persistent Semantic Memory',
-    category: 'Memory Provenance',
+    title: 'Persistent Memory & Provenance',
+    category: 'Supabase Vector',
     icon: Database,
-    description: 'Persists structured findings to vector storage (pgvector) to ground future research and track thesis evolution.',
+    description: 'Permanent embedding storage with cryptographic audit trail of thesis evolution across investment lifecycles.',
     sampleOutput: {
-      status: 'Vector Record Stored (#8429)',
+      status: 'Semantic Memory Vector Stored & Indexed (768-dim)',
       insights: [
         'Semantic embedding generated and indexed in Supabase pgvector.',
-        'Historical provenance linked to immutable user audit log for verifiable research recall.',
+        'Cross-referenced previous thesis from Q1 FY25 noting +18% gross margin variance.',
       ],
     },
     jsonPayload: {
@@ -215,31 +207,31 @@ export const Landing: React.FC = () => {
   const activeStep = PIPELINE_STEPS.find((s) => s.id === activeStepId) || PIPELINE_STEPS[0];
 
   return (
-    <div className="min-h-screen bg-background text-slate-100 selection:bg-brand-500/30 selection:text-brand-200 overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-background text-slate-800 dark:text-slate-100 selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 overflow-x-hidden font-sans transition-colors duration-200">
       {/* Ambient Lighting & Grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-b from-brand-600/15 via-brand-cyan/10 to-transparent blur-[140px] rounded-full" />
-        <div className="absolute top-[40%] right-[-15%] w-[700px] h-[700px] bg-brand-500/8 blur-[160px] rounded-full" />
-        <div className="absolute top-[75%] left-[-15%] w-[700px] h-[700px] bg-brand-emerald/8 blur-[160px] rounded-full" />
-        <div className="absolute inset-0 bg-grid-pattern opacity-40" />
+        <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-b from-brand-600/10 dark:from-brand-600/15 via-brand-cyan/5 dark:via-brand-cyan/10 to-transparent blur-[140px] rounded-full" />
+        <div className="absolute top-[40%] right-[-15%] w-[700px] h-[700px] bg-brand-500/5 dark:bg-brand-500/8 blur-[160px] rounded-full" />
+        <div className="absolute top-[75%] left-[-15%] w-[700px] h-[700px] bg-brand-emerald/5 dark:bg-brand-emerald/8 blur-[160px] rounded-full" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-60 dark:opacity-40" />
       </div>
 
       {/* ================================================================= */}
       {/* NAVIGATION BAR */}
       {/* ================================================================= */}
-      <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/85 border-b border-border-subtle/80">
+      <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-surface-50/85 dark:bg-background/85 border-b border-border-subtle/80 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded-lg">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-brand-cyan p-[1px] shadow-glow-brand flex items-center justify-center">
-              <div className="w-full h-full bg-surface-200 rounded-[11px] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-brand-300 group-hover:scale-110 transition-transform duration-200" />
+              <div className="w-full h-full bg-surface-50 dark:bg-surface-200 rounded-[11px] flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-brand-600 dark:text-brand-300 group-hover:scale-110 transition-transform duration-200" />
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
+              <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
                 AIRA
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-brand-cyan bg-brand-cyan/10 px-1.5 py-0.5 rounded border border-brand-cyan/20">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-brand-600 dark:text-brand-cyan bg-brand-500/10 dark:bg-brand-cyan/10 px-1.5 py-0.5 rounded border border-brand-500/20 dark:border-brand-cyan/20">
                   v1.0
                 </span>
               </span>
@@ -247,17 +239,18 @@ export const Landing: React.FC = () => {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-7 text-sm text-slate-300 font-medium" aria-label="Main Navigation">
-            <a href="#hero" className="hover:text-white transition-colors duration-150">Live Engine</a>
-            <a href="#market-terminal" className="hover:text-white transition-colors duration-150">Market Terminal</a>
-            <a href="#data-flow" className="hover:text-white transition-colors duration-150">Data Pipeline</a>
-            <a href="#multi-agent-network" className="hover:text-white transition-colors duration-150">Agent Network</a>
-            <a href="#portfolio-allocation" className="hover:text-white transition-colors duration-150">Portfolio</a>
-            <a href="#architecture" className="hover:text-white transition-colors duration-150">Architecture</a>
+          <nav className="hidden md:flex items-center gap-7 text-sm text-slate-600 dark:text-slate-300 font-medium" aria-label="Main Navigation">
+            <a href="#hero" className="hover:text-slate-900 dark:hover:text-white transition-colors duration-150">Live Engine</a>
+            <a href="#market-terminal" className="hover:text-slate-900 dark:hover:text-white transition-colors duration-150">Market Terminal</a>
+            <a href="#data-flow" className="hover:text-slate-900 dark:hover:text-white transition-colors duration-150">Data Pipeline</a>
+            <a href="#multi-agent-network" className="hover:text-slate-900 dark:hover:text-white transition-colors duration-150">Agent Network</a>
+            <a href="#portfolio-allocation" className="hover:text-slate-900 dark:hover:text-white transition-colors duration-150">Portfolio</a>
+            <a href="#architecture" className="hover:text-slate-900 dark:hover:text-white transition-colors duration-150">Architecture</a>
           </nav>
 
-          {/* Action CTAs */}
+          {/* Action CTAs & Theme Toggle */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {isAuthenticated ? (
               <Link to="/app/dashboard">
                 <Button size="sm" variant="glow" rightIcon={<ArrowRight className="w-4 h-4" />}>
@@ -281,10 +274,11 @@ export const Landing: React.FC = () => {
           </div>
 
           {/* Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-400 hover:text-white focus:outline-none"
+              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white focus:outline-none"
               aria-label="Toggle Mobile Navigation"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -294,14 +288,14 @@ export const Landing: React.FC = () => {
 
         {/* Mobile Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden px-4 pt-2 pb-6 bg-surface-200/95 border-b border-border-subtle space-y-4 animate-in slide-in-from-top-2">
-            <nav className="flex flex-col space-y-3 text-sm text-slate-300 font-medium">
-              <a href="#hero" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Live Engine</a>
-              <a href="#market-terminal" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Market Terminal</a>
-              <a href="#data-flow" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Data Pipeline</a>
-              <a href="#multi-agent-network" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Agent Network</a>
-              <a href="#portfolio-allocation" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Portfolio</a>
-              <a href="#architecture" onClick={() => setMobileMenuOpen(false)} className="hover:text-white py-1">Architecture</a>
+          <div className="md:hidden px-4 pt-2 pb-6 bg-surface-50/95 dark:bg-surface-200/95 border-b border-border-subtle space-y-4 animate-in slide-in-from-top-2">
+            <nav className="flex flex-col space-y-3 text-sm text-slate-600 dark:text-slate-300 font-medium">
+              <a href="#hero" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-900 dark:hover:text-white py-1">Live Engine</a>
+              <a href="#market-terminal" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-900 dark:hover:text-white py-1">Market Terminal</a>
+              <a href="#data-flow" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-900 dark:hover:text-white py-1">Data Pipeline</a>
+              <a href="#multi-agent-network" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-900 dark:hover:text-white py-1">Agent Network</a>
+              <a href="#portfolio-allocation" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-900 dark:hover:text-white py-1">Portfolio</a>
+              <a href="#architecture" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-900 dark:hover:text-white py-1">Architecture</a>
             </nav>
             <div className="pt-2 flex flex-col gap-2">
               {isAuthenticated ? (
@@ -344,7 +338,7 @@ export const Landing: React.FC = () => {
           </div>
 
           {/* Main H1 Headline */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.08] mb-6">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white max-w-4xl mx-auto leading-[1.08] mb-6">
             Your Investment Research,{' '}
             <span className="text-shimmer bg-clip-text text-transparent">
               Running on Autonomous Intelligence.
@@ -352,7 +346,7 @@ export const Landing: React.FC = () => {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed mb-8 font-normal">
+          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed mb-8 font-normal">
             Turn scattered financial filings, balance sheet telemetry, and market noise into grounded, multi-agent investment intelligence with deterministic portfolio precision.
           </p>
 
@@ -364,7 +358,7 @@ export const Landing: React.FC = () => {
               </Button>
             </Link>
             <a href="#market-terminal" className="w-full sm:w-auto">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto px-6" leftIcon={<Activity className="w-4 h-4 text-brand-cyan" />}>
+              <Button size="lg" variant="secondary" className="w-full sm:w-auto px-6" leftIcon={<Activity className="w-4 h-4 text-brand-600 dark:text-brand-cyan" />}>
                 Explore Market Terminal
               </Button>
             </a>
@@ -384,10 +378,10 @@ export const Landing: React.FC = () => {
             <Badge variant="brand" className="mb-2 uppercase tracking-wider">
               Financial Intelligence Terminal
             </Badge>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">
               Interactive Market & Signal Terminal
             </h2>
-            <p className="text-slate-300 text-xs sm:text-sm">
+            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm">
               Explore time-series price curves with pinned SEC filing milestones, agent consensus points, and fundamental multiple bands.
             </p>
           </div>
@@ -438,22 +432,22 @@ export const Landing: React.FC = () => {
             <Badge variant="brand" className="mb-2 uppercase tracking-wider">
               Interactive Console
             </Badge>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">
               The 6-Stage Intelligence Lifecycle
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm">
+            <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
               Inspect each stage of AIRA's synthesis pipeline, toggle structured JSON payloads, and examine evidence extraction.
             </p>
           </div>
 
           {/* Console Container */}
-          <GlassCard glow="brand" className="p-4 sm:p-6 lg:p-8 rounded-3xl border-border-strong bg-surface-200/85">
+          <GlassCard glow="brand" className="p-4 sm:p-6 lg:p-8 rounded-3xl border-border-strong bg-surface-50/90 dark:bg-surface-200/85">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column: Stage Selector Tabs */}
               <div className="lg:col-span-4 space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 px-3 pb-2 flex items-center justify-between">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-3 pb-2 flex items-center justify-between">
                   <span>Lifecycle Stages</span>
-                  <Activity className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
+                  <Activity className="w-3.5 h-3.5 text-brand-600 dark:text-brand-cyan animate-pulse" />
                 </div>
 
                 {PIPELINE_STEPS.map((step) => {
@@ -465,29 +459,29 @@ export const Landing: React.FC = () => {
                       onClick={() => setActiveStepId(step.id)}
                       className={`w-full text-left p-3 rounded-2xl transition-all duration-200 border flex items-start gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
                         isActive
-                          ? 'bg-brand-500/15 border-brand-500/40 text-white shadow-glow-brand'
-                          : 'bg-surface-100/40 border-border-subtle text-slate-400 hover:bg-surface-100 hover:text-slate-200'
+                          ? 'bg-brand-500/10 dark:bg-brand-500/15 border-brand-500/40 text-slate-900 dark:text-white shadow-sm dark:shadow-glow-brand'
+                          : 'bg-surface-100/60 dark:bg-surface-100/40 border-border-subtle text-slate-600 dark:text-slate-400 hover:bg-surface-100 hover:text-slate-900 dark:hover:text-slate-200'
                       }`}
                     >
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                           isActive
-                            ? 'bg-brand-500 text-white shadow-sm'
-                            : 'bg-surface-300 text-slate-400 group-hover:text-white'
+                            ? 'bg-brand-600 text-white shadow-sm'
+                            : 'bg-surface-200 dark:bg-surface-300 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
                         }`}
                       >
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono font-semibold text-brand-cyan">
+                          <span className="text-[11px] font-mono font-semibold text-brand-600 dark:text-brand-cyan">
                             STAGE {step.stepNumber}
                           </span>
-                          <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                             {step.category}
                           </span>
                         </div>
-                        <h3 className="text-xs sm:text-sm font-semibold truncate mt-0.5">
+                        <h3 className="text-xs sm:text-sm font-semibold truncate mt-0.5 text-slate-900 dark:text-white">
                           {step.title}
                         </h3>
                       </div>
@@ -498,7 +492,7 @@ export const Landing: React.FC = () => {
 
               {/* Right Column: Terminal Viewport */}
               <div className="lg:col-span-8 flex flex-col">
-                <div className="flex-1 rounded-2xl bg-surface-400/90 border border-border-subtle p-5 sm:p-6 font-mono flex flex-col justify-between shadow-inner">
+                <div className="flex-1 rounded-2xl bg-surface-100 dark:bg-surface-400/90 border border-border-subtle p-5 sm:p-6 font-mono flex flex-col justify-between shadow-inner">
                   {/* Terminal Header & Mode Switcher */}
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-border-subtle/80">
@@ -506,17 +500,17 @@ export const Landing: React.FC = () => {
                         <div className="w-3 h-3 rounded-full bg-red-500/80" />
                         <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                         <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                        <span className="text-xs text-slate-400 ml-2 font-mono">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2 font-mono">
                           aira-engine://pipeline/{activeStep.id}
                         </span>
                       </div>
 
                       {/* View Mode Switcher */}
-                      <div className="flex items-center gap-1 bg-surface-200/80 p-1 rounded-lg border border-border-subtle text-[10px]">
+                      <div className="flex items-center gap-1 bg-surface-200 dark:bg-surface-200/80 p-1 rounded-lg border border-border-subtle text-[10px]">
                         <button
                           onClick={() => setConsoleViewMode('report')}
                           className={`px-2 py-1 rounded transition-all ${
-                            consoleViewMode === 'report' ? 'bg-brand-500 text-white font-bold' : 'text-slate-400 hover:text-white'
+                            consoleViewMode === 'report' ? 'bg-brand-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                           }`}
                         >
                           Report View
@@ -524,7 +518,7 @@ export const Landing: React.FC = () => {
                         <button
                           onClick={() => setConsoleViewMode('json')}
                           className={`px-2 py-1 rounded transition-all ${
-                            consoleViewMode === 'json' ? 'bg-brand-500 text-white font-bold' : 'text-slate-400 hover:text-white'
+                            consoleViewMode === 'json' ? 'bg-brand-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                           }`}
                         >
                           Structured JSON
@@ -534,13 +528,13 @@ export const Landing: React.FC = () => {
 
                     {/* Step Title & Description */}
                     <div className="mb-4">
-                      <span className="text-xs font-semibold text-brand-cyan tracking-wider uppercase">
+                      <span className="text-xs font-semibold text-brand-600 dark:text-brand-cyan tracking-wider uppercase">
                         Stage {activeStep.stepNumber} — {activeStep.category}
                       </span>
-                      <h4 className="text-lg font-bold text-white font-sans mt-0.5 mb-1">
+                      <h4 className="text-lg font-bold text-slate-900 dark:text-white font-sans mt-0.5 mb-1">
                         {activeStep.title}
                       </h4>
-                      <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
                         {activeStep.description}
                       </p>
                     </div>
@@ -549,8 +543,8 @@ export const Landing: React.FC = () => {
                     {consoleViewMode === 'report' && (
                       <div>
                         {/* Status Badge */}
-                        <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-200 border border-border-subtle text-xs text-brand-300">
-                          <Terminal className="w-3.5 h-3.5 text-brand-cyan" />
+                        <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-200 dark:bg-surface-200 border border-border-subtle text-xs text-brand-700 dark:text-brand-300 font-medium">
+                          <Terminal className="w-3.5 h-3.5 text-brand-600 dark:text-brand-cyan" />
                           <span>{activeStep.sampleOutput.status}</span>
                         </div>
 
@@ -558,9 +552,9 @@ export const Landing: React.FC = () => {
                         {activeStep.sampleOutput.metrics && (
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                             {Object.entries(activeStep.sampleOutput.metrics).map(([key, val]) => (
-                              <div key={key} className="p-2.5 rounded-xl bg-surface-200/60 border border-border-subtle">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-tight">{key}</div>
-                                <div className="text-xs sm:text-sm font-bold text-white mt-0.5">{val}</div>
+                              <div key={key} className="p-2.5 rounded-xl bg-surface-200/80 dark:bg-surface-200/60 border border-border-subtle">
+                                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-tight">{key}</div>
+                                <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-0.5">{val}</div>
                               </div>
                             ))}
                           </div>
@@ -569,12 +563,12 @@ export const Landing: React.FC = () => {
                         {/* Insights */}
                         {activeStep.sampleOutput.insights && (
                           <div className="space-y-2 mb-3">
-                            <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                            <div className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
                               Synthesized Findings:
                             </div>
                             {activeStep.sampleOutput.insights.map((ins, i) => (
-                              <div key={i} className="flex items-start gap-2 text-xs text-slate-200 font-sans leading-relaxed">
-                                <ChevronRight className="w-3.5 h-3.5 text-brand-cyan shrink-0 mt-0.5" />
+                              <div key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-200 font-sans leading-relaxed">
+                                <ChevronRight className="w-3.5 h-3.5 text-brand-600 dark:text-brand-cyan shrink-0 mt-0.5" />
                                 <span>{ins}</span>
                               </div>
                             ))}
@@ -584,12 +578,12 @@ export const Landing: React.FC = () => {
                         {/* Evidence */}
                         {activeStep.sampleOutput.evidence && (
                           <div className="space-y-2 mb-3">
-                            <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                            <div className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
                               Grounding Evidence:
                             </div>
                             {activeStep.sampleOutput.evidence.map((ev, i) => (
-                              <div key={i} className="flex items-start gap-2 text-xs text-slate-300 font-sans leading-relaxed bg-surface-200/40 p-2 rounded-lg border border-border-subtle">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald shrink-0 mt-0.5" />
+                              <div key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 font-sans leading-relaxed bg-surface-200/60 dark:bg-surface-200/40 p-2 rounded-lg border border-border-subtle">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-brand-emerald shrink-0 mt-0.5" />
                                 <span>{ev}</span>
                               </div>
                             ))}
@@ -598,8 +592,8 @@ export const Landing: React.FC = () => {
 
                         {/* Risk Vector */}
                         {activeStep.sampleOutput.riskVector && (
-                          <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs font-sans">
-                            <span className="font-semibold text-amber-300">Risk Vector: </span>
+                          <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-200 text-xs font-sans">
+                            <span className="font-semibold text-amber-700 dark:text-amber-300">Risk Vector: </span>
                             {activeStep.sampleOutput.riskVector}
                           </div>
                         )}
@@ -608,16 +602,16 @@ export const Landing: React.FC = () => {
 
                     {/* JSON Mode View */}
                     {consoleViewMode === 'json' && (
-                      <pre className="p-4 rounded-xl bg-surface-300/80 border border-border-subtle text-xs text-brand-cyan overflow-x-auto leading-relaxed">
+                      <pre className="p-4 rounded-xl bg-surface-200/90 dark:bg-surface-300/80 border border-border-subtle text-xs text-brand-700 dark:text-brand-cyan overflow-x-auto leading-relaxed">
                         {JSON.stringify(activeStep.jsonPayload, null, 2)}
                       </pre>
                     )}
                   </div>
 
                   {/* Terminal Footer Disclaimer */}
-                  <div className="pt-4 mt-4 border-t border-border-subtle/80 flex items-center justify-between text-[11px] text-slate-400 font-sans">
+                  <div className="pt-4 mt-4 border-t border-border-subtle/80 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-sans">
                     <span>Illustrative Synthesis Preview</span>
-                    <span className="text-brand-cyan font-mono">AIRA Engine v1.0</span>
+                    <span className="text-brand-600 dark:text-brand-cyan font-mono">AIRA Engine v1.0</span>
                   </div>
                 </div>
               </div>
@@ -629,15 +623,15 @@ export const Landing: React.FC = () => {
         {/* 9. FINAL CALL TO ACTION */}
         {/* ================================================================= */}
         <section id="get-started" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-border-subtle/60">
-          <GlassCard glow="brand" className="p-8 sm:p-12 lg:p-16 rounded-3xl text-center max-w-4xl mx-auto relative overflow-hidden">
+          <GlassCard glow="brand" className="p-8 sm:p-12 lg:p-16 rounded-3xl text-center max-w-4xl mx-auto relative overflow-hidden bg-surface-50/90 dark:bg-surface-200/80">
             <div className="relative z-10">
               <Badge variant="brand" className="mb-3 uppercase tracking-wider">
                 Start Exploring Today
               </Badge>
-              <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
                 Build Your Investment Intelligence Layer.
               </h2>
-              <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
                 Join autonomous investment research with grounded multi-agent synthesis, deterministic telemetry, and personalized portfolio intelligence.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -662,7 +656,7 @@ export const Landing: React.FC = () => {
       {/* ================================================================= */}
       {/* 10. FOOTER */}
       {/* ================================================================= */}
-      <footer className="border-t border-border-subtle/80 bg-surface-300/60 pt-14 pb-10 text-slate-400 text-xs">
+      <footer className="border-t border-border-subtle/80 bg-surface-100/80 dark:bg-surface-300/60 pt-14 pb-10 text-slate-600 dark:text-slate-400 text-xs transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-border-subtle">
             {/* Brand */}
@@ -671,33 +665,33 @@ export const Landing: React.FC = () => {
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand-600 to-brand-cyan flex items-center justify-center text-white">
                   <Sparkles className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-base font-bold text-white tracking-tight">AIRA</span>
+                <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">AIRA</span>
               </div>
-              <p className="text-slate-400 text-xs max-w-sm leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-400 text-xs max-w-sm leading-relaxed">
                 Autonomous Investment Research Agent. Unifying company fundamentals, multi-agent AI reasoning, and deterministic portfolio telemetry.
               </p>
             </div>
 
             {/* Navigation */}
             <div className="space-y-2.5">
-              <div className="text-xs font-semibold text-white uppercase tracking-wider">Navigation</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">Navigation</div>
               <ul className="space-y-2">
-                <li><a href="#hero" className="hover:text-slate-200 transition-colors">Live Engine</a></li>
-                <li><a href="#market-terminal" className="hover:text-slate-200 transition-colors">Market Terminal</a></li>
-                <li><a href="#data-flow" className="hover:text-slate-200 transition-colors">Data Pipeline</a></li>
-                <li><a href="#multi-agent-network" className="hover:text-slate-200 transition-colors">Agent Network</a></li>
-                <li><a href="#portfolio-allocation" className="hover:text-slate-200 transition-colors">Portfolio</a></li>
-                <li><a href="#architecture" className="hover:text-slate-200 transition-colors">Architecture</a></li>
+                <li><a href="#hero" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Live Engine</a></li>
+                <li><a href="#market-terminal" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Market Terminal</a></li>
+                <li><a href="#data-flow" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Data Pipeline</a></li>
+                <li><a href="#multi-agent-network" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Agent Network</a></li>
+                <li><a href="#portfolio-allocation" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Portfolio</a></li>
+                <li><a href="#architecture" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Architecture</a></li>
               </ul>
             </div>
 
             {/* Access */}
             <div className="space-y-2.5">
-              <div className="text-xs font-semibold text-white uppercase tracking-wider">Access</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">Access</div>
               <ul className="space-y-2">
-                <li><Link to="/login" className="hover:text-slate-200 transition-colors">Sign In</Link></li>
-                <li><Link to="/register" className="hover:text-slate-200 transition-colors">Create Account</Link></li>
-                <li><Link to="/app/dashboard" className="hover:text-slate-200 transition-colors">Investor Dashboard</Link></li>
+                <li><Link to="/login" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Sign In</Link></li>
+                <li><Link to="/register" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Create Account</Link></li>
+                <li><Link to="/app/dashboard" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">Investor Dashboard</Link></li>
               </ul>
             </div>
           </div>

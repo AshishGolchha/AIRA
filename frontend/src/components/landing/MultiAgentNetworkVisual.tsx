@@ -60,30 +60,30 @@ export const MultiAgentNetworkVisual: React.FC = () => {
   const selectedAgent = AGENTS.find((a) => a.id === selectedAgentId) || AGENTS[0];
 
   return (
-    <div className="w-full max-w-5xl mx-auto rounded-3xl bg-surface-200/90 border border-border-strong p-6 sm:p-8 backdrop-blur-xl font-sans text-left relative overflow-hidden shadow-2xl">
+    <div className="w-full max-w-5xl mx-auto rounded-3xl bg-surface-50/95 dark:bg-surface-200/90 border border-border-strong p-6 sm:p-8 backdrop-blur-xl font-sans text-left relative overflow-hidden shadow-xl dark:shadow-2xl transition-colors duration-200">
       {/* Background Grid Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-40 dark:opacity-30 pointer-events-none" />
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-5 mb-6 border-b border-border-subtle relative z-10">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-2">
-            <Cpu className="w-3.5 h-3.5 text-brand-cyan" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-700 dark:text-brand-300 text-xs font-semibold uppercase tracking-wider mb-2">
+            <Cpu className="w-3.5 h-3.5 text-brand-600 dark:text-brand-cyan" />
             <span>Autonomous Multi-Agent Deliberation</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Specialized Agents Debate Evidence Before Synthesizing Consensus
           </h3>
         </div>
 
         {/* State Toggle */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-100/90 border border-border-subtle text-xs font-mono">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-100 dark:bg-surface-100/90 border border-border-subtle text-xs font-mono">
           <button
             onClick={() => setViewState('consensus')}
             className={`px-3 py-1.5 rounded-lg transition-all ${
               viewState === 'consensus'
-                ? 'bg-brand-emerald text-white font-bold shadow-glow-emerald'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-emerald-600 text-white font-bold shadow-sm dark:shadow-glow-emerald'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Consensus View (88%)
@@ -92,8 +92,8 @@ export const MultiAgentNetworkVisual: React.FC = () => {
             onClick={() => setViewState('debate')}
             className={`px-3 py-1.5 rounded-lg transition-all ${
               viewState === 'debate'
-                ? 'bg-brand-500 text-white font-bold shadow-glow-brand'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-brand-600 text-white font-bold shadow-sm dark:shadow-glow-brand'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Active Debate Nodes
@@ -104,7 +104,7 @@ export const MultiAgentNetworkVisual: React.FC = () => {
       {/* Main Interactive Node Graph Viewport */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
         {/* Left Column: Interactive Network Diagram (SVG) */}
-        <div className="lg:col-span-7 p-3 rounded-2xl bg-surface-400/90 border border-border-subtle">
+        <div className="lg:col-span-7 p-3 rounded-2xl bg-surface-100 dark:bg-surface-400/90 border border-border-subtle">
           <svg viewBox="0 0 460 380" className="w-full h-80 select-none">
             <defs>
               <linearGradient id="flowGrad1" x1="0" y1="0" x2="1" y2="0">
@@ -163,8 +163,8 @@ export const MultiAgentNetworkVisual: React.FC = () => {
                     width="150"
                     height="60"
                     rx="12"
-                    fill={isSelected ? '#1e2430' : '#12161f'}
-                    stroke={isSelected ? agent.color : 'rgba(255,255,255,0.12)'}
+                    className={isSelected ? 'fill-white dark:fill-[#1e2430]' : 'fill-slate-50 dark:fill-[#12161f]'}
+                    stroke={isSelected ? agent.color : 'rgba(100,116,139,0.25)'}
                     strokeWidth={isSelected ? '2' : '1'}
                   />
                   {/* Status indicator dot */}
@@ -172,7 +172,7 @@ export const MultiAgentNetworkVisual: React.FC = () => {
                   <text
                     x="48"
                     y={agent.y - 8}
-                    fill="#ffffff"
+                    className="fill-slate-900 dark:fill-white"
                     fontSize="11"
                     fontWeight="bold"
                     fontFamily="sans-serif"
@@ -182,7 +182,7 @@ export const MultiAgentNetworkVisual: React.FC = () => {
                   <text
                     x="36"
                     y={agent.y + 12}
-                    fill="#94a3b8"
+                    className="fill-slate-500 dark:fill-slate-400"
                     fontSize="9"
                     fontFamily="sans-serif"
                   >
@@ -200,10 +200,9 @@ export const MultiAgentNetworkVisual: React.FC = () => {
                 width="110"
                 height="100"
                 rx="16"
-                fill="#161a24"
+                className="fill-white dark:fill-[#161a24]"
                 stroke="#10b981"
                 strokeWidth="2"
-                className="shadow-glow-emerald"
               />
               <circle cx="385" cy="175" r="16" fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" strokeWidth="1.5" />
               <text x="385" y="180" textAnchor="middle" fill="#10b981" fontSize="14" fontWeight="bold">
@@ -213,7 +212,7 @@ export const MultiAgentNetworkVisual: React.FC = () => {
                 x="385"
                 y="210"
                 textAnchor="middle"
-                fill="#ffffff"
+                className="fill-slate-900 dark:fill-white"
                 fontSize="11"
                 fontWeight="bold"
                 fontFamily="sans-serif"
@@ -237,9 +236,9 @@ export const MultiAgentNetworkVisual: React.FC = () => {
 
         {/* Right Column: Selected Node Inspector */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="p-4 rounded-2xl bg-surface-100/90 border border-brand-500/30 text-xs">
+          <div className="p-4 rounded-2xl bg-surface-100 dark:bg-surface-100/90 border border-brand-500/30 text-xs">
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-border-subtle">
-              <span className="font-bold text-white text-sm">{selectedAgent.name}</span>
+              <span className="font-bold text-slate-900 dark:text-white text-sm">{selectedAgent.name}</span>
               <span
                 className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border"
                 style={{
@@ -252,22 +251,22 @@ export const MultiAgentNetworkVisual: React.FC = () => {
               </span>
             </div>
 
-            <div className="text-slate-300 mb-3 leading-relaxed">
+            <div className="text-slate-700 dark:text-slate-300 mb-3 leading-relaxed">
               <strong>Thesis:</strong> "{selectedAgent.thesis}"
             </div>
 
-            <div className="p-2.5 rounded-xl bg-surface-200/70 border border-border-subtle flex items-start gap-2 text-[11px] font-mono text-slate-300">
-              <FileCheck className="w-4 h-4 text-brand-cyan shrink-0 mt-0.5" />
+            <div className="p-2.5 rounded-xl bg-surface-50 dark:bg-surface-200/70 border border-border-subtle flex items-start gap-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">
+              <FileCheck className="w-4 h-4 text-brand-600 dark:text-brand-cyan shrink-0 mt-0.5" />
               <span><strong>Grounding:</strong> {selectedAgent.evidence}</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-brand-emerald/10 border border-brand-emerald/30 text-xs text-brand-emerald">
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-800 dark:text-brand-emerald">
             <div className="flex items-center gap-1.5 font-bold mb-1">
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-brand-emerald" />
               <span>Multi-Agent Safeguard Active</span>
             </div>
-            <p className="text-slate-300 text-xs leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
               Consensus requires cross-validation across all 3 agent disciplines before generating recommendations.
             </p>
           </div>

@@ -234,9 +234,9 @@ export const Research: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left 4 Cols: History */}
         <div className="lg:col-span-4 space-y-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 px-1 flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1 flex items-center justify-between">
             <span>Research Reports ({history.length})</span>
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
+            <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
           </h3>
 
           {isLoadingHistory ? (
@@ -245,7 +245,7 @@ export const Research: React.FC = () => {
               <Skeleton className="h-20 rounded-xl" />
             </div>
           ) : history.length === 0 ? (
-            <div className="p-6 rounded-2xl border border-dashed border-border-strong text-center text-xs text-slate-500 bg-surface-200/30">
+            <div className="p-6 rounded-2xl border border-dashed border-border-strong text-center text-xs text-slate-500 bg-surface-100 dark:bg-surface-200/30">
               No saved research reports. Search a company above to run an analysis.
             </div>
           ) : (
@@ -258,17 +258,17 @@ export const Research: React.FC = () => {
                     onClick={() => loadReport(item.id)}
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer group flex items-start justify-between gap-3 ${
                       isSelected
-                        ? 'bg-brand-600/10 border-brand-500/40 text-white shadow-sm'
-                        : 'bg-surface-200/60 border-border-subtle hover:border-border-strong hover:bg-surface-100/60 text-slate-300'
+                        ? 'bg-brand-500/10 dark:bg-brand-600/10 border-brand-500 text-slate-900 dark:text-white shadow-sm'
+                        : 'bg-surface-50 dark:bg-surface-200/60 border-border-subtle hover:border-border-strong hover:bg-surface-100 dark:hover:bg-surface-100/60 text-slate-700 dark:text-slate-300'
                     }`}
                   >
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-white">{item.symbol}</span>
+                        <span className="font-bold text-xs text-slate-900 dark:text-white">{item.symbol}</span>
                         <span className="text-[10px] text-slate-500 font-mono">{formatDate(item.created_at)}</span>
                       </div>
-                      <div className="text-xs text-slate-300 font-medium truncate">{item.company}</div>
-                      <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                      <div className="text-xs text-slate-700 dark:text-slate-300 font-medium truncate">{item.company}</div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                         {item.summary}
                       </p>
                     </div>
@@ -278,7 +278,7 @@ export const Research: React.FC = () => {
                         e.stopPropagation();
                         handleDeleteReport(item.id);
                       }}
-                      className="p-1 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      className="p-1 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                       title="Delete Report"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -321,25 +321,25 @@ export const Research: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4 pb-4 border-b border-border-subtle">
                     <div>
                       <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">{profile?.name || selectedSymbol}</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{profile?.name || selectedSymbol}</h2>
                         <Badge variant="brand">{profile?.symbol || selectedSymbol}</Badge>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         {profile?.sector ? `${profile.sector} • ${profile.industry}` : 'Public Equity'}
                       </p>
                     </div>
 
                     {quote && (
                       <div className="text-right">
-                        <div className="text-2xl font-bold font-mono text-white">
+                        <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
                           {formatCurrency(quote.current_price)}
                         </div>
                         {quote.day_change_percent !== undefined && (
                           <div
                             className={
                               quote.day_change_percent >= 0
-                                ? 'text-xs text-emerald-400 font-mono font-semibold'
-                                : 'text-xs text-rose-400 font-mono font-semibold'
+                                ? 'text-xs text-emerald-600 dark:text-emerald-400 font-mono font-semibold'
+                                : 'text-xs text-rose-600 dark:text-rose-400 font-mono font-semibold'
                             }
                           >
                             {formatPercent(quote.day_change_percent)}
@@ -351,8 +351,8 @@ export const Research: React.FC = () => {
 
                   {profile?.description && (
                     <div className="mb-6">
-                      <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1.5">Business Overview</h4>
-                      <p className="text-xs text-slate-300 leading-relaxed bg-surface-300/40 p-4 rounded-xl border border-border-subtle">
+                      <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Business Overview</h4>
+                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-surface-50 dark:bg-surface-300/40 p-4 rounded-xl border border-border-subtle">
                         {profile.description}
                       </p>
                     </div>
@@ -361,41 +361,41 @@ export const Research: React.FC = () => {
                   {/* Valuation Multiples */}
                   {metrics && (
                     <div>
-                      <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-3">Key Financial Multiples</h4>
+                      <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mb-3">Key Financial Multiples</h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                        <div className="p-3 rounded-xl bg-surface-100/60 border border-border-subtle text-center">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono">P/E Ratio</span>
-                          <div className="text-sm font-bold text-white font-mono mt-1">
+                        <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-100/60 border border-border-subtle text-center">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">P/E Ratio</span>
+                          <div className="text-sm font-bold text-slate-900 dark:text-white font-mono mt-1">
                             {metrics.pe_ratio ? formatNumber(metrics.pe_ratio, 2) : '—'}
                           </div>
                         </div>
-                        <div className="p-3 rounded-xl bg-surface-100/60 border border-border-subtle text-center">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono">Forward P/E</span>
-                          <div className="text-sm font-bold text-white font-mono mt-1">
+                        <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-100/60 border border-border-subtle text-center">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Forward P/E</span>
+                          <div className="text-sm font-bold text-slate-900 dark:text-white font-mono mt-1">
                             {metrics.forward_pe ? formatNumber(metrics.forward_pe, 2) : '—'}
                           </div>
                         </div>
-                        <div className="p-3 rounded-xl bg-surface-100/60 border border-border-subtle text-center">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono">P/B Ratio</span>
-                          <div className="text-sm font-bold text-white font-mono mt-1">
+                        <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-100/60 border border-border-subtle text-center">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">P/B Ratio</span>
+                          <div className="text-sm font-bold text-slate-900 dark:text-white font-mono mt-1">
                             {metrics.price_to_book ? formatNumber(metrics.price_to_book, 2) : '—'}
                           </div>
                         </div>
-                        <div className="p-3 rounded-xl bg-surface-100/60 border border-border-subtle text-center">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono">Beta</span>
-                          <div className="text-sm font-bold text-white font-mono mt-1">
+                        <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-100/60 border border-border-subtle text-center">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Beta</span>
+                          <div className="text-sm font-bold text-slate-900 dark:text-white font-mono mt-1">
                             {metrics.beta ? formatNumber(metrics.beta, 2) : '—'}
                           </div>
                         </div>
-                        <div className="p-3 rounded-xl bg-surface-100/60 border border-border-subtle text-center">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono">Div Yield</span>
-                          <div className="text-sm font-bold text-white font-mono mt-1">
+                        <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-100/60 border border-border-subtle text-center">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Div Yield</span>
+                          <div className="text-sm font-bold text-slate-900 dark:text-white font-mono mt-1">
                             {metrics.dividend_yield ? formatPercent(metrics.dividend_yield * 100, false) : '—'}
                           </div>
                         </div>
-                        <div className="p-3 rounded-xl bg-surface-100/60 border border-border-subtle text-center">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono">EPS</span>
-                          <div className="text-sm font-bold text-white font-mono mt-1">
+                        <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-100/60 border border-border-subtle text-center">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">EPS</span>
+                          <div className="text-sm font-bold text-slate-900 dark:text-white font-mono mt-1">
                             {metrics.eps ? formatCurrency(metrics.eps) : '—'}
                           </div>
                         </div>
@@ -408,20 +408,20 @@ export const Research: React.FC = () => {
                 {news.length > 0 && (
                   <GlassCard className="p-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <Newspaper className="w-4 h-4 text-brand-400" />
-                      <h3 className="text-sm font-semibold text-white">Recent Verified Headlines</h3>
+                      <Newspaper className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Recent Verified Headlines</h3>
                     </div>
                     <div className="space-y-2.5">
                       {news.map((item, idx) => (
                         <div
                           key={idx}
-                          className="p-3.5 rounded-xl bg-surface-100/60 border border-border-subtle flex items-start justify-between gap-4"
+                          className="p-3.5 rounded-xl bg-surface-50 dark:bg-surface-100/60 border border-border-subtle flex items-start justify-between gap-4"
                         >
                           <div className="space-y-1">
-                            <h4 className="text-xs font-semibold text-white hover:text-brand-300">
+                            <h4 className="text-xs font-semibold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-300">
                               {item.title}
                             </h4>
-                            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                            <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                               <span>{item.publisher || 'Financial Wire'}</span>
                               {item.publish_time && <span>• {item.publish_time}</span>}
                             </div>
@@ -431,7 +431,7 @@ export const Research: React.FC = () => {
                               href={item.link}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-slate-400 hover:text-brand-300 p-1 rounded-lg"
+                              className="text-slate-400 hover:text-brand-600 dark:hover:text-brand-300 p-1 rounded-lg"
                               title="Open Article"
                             >
                               <ExternalLink className="w-4 h-4" />
@@ -461,12 +461,12 @@ export const Research: React.FC = () => {
                   <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-border-subtle">
                     <div>
                       <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-brand-400" />
-                        <h2 className="text-lg font-bold text-white tracking-tight">
+                        <Sparkles className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                           {activeReport.company} ({activeReport.symbol})
                         </h2>
                       </div>
-                      <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 block">
                         Synthesized on {formatDate(activeReport.created_at)}
                       </span>
                     </div>
@@ -475,16 +475,16 @@ export const Research: React.FC = () => {
 
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1.5">Executive Summary</h4>
-                      <p className="text-sm text-slate-200 leading-relaxed bg-surface-300/40 p-4 rounded-xl border border-border-subtle">
+                      <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Executive Summary</h4>
+                      <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed bg-surface-50 dark:bg-surface-300/40 p-4 rounded-xl border border-border-subtle">
                         {activeReport.summary}
                       </p>
                     </div>
 
                     {activeReport.fundamentals && (
                       <div>
-                        <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1.5">Fundamental Analysis</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed bg-surface-300/20 p-3.5 rounded-xl border border-border-subtle">
+                        <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Fundamental Analysis</h4>
+                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-surface-50 dark:bg-surface-300/20 p-3.5 rounded-xl border border-border-subtle">
                           {activeReport.fundamentals}
                         </p>
                       </div>
@@ -492,8 +492,8 @@ export const Research: React.FC = () => {
 
                     {activeReport.valuation && (
                       <div>
-                        <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1.5">Valuation & Multiples</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed bg-surface-300/20 p-3.5 rounded-xl border border-border-subtle">
+                        <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Valuation & Multiples</h4>
+                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-surface-50 dark:bg-surface-300/20 p-3.5 rounded-xl border border-border-subtle">
                           {activeReport.valuation}
                         </p>
                       </div>
@@ -504,14 +504,14 @@ export const Research: React.FC = () => {
                 {/* Risks and Opportunities */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <GlassCard className="border-rose-500/20 p-5">
-                    <div className="flex items-center gap-2 mb-3 text-rose-400">
+                    <div className="flex items-center gap-2 mb-3 text-rose-600 dark:text-rose-400">
                       <ShieldAlert className="w-4 h-4" />
                       <h3 className="text-sm font-semibold">Identified Risk Vectors</h3>
                     </div>
-                    <ul className="space-y-2 text-xs text-slate-300">
+                    <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
                       {activeReport.risks.map((risk, idx) => (
                         <li key={idx} className="flex items-start gap-2 bg-rose-500/5 p-2.5 rounded-lg border border-rose-500/10">
-                          <span className="text-rose-400 font-bold shrink-0">•</span>
+                          <span className="text-rose-600 dark:text-rose-400 font-bold shrink-0">•</span>
                           <span className="leading-relaxed">{risk}</span>
                         </li>
                       ))}
@@ -519,14 +519,14 @@ export const Research: React.FC = () => {
                   </GlassCard>
 
                   <GlassCard className="border-emerald-500/20 p-5">
-                    <div className="flex items-center gap-2 mb-3 text-emerald-400">
+                    <div className="flex items-center gap-2 mb-3 text-emerald-600 dark:text-emerald-400">
                       <TrendingUp className="w-4 h-4" />
                       <h3 className="text-sm font-semibold">Growth Catalysts & Opportunities</h3>
                     </div>
-                    <ul className="space-y-2 text-xs text-slate-300">
+                    <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
                       {activeReport.opportunities.map((opp, idx) => (
                         <li key={idx} className="flex items-start gap-2 bg-emerald-500/5 p-2.5 rounded-lg border border-emerald-500/10">
-                          <span className="text-emerald-400 font-bold shrink-0">•</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">•</span>
                           <span className="leading-relaxed">{opp}</span>
                         </li>
                       ))}
@@ -538,17 +538,17 @@ export const Research: React.FC = () => {
                 {activeReport.sources && activeReport.sources.length > 0 && (
                   <GlassCard className="p-5">
                     <div className="flex items-center gap-2 mb-3">
-                      <Database className="w-4 h-4 text-slate-400" />
-                      <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400">
+                      <Database className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                      <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">
                         Evidence Grounding Sources ({activeReport.sources.length})
                       </h4>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                       {activeReport.sources.map((src, idx) => (
-                        <div key={idx} className="p-2.5 rounded-lg bg-surface-300/60 border border-border-subtle text-[11px] font-mono text-slate-400">
-                          <div className="text-white font-semibold flex items-center justify-between">
+                        <div key={idx} className="p-2.5 rounded-lg bg-surface-50 dark:bg-surface-300/60 border border-border-subtle text-[11px] font-mono text-slate-600 dark:text-slate-400">
+                          <div className="text-slate-900 dark:text-white font-semibold flex items-center justify-between">
                             <span>{src.symbol}</span>
-                            <span className="text-[10px] text-brand-400">{src.provider}</span>
+                            <span className="text-[10px] text-brand-600 dark:text-brand-400">{src.provider}</span>
                           </div>
                           <div className="text-[10px] text-slate-500 truncate mt-0.5">{src.source_type || 'Financial API'}</div>
                         </div>

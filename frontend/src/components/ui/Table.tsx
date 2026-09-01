@@ -7,8 +7,8 @@ export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> 
 
 export const Table: React.FC<TableProps> = ({ children, className, wrapperClassName, ...props }) => {
   return (
-    <div className={cn('w-full overflow-x-auto rounded-xl border border-border-subtle bg-surface-200/50', wrapperClassName)}>
-      <table className={cn('w-full text-left text-sm text-slate-300 border-collapse', className)} {...props}>
+    <div className={cn('w-full overflow-x-auto rounded-xl border border-border-subtle bg-surface-200/80 dark:bg-surface-200/50', wrapperClassName)}>
+      <table className={cn('w-full text-left text-sm text-slate-700 dark:text-slate-300 border-collapse', className)} {...props}>
         {children}
       </table>
     </div>
@@ -17,7 +17,7 @@ export const Table: React.FC<TableProps> = ({ children, className, wrapperClassN
 
 export const TableHeader: React.FC<React.HTMLAttributes<HTMLTableSectionElement>> = ({ children, className, ...props }) => {
   return (
-    <thead className={cn('border-b border-border-subtle bg-surface-300/80 text-xs uppercase font-semibold text-slate-400', className)} {...props}>
+    <thead className={cn('border-b border-border-subtle bg-surface-100/90 dark:bg-surface-300/80 text-xs uppercase font-semibold text-slate-700 dark:text-slate-400', className)} {...props}>
       {children}
     </thead>
   );
@@ -33,7 +33,7 @@ export const TableBody: React.FC<React.HTMLAttributes<HTMLTableSectionElement>> 
 
 export const TableRow: React.FC<React.HTMLAttributes<HTMLTableRowElement>> = ({ children, className, ...props }) => {
   return (
-    <tr className={cn('hover:bg-white/[0.02] transition-colors', className)} {...props}>
+    <tr className={cn('hover:bg-slate-900/[0.02] dark:hover:bg-white/[0.02] transition-colors', className)} {...props}>
       {children}
     </tr>
   );
@@ -41,7 +41,7 @@ export const TableRow: React.FC<React.HTMLAttributes<HTMLTableRowElement>> = ({ 
 
 export const TableHead: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>> = ({ children, className, ...props }) => {
   return (
-    <th className={cn('px-4 py-3.5 font-semibold text-slate-400 tracking-wider text-xs', className)} {...props}>
+    <th className={cn('px-4 py-3.5 font-semibold text-slate-700 dark:text-slate-400 tracking-wider text-xs', className)} {...props}>
       {children}
     </th>
   );

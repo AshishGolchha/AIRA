@@ -56,18 +56,18 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Modal Dialog */}
       <div
         className={cn(
-          'relative w-full bg-surface-200 border border-border-strong rounded-2xl shadow-2xl p-6 z-10 animate-in fade-in zoom-in-95 duration-150',
+          'relative w-full bg-surface-50 dark:bg-surface-200 border border-border-strong rounded-2xl shadow-xl dark:shadow-2xl p-6 z-10 animate-in fade-in zoom-in-95 duration-150',
           maxWidthStyles[maxWidth]
         )}
       >
         <div className="flex items-start justify-between mb-4">
           <div>
-            {title && <h3 className="text-lg font-semibold text-white tracking-tight">{title}</h3>}
-            {description && <p className="text-xs text-slate-400 mt-1">{description}</p>}
+            {title && <h3 className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight">{title}</h3>}
+            {description && <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{description}</p>}
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+            className="text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-900/5 dark:hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
