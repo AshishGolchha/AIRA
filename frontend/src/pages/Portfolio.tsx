@@ -254,8 +254,8 @@ export const Portfolio: React.FC = () => {
       <GlassCard className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <PieChart className="w-4 h-4 text-brand-400" />
-            <h3 className="text-sm font-semibold text-white">Active Positions ({snapshot.holdings_count})</h3>
+            <PieChart className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Active Positions ({snapshot.holdings_count})</h3>
           </div>
         </div>
 
@@ -288,8 +288,8 @@ export const Portfolio: React.FC = () => {
                 return (
                   <TableRow key={h.id || h.symbol}>
                     <TableCell>
-                      <div className="font-bold text-white text-sm">{h.symbol}</div>
-                      <div className="text-xs text-slate-400 truncate max-w-[180px]">
+                      <div className="font-bold text-slate-900 dark:text-white text-sm">{h.symbol}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
                         {h.company_name || 'Equity Security'}
                       </div>
                       {h.notes && <div className="text-[10px] text-slate-500 italic mt-0.5">{h.notes}</div>}
@@ -299,19 +299,19 @@ export const Portfolio: React.FC = () => {
                     <TableCell className="text-right font-mono text-sm">
                       {h.quote_available !== false ? formatCurrency(h.current_price) : 'Quote Unavailable'}
                     </TableCell>
-                    <TableCell className="text-right font-mono font-semibold text-white text-sm">
+                    <TableCell className="text-right font-mono font-semibold text-slate-900 dark:text-white text-sm">
                       {formatCurrency(h.market_value)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm">
-                      <div className={isGain ? 'text-emerald-400 font-medium' : 'text-rose-400 font-medium'}>
+                      <div className={isGain ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-rose-600 dark:text-rose-400 font-medium'}>
                         {formatCurrency(h.unrealized_gain_loss)}
                       </div>
-                      <div className={isGain ? 'text-[11px] text-emerald-400/80' : 'text-[11px] text-rose-400/80'}>
+                      <div className={isGain ? 'text-[11px] text-emerald-600/80 dark:text-emerald-400/80' : 'text-[11px] text-rose-600/80 dark:text-rose-400/80'}>
                         {formatPercent(h.unrealized_gain_loss_percent)}
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm">
-                      <span className="px-2 py-0.5 rounded-md bg-surface-100 border border-border-subtle text-xs">
+                      <span className="px-2 py-0.5 rounded-md bg-surface-100 dark:bg-surface-100 border border-border-subtle text-xs text-slate-700 dark:text-slate-300">
                         {h.weight_percent !== undefined ? `${h.weight_percent.toFixed(1)}%` : '—'}
                       </span>
                     </TableCell>
@@ -319,14 +319,14 @@ export const Portfolio: React.FC = () => {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(h)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                           title="Edit Position"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleOpenDelete(h)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                           title="Delete Position"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -344,7 +344,7 @@ export const Portfolio: React.FC = () => {
       {/* Add Holding Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Add Portfolio Position">
         <form onSubmit={handleCreateHolding} className="space-y-4">
-          {formError && <p className="text-xs text-rose-400">{formError}</p>}
+          {formError && <p className="text-xs text-rose-600 dark:text-rose-400">{formError}</p>}
           <Input
             label="Ticker Symbol"
             placeholder="e.g. NVDA, AAPL, MSFT"
@@ -398,7 +398,7 @@ export const Portfolio: React.FC = () => {
       {/* Edit Holding Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title={`Edit Position: ${symbol}`}>
         <form onSubmit={handleUpdateHolding} className="space-y-4">
-          {formError && <p className="text-xs text-rose-400">{formError}</p>}
+          {formError && <p className="text-xs text-rose-600 dark:text-rose-400">{formError}</p>}
           <div className="grid grid-cols-2 gap-3">
             <Input
               label="Shares Quantity"
@@ -436,8 +436,8 @@ export const Portfolio: React.FC = () => {
       {/* Delete Confirmation Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Delete Position">
         <div className="space-y-4">
-          <p className="text-xs text-slate-300">
-            Are you sure you want to remove <strong className="text-white">{selectedHolding?.symbol}</strong> from your portfolio? This action cannot be undone.
+          <p className="text-xs text-slate-700 dark:text-slate-300">
+            Are you sure you want to remove <strong className="text-slate-900 dark:text-white">{selectedHolding?.symbol}</strong> from your portfolio? This action cannot be undone.
           </p>
           <div className="flex justify-end gap-2.5 pt-3 border-t border-border-subtle">
             <Button variant="secondary" size="sm" onClick={() => setIsDeleteModalOpen(false)}>

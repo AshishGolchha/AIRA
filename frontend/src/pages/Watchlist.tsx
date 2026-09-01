@@ -219,20 +219,20 @@ export const Watchlist: React.FC = () => {
                 return (
                   <TableRow key={item.id}>
                     <TableCell>
-                      <div className="font-bold text-white text-sm">{item.symbol}</div>
-                      <div className="text-xs text-slate-400 truncate max-w-[180px]">
+                      <div className="font-bold text-slate-900 dark:text-white text-sm">{item.symbol}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
                         {item.company_name || 'Equity Security'}
                       </div>
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={item.priority} size="sm" />
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm font-semibold text-white">
+                    <TableCell className="text-right font-mono text-sm font-semibold text-slate-900 dark:text-white">
                       {item.quote_available !== false ? formatCurrency(item.current_price) : 'Quote Unavailable'}
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm">
                       {item.price_change_24h_percent !== undefined && item.price_change_24h_percent !== null ? (
-                        <span className={isGain ? 'text-emerald-400 font-medium' : 'text-rose-400 font-medium'}>
+                        <span className={isGain ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-rose-600 dark:text-rose-400 font-medium'}>
                           {formatPercent(item.price_change_24h_percent)}
                         </span>
                       ) : (
@@ -240,23 +240,23 @@ export const Watchlist: React.FC = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="text-xs text-slate-300 line-clamp-1 max-w-xs">{item.notes || '—'}</span>
+                      <span className="text-xs text-slate-700 dark:text-slate-300 line-clamp-1 max-w-xs">{item.notes || '—'}</span>
                     </TableCell>
-                    <TableCell className="text-right font-mono text-xs text-slate-400">
+                    <TableCell className="text-right font-mono text-xs text-slate-500 dark:text-slate-400">
                       {formatDateOnly(item.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                           title="Edit Item"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleOpenDelete(item)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                           title="Remove from Watchlist"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -274,7 +274,7 @@ export const Watchlist: React.FC = () => {
       {/* Add Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Add to Watchlist">
         <form onSubmit={handleCreateItem} className="space-y-4">
-          {formError && <p className="text-xs text-rose-400">{formError}</p>}
+          {formError && <p className="text-xs text-rose-600 dark:text-rose-400">{formError}</p>}
           <Input
             label="Ticker Symbol"
             placeholder="e.g. AMD, TSLA, PLTR"
@@ -315,7 +315,7 @@ export const Watchlist: React.FC = () => {
       {/* Edit Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title={`Edit Watchlist: ${symbol}`}>
         <form onSubmit={handleUpdateItem} className="space-y-4">
-          {formError && <p className="text-xs text-rose-400">{formError}</p>}
+          {formError && <p className="text-xs text-rose-600 dark:text-rose-400">{formError}</p>}
           <Select
             label="Monitoring Priority"
             value={priority}
@@ -345,8 +345,8 @@ export const Watchlist: React.FC = () => {
       {/* Delete Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Remove from Watchlist">
         <div className="space-y-4">
-          <p className="text-xs text-slate-300">
-            Remove <strong className="text-white">{selectedItem?.symbol}</strong> from your watchlist?
+          <p className="text-xs text-slate-700 dark:text-slate-300">
+            Remove <strong className="text-slate-900 dark:text-white">{selectedItem?.symbol}</strong> from your watchlist?
           </p>
           <div className="flex justify-end gap-2.5 pt-3 border-t border-border-subtle">
             <Button variant="secondary" size="sm" onClick={() => setIsDeleteModalOpen(false)}>

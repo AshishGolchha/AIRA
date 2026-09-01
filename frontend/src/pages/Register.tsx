@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { GlassCard } from '../components/ui/GlassCard';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -56,17 +57,27 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background transition-colors duration-200">
+      {/* Top Bar Theme Toggle & Home link */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 flex items-center gap-3">
+        <ThemeToggle />
+      </div>
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
+        <Link to="/" className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1.5">
+          ← Back to Overview
+        </Link>
+      </div>
+
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-600/10 dark:bg-brand-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-600/10 dark:bg-cyan-600/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 text-white font-bold text-2xl shadow-glow-brand mb-4">
             A
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Create AIRA Account</h1>
-          <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Create AIRA Account</h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-xs mx-auto">
             Get personalized investment insights, real-time alerts, and AI-powered research.
           </p>
         </div>
@@ -74,8 +85,8 @@ export const Register: React.FC = () => {
         <GlassCard className="p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                <Shield className="w-4 h-4 shrink-0 text-rose-400" />
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs flex items-center gap-2">
+                <Shield className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
                 <span>{error}</span>
               </div>
             )}
@@ -111,7 +122,7 @@ export const Register: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="pointer-events-auto text-slate-400 hover:text-slate-200"
+                  className="pointer-events-auto text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -132,9 +143,9 @@ export const Register: React.FC = () => {
           </form>
 
           <div className="mt-6 pt-6 border-t border-border-subtle text-center">
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Already have an account?{' '}
-              <Link to="/login" className="text-brand-400 hover:text-brand-300 font-medium">
+              <Link to="/login" className="text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 font-medium">
                 Sign In
               </Link>
             </p>

@@ -72,30 +72,30 @@ export const PortfolioAllocationVisual: React.FC = () => {
   });
 
   return (
-    <div className="w-full max-w-5xl mx-auto rounded-3xl bg-surface-200/90 border border-border-strong p-6 sm:p-8 backdrop-blur-xl font-sans text-left relative overflow-hidden shadow-2xl">
+    <div className="w-full max-w-5xl mx-auto rounded-3xl bg-surface-50/95 dark:bg-surface-200/90 border border-border-strong p-6 sm:p-8 backdrop-blur-xl font-sans text-left relative overflow-hidden shadow-xl dark:shadow-2xl transition-colors duration-200">
       {/* Background Circuit Grid */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-25 pointer-events-none" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-40 dark:opacity-25 pointer-events-none" />
 
       {/* Header with Mode Toggles */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-5 mb-6 border-b border-border-subtle relative z-10">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-2">
-            <PieIcon className="w-3.5 h-3.5 text-brand-cyan" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-700 dark:text-brand-300 text-xs font-semibold uppercase tracking-wider mb-2">
+            <PieIcon className="w-3.5 h-3.5 text-brand-600 dark:text-brand-cyan" />
             <span>Whole-Portfolio Contextualization</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Research Is Grounded in Your Exact Portfolio Weights
           </h3>
         </div>
 
         {/* View Mode Switcher */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-100/90 border border-border-subtle text-xs font-mono">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-100 dark:bg-surface-100/90 border border-border-subtle text-xs font-mono">
           <button
             onClick={() => setActiveTab('donut')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === 'donut'
-                ? 'bg-brand-500 text-white font-bold shadow-glow-brand'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-brand-600 text-white font-bold shadow-sm dark:shadow-glow-brand'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <PieIcon className="w-3.5 h-3.5" />
@@ -106,8 +106,8 @@ export const PortfolioAllocationVisual: React.FC = () => {
             onClick={() => setActiveTab('scatter')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === 'scatter'
-                ? 'bg-brand-500 text-white font-bold shadow-glow-brand'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-brand-600 text-white font-bold shadow-sm dark:shadow-glow-brand'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <ScatterIcon className="w-3.5 h-3.5" />
@@ -118,8 +118,8 @@ export const PortfolioAllocationVisual: React.FC = () => {
             onClick={() => setActiveTab('drawdown')}
             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === 'drawdown'
-                ? 'bg-brand-500 text-white font-bold shadow-glow-brand'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-brand-600 text-white font-bold shadow-sm dark:shadow-glow-brand'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <ShieldAlert className="w-3.5 h-3.5" />
@@ -154,12 +154,12 @@ export const PortfolioAllocationVisual: React.FC = () => {
 
                 {/* Center Donut Hole Text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-                  <span className="text-[11px] font-mono uppercase text-slate-400">Total Portfolio</span>
-                  <span className="text-xl font-bold text-white font-mono mt-0.5">$125,000</span>
-                  <span className="text-[10px] text-brand-emerald font-mono font-semibold">+25.0% P&L</span>
+                  <span className="text-[11px] font-mono uppercase text-slate-500 dark:text-slate-400">Total Portfolio</span>
+                  <span className="text-xl font-bold text-slate-900 dark:text-white font-mono mt-0.5">$125,000</span>
+                  <span className="text-[10px] text-emerald-600 dark:text-brand-emerald font-mono font-semibold">+25.0% P&L</span>
                 </div>
               </div>
-              <span className="text-[11px] font-mono text-slate-400 mt-2">Hover sector to inspect holdings</span>
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-2">Hover sector to inspect holdings</span>
             </div>
 
             {/* Sector Exposure List */}
@@ -172,23 +172,23 @@ export const PortfolioAllocationVisual: React.FC = () => {
                     onMouseEnter={() => setHoveredSector(s)}
                     className={`p-3 rounded-2xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-surface-100/90 border-brand-500/50 shadow-glow-card'
-                        : 'bg-surface-100/40 border-border-subtle hover:bg-surface-100/70'
+                        ? 'bg-surface-50 dark:bg-surface-100/90 border-brand-500/50 shadow-sm dark:shadow-glow-card'
+                        : 'bg-surface-100/60 dark:bg-surface-100/40 border-border-subtle hover:bg-surface-100'
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-                        <span className="font-semibold text-white">{s.name}</span>
+                        <span className="font-semibold text-slate-900 dark:text-white">{s.name}</span>
                       </div>
                       <div className="flex items-center gap-3 font-mono">
-                        <span className="text-slate-400">{s.value}</span>
-                        <strong className="text-white font-bold">{s.pct}%</strong>
+                        <span className="text-slate-500 dark:text-slate-400">{s.value}</span>
+                        <strong className="text-slate-900 dark:text-white font-bold">{s.pct}%</strong>
                       </div>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="w-full h-1.5 rounded-full bg-surface-300 overflow-hidden">
+                    <div className="w-full h-1.5 rounded-full bg-surface-200 dark:bg-surface-300 overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${s.pct}%`, backgroundColor: s.color }}
@@ -197,10 +197,10 @@ export const PortfolioAllocationVisual: React.FC = () => {
 
                     {/* Holdings chips */}
                     {isSelected && (
-                      <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border-subtle/60 text-[10px] font-mono text-slate-300">
-                        <span className="text-slate-400">Allocated Assets:</span>
+                      <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border-subtle/60 text-[10px] font-mono text-slate-700 dark:text-slate-300">
+                        <span className="text-slate-500 dark:text-slate-400">Allocated Assets:</span>
                         {s.holdings.map((h, i) => (
-                          <span key={i} className="px-1.5 py-0.5 rounded bg-surface-200 border border-border-subtle text-brand-cyan">
+                          <span key={i} className="px-1.5 py-0.5 rounded bg-surface-100 dark:bg-surface-200 border border-border-subtle text-brand-700 dark:text-brand-cyan">
                             ${h}
                           </span>
                         ))}
@@ -218,8 +218,8 @@ export const PortfolioAllocationVisual: React.FC = () => {
         {/* ========================================================================= */}
         {activeTab === 'scatter' && (
           <div>
-            <div className="p-4 rounded-2xl bg-surface-400/90 border border-border-subtle relative overflow-hidden">
-              <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
+            <div className="p-4 rounded-2xl bg-surface-100 dark:bg-surface-400/90 border border-border-subtle relative overflow-hidden">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400 mb-2">
                 <span>Y-Axis: Projected Annual Return (%)</span>
                 <span>X-Axis: Annualized Volatility (%)</span>
               </div>
@@ -227,17 +227,17 @@ export const PortfolioAllocationVisual: React.FC = () => {
               {/* Scatter SVG Grid */}
               <svg viewBox="0 0 500 240" className="w-full h-56 select-none">
                 {/* Benchmark SPY baseline area */}
-                <line x1="50" y1="30" x2="450" y2="210" stroke="rgba(255,255,255,0.1)" strokeDasharray="3 3" />
-                <text x="380" y="195" fill="#94a3b8" fontSize="9" fontFamily="monospace">
+                <line x1="50" y1="30" x2="450" y2="210" stroke="currentColor" className="text-slate-300 dark:text-slate-700" strokeDasharray="3 3" />
+                <text x="380" y="195" fill="currentColor" className="text-slate-500 dark:text-slate-400" fontSize="9" fontFamily="monospace">
                   Capital Market Line
                 </text>
 
                 {/* Gridlines */}
                 {[50, 110, 170].map((y, i) => (
-                  <line key={i} x1="40" y1={y} x2="480" y2={y} stroke="rgba(255,255,255,0.05)" />
+                  <line key={i} x1="40" y1={y} x2="480" y2={y} stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
                 ))}
                 {[120, 220, 320, 420].map((x, i) => (
-                  <line key={i} x1={x} y1="20" x2={x} y2="210" stroke="rgba(255,255,255,0.05)" />
+                  <line key={i} x1={x} y1="20" x2={x} y2="210" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
                 ))}
 
                 {/* Scatter Dots */}
@@ -264,16 +264,14 @@ export const PortfolioAllocationVisual: React.FC = () => {
                         cy={cy}
                         r={asset.isBenchmark ? 6 : 8}
                         fill={asset.color}
-                        stroke="#0a0d13"
+                        stroke="#ffffff"
                         strokeWidth="2"
                       />
                       <text
                         x={cx + 10}
                         y={cy + 4}
-                        fill="#ffffff"
+                        className="fill-slate-900 dark:fill-white font-bold font-mono"
                         fontSize="10"
-                        fontWeight="bold"
-                        fontFamily="monospace"
                       >
                         {asset.symbol}
                       </text>
@@ -285,15 +283,15 @@ export const PortfolioAllocationVisual: React.FC = () => {
 
             {/* Asset Scatter Callout */}
             {hoveredAsset && (
-              <div className="mt-4 p-3 rounded-xl bg-surface-100 border border-brand-500/30 flex items-center justify-between text-xs">
+              <div className="mt-4 p-3 rounded-xl bg-surface-100 dark:bg-surface-100 border border-brand-500/30 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: hoveredAsset.color }} />
-                  <strong className="text-white">{hoveredAsset.name} (${hoveredAsset.symbol})</strong>
+                  <strong className="text-slate-900 dark:text-white">{hoveredAsset.name} (${hoveredAsset.symbol})</strong>
                 </div>
                 <div className="flex items-center gap-4 font-mono text-[11px]">
-                  <span>Volatility: <strong className="text-white">{hoveredAsset.volatilityPct}%</strong></span>
-                  <span>Projected Return: <strong className="text-brand-emerald">{hoveredAsset.returnPct}%</strong></span>
-                  <span>Portfolio Weight: <strong className="text-brand-cyan">{hoveredAsset.weightPct}%</strong></span>
+                  <span className="text-slate-600 dark:text-slate-400">Volatility: <strong className="text-slate-900 dark:text-white">{hoveredAsset.volatilityPct}%</strong></span>
+                  <span className="text-slate-600 dark:text-slate-400">Projected Return: <strong className="text-emerald-600 dark:text-brand-emerald">{hoveredAsset.returnPct}%</strong></span>
+                  <span className="text-slate-600 dark:text-slate-400">Portfolio Weight: <strong className="text-brand-600 dark:text-brand-cyan">{hoveredAsset.weightPct}%</strong></span>
                 </div>
               </div>
             )}
@@ -305,10 +303,10 @@ export const PortfolioAllocationVisual: React.FC = () => {
         {/* ========================================================================= */}
         {activeTab === 'drawdown' && (
           <div>
-            <div className="p-4 rounded-2xl bg-surface-400/90 border border-border-subtle relative overflow-hidden">
-              <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
+            <div className="p-4 rounded-2xl bg-surface-100 dark:bg-surface-400/90 border border-border-subtle relative overflow-hidden">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400 mb-2">
                 <span>Continuous Equity Curve Telemetry</span>
-                <span className="text-amber-400 font-semibold flex items-center gap-1">
+                <span className="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
                   <ShieldAlert className="w-3.5 h-3.5" />
                   Drawdown Threshold: 5.0%
                 </span>
@@ -324,9 +322,9 @@ export const PortfolioAllocationVisual: React.FC = () => {
                 </defs>
 
                 {/* Gridlines */}
-                <line x1="30" y1="30" x2="470" y2="30" stroke="rgba(255,255,255,0.05)" />
-                <line x1="30" y1="80" x2="470" y2="80" stroke="rgba(255,255,255,0.05)" />
-                <line x1="30" y1="120" x2="470" y2="120" stroke="rgba(255,255,255,0.05)" />
+                <line x1="30" y1="30" x2="470" y2="30" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
+                <line x1="30" y1="80" x2="470" y2="80" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
+                <line x1="30" y1="120" x2="470" y2="120" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
 
                 {/* Normal Curve */}
                 <path
@@ -347,12 +345,12 @@ export const PortfolioAllocationVisual: React.FC = () => {
               </svg>
             </div>
 
-            <div className="mt-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-200 font-sans">
+            <div className="mt-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200 font-sans">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>Deterministic Alert Triggered: Signed HMAC Webhook dispatched in 42ms with 0 LLM hallucination.</span>
               </div>
-              <span className="font-mono text-[11px] text-amber-300 font-bold">Rule ID #941</span>
+              <span className="font-mono text-[11px] text-amber-700 dark:text-amber-300 font-bold">Rule ID #941</span>
             </div>
           </div>
         )}

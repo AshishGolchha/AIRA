@@ -62,20 +62,20 @@ export const MultiAgentDebateVisual: React.FC = () => {
   const [activeRoundIdx, setActiveRoundIdx] = useState<number>(3); // default to consensus
 
   return (
-    <div className="w-full max-w-5xl mx-auto rounded-3xl bg-surface-200/90 border border-border-strong p-6 sm:p-8 backdrop-blur-xl font-sans text-left">
+    <div className="w-full max-w-5xl mx-auto rounded-3xl bg-surface-50/95 dark:bg-surface-200/90 border border-border-strong p-6 sm:p-8 backdrop-blur-xl font-sans text-left shadow-xl dark:shadow-2xl transition-colors duration-200">
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-b border-border-subtle">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-2">
-            <Cpu className="w-3.5 h-3.5 text-brand-cyan" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-700 dark:text-brand-300 text-xs font-semibold uppercase tracking-wider mb-2">
+            <Cpu className="w-3.5 h-3.5 text-brand-600 dark:text-brand-cyan" />
             <span>Autonomous Multi-Agent Deliberation</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             How AIRA Agents Debate & Reach High-Conviction Consensus
           </h3>
         </div>
 
         {/* Round Switchers */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-100/80 border border-border-subtle text-xs font-mono">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-100 dark:bg-surface-100/80 border border-border-subtle text-xs font-mono">
           {DEBATE_SCENARIO.map((_, idx) => {
             const isActive = idx === activeRoundIdx;
             return (
@@ -84,8 +84,8 @@ export const MultiAgentDebateVisual: React.FC = () => {
                 onClick={() => setActiveRoundIdx(idx)}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   isActive
-                    ? 'bg-brand-500 text-white font-bold shadow-glow-brand'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-brand-600 text-white font-bold shadow-sm dark:shadow-glow-brand'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
                 Agent {idx + 1}
@@ -106,8 +106,8 @@ export const MultiAgentDebateVisual: React.FC = () => {
               onClick={() => setActiveRoundIdx(idx)}
               className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-surface-100/90 border-brand-500/50 shadow-glow-card'
-                  : 'bg-surface-200/40 border-border-subtle opacity-70 hover:opacity-100 hover:bg-surface-100/50'
+                  ? 'bg-surface-100 dark:bg-surface-100/90 border-brand-500/50 shadow-sm dark:shadow-glow-card'
+                  : 'bg-surface-50 dark:bg-surface-200/40 border-border-subtle opacity-80 hover:opacity-100 hover:bg-surface-100/50'
               }`}
             >
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -116,8 +116,8 @@ export const MultiAgentDebateVisual: React.FC = () => {
                     <Icon className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-white block">{round.speaker}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">{round.role}</span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white block">{round.speaker}</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{round.role}</span>
                   </div>
                 </div>
                 <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border ${round.badgeColor}`}>
@@ -125,12 +125,12 @@ export const MultiAgentDebateVisual: React.FC = () => {
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed mb-3">
+              <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed mb-3">
                 "{round.statement}"
               </p>
 
-              <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400 bg-surface-300/60 p-2 rounded-lg border border-border-subtle">
-                <FileCheck className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
+              <div className="flex items-center gap-2 text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-surface-50 dark:bg-surface-300/60 p-2 rounded-lg border border-border-subtle">
+                <FileCheck className="w-3.5 h-3.5 text-brand-600 dark:text-brand-cyan shrink-0" />
                 <span>{round.citation}</span>
               </div>
             </div>
@@ -139,13 +139,13 @@ export const MultiAgentDebateVisual: React.FC = () => {
       </div>
 
       {/* Bottom Summary Bar */}
-      <div className="p-4 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex flex-wrap items-center justify-between gap-3 text-xs text-brand-300">
+      <div className="p-4 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex flex-wrap items-center justify-between gap-3 text-xs text-brand-700 dark:text-brand-300">
         <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-brand-cyan" />
-          <span className="font-semibold text-white">Multi-Agent Safeguard:</span>
+          <Shield className="w-4 h-4 text-brand-600 dark:text-brand-cyan" />
+          <span className="font-semibold text-slate-900 dark:text-white">Multi-Agent Safeguard:</span>
           <span>No single LLM prompt produces unverified conclusions.</span>
         </div>
-        <span className="font-mono text-[11px] text-brand-cyan">Evidence-Grounded Consensus</span>
+        <span className="font-mono text-[11px] text-brand-600 dark:text-brand-cyan font-semibold">Evidence-Grounded Consensus</span>
       </div>
     </div>
   );

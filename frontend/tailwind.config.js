@@ -5,13 +5,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#090B10',
+        background: 'rgb(var(--bg-app) / <alpha-value>)',
         surface: {
-          50: '#1e2430',
-          100: '#161a24',
-          200: '#12161f',
-          300: '#0e1118',
-          400: '#0a0d13',
+          50: 'rgb(var(--surface-50) / <alpha-value>)',
+          100: 'rgb(var(--surface-100) / <alpha-value>)',
+          200: 'rgb(var(--surface-200) / <alpha-value>)',
+          300: 'rgb(var(--surface-300) / <alpha-value>)',
+          400: 'rgb(var(--surface-400) / <alpha-value>)',
         },
         brand: {
           50: '#eef2ff',
@@ -28,8 +28,8 @@ export default {
           emerald: '#10b981',
         },
         border: {
-          subtle: 'rgba(255, 255, 255, 0.08)',
-          strong: 'rgba(255, 255, 255, 0.16)',
+          subtle: 'var(--border-subtle)',
+          strong: 'var(--border-strong)',
         },
       },
       fontFamily: {

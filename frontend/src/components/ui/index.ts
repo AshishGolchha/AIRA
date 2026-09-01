@@ -14,3 +14,4 @@ export * from './Skeleton';
 export * from './ErrorState';
 export * from './PageHeader';
 export * from './MetricCard';
+export * from './ThemeToggle';
