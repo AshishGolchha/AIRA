@@ -295,7 +295,10 @@ cp .env.example .env
 Edit `.env` with your settings:
 ```ini
 FLASK_ENV=development
-DATABASE_URL=postgresql+psycopg2://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres
+# Supabase Supavisor Session Pooler (IPv4 compatible, port 5432):
+DATABASE_URL=postgresql+psycopg2://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[YOUR-REGION].pooler.supabase.com:5432/postgres?sslmode=require
+# Or Direct connection (IPv6 networks only):
+# DATABASE_URL=postgresql+psycopg2://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres
 JWT_SECRET_KEY=your-secure-jwt-secret-key
 JWT_ACCESS_TOKEN_EXPIRES_SECONDS=86400
 

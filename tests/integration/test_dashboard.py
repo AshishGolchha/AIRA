@@ -5,6 +5,8 @@ from app.models.portfolio_intelligence import PortfolioIntelligenceRecord
 from app.models.research import ResearchRecord
 from app.services.financial.service import FinancialDataService
 from app.services.portfolio_intelligence_service import PortfolioIntelligenceService
+from app.services.portfolio_service import PortfolioService
+from app.services.watchlist_service import WatchlistService
 from tests.unit.test_financial_service import MockFinancialProvider
 
 
@@ -77,8 +79,15 @@ def test_dashboard_with_latest_portfolio_intelligence(app, client):
             "recommended_research": ["Deep dive on NVDA"],
         }
 
+    fin_service = FinancialDataService(provider=MockFinancialProvider())
+    port_service = PortfolioService(financial_service=fin_service)
+    watch_service = WatchlistService()
+
     app.extensions["portfolio_intelligence_service"] = PortfolioIntelligenceService(
-        financial_service=FinancialDataService(provider=MockFinancialProvider()),
+        portfolio_service=port_service,
+        watchlist_service=watch_service,
+        financial_service=fin_service,
+        memory_service=app.extensions.get("memory_service"),
         crew_runner=mock_runner,
     )
 

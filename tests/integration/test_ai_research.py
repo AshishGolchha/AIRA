@@ -172,6 +172,7 @@ def test_ai_research_malformed_llm_output_fails_safely(app, client):
 
     app.extensions["research_service"] = ResearchService(
         financial_service=FinancialDataService(provider=MockFinancialProvider()),
+        memory_service=app.extensions.get("memory_service"),
         crew_runner=broken_runner,
     )
 
