@@ -223,6 +223,7 @@ def test_failure_safety_persists_zero_records_on_error(app, client):
 
     app.extensions["research_service"] = ResearchService(
         financial_service=FinancialDataService(provider=MockFinancialProvider()),
+        memory_service=app.extensions.get("memory_service"),
         crew_runner=broken_runner,
     )
 

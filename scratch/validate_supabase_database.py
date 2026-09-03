@@ -53,12 +53,16 @@ def validate_supabase_database():
 
     for table_name, display_name in tables:
         try:
+            print(f"Checking table '{display_name}'... ", end="", flush=True)
             res = sb.table(table_name).select("*").limit(1).execute()
             results[display_name] = "PASS"
+            print("PASS", flush=True)
         except Exception as e:
             results[display_name] = f"FAIL ({e})"
+            print(f"FAIL: {e}", flush=True)
 
     # 3. Vector Extension & RPC Checks
+    print("Checking pgvector extension and RPC... ", end="", flush=True)
     from app.services.embedding_service import EmbeddingService
     embed_service = EmbeddingService()
 
@@ -73,11 +77,14 @@ def validate_supabase_database():
         }).execute()
         results["pgvector extension"] = "PASS"
         results["match_user_memories RPC"] = "PASS"
+        print("PASS", flush=True)
     except Exception as e:
         results["pgvector extension"] = f"FAIL ({e})"
         results["match_user_memories RPC"] = f"FAIL ({e})"
+        print(f"FAIL: {e}", flush=True)
 
     # 4. Relational CRUD Round-Trip Test
+    print("Checking Relational CRUD round-trip... ", end="", flush=True)
     test_email = f"validation_{uuid.uuid4().hex[:8]}@aira.internal"
     created_user_id = None
     try:
@@ -105,10 +112,13 @@ def validate_supabase_database():
             sb.table("users").delete().eq("id", created_user_id).execute()
             created_user_id = None
             results["Relational CRUD"] = "PASS"
+            print("PASS", flush=True)
         else:
             results["Relational CRUD"] = "FAIL (Insert returned empty)"
+            print("FAIL (Insert returned empty)", flush=True)
     except Exception as e:
         results["Relational CRUD"] = f"FAIL ({e})"
+        print(f"FAIL: {e}", flush=True)
         if created_user_id:
             try:
                 sb.table("users").delete().eq("id", created_user_id).execute()
@@ -116,6 +126,7 @@ def validate_supabase_database():
                 pass
 
     # 5. Vector Memory Round-Trip Test (Embed -> Insert -> Semantic Search -> Delete)
+    print("Checking Vector Memory round-trip... ", end="", flush=True)
     test_uid = 888888
     created_mem_id = None
     try:
@@ -143,20 +154,23 @@ def validate_supabase_database():
             mem_service.delete_memory(test_uid, created_mem_id)
             created_mem_id = None
             results["Vector Memory Search"] = "PASS"
+            print("PASS", flush=True)
         else:
             results["Vector Memory Search"] = "FAIL (Memory creation failed)"
+            print("FAIL (Memory creation failed)", flush=True)
     except Exception as e:
         results["Vector Memory Search"] = f"FAIL ({e})"
+        print(f"FAIL: {e}", flush=True)
         if created_mem_id:
             try:
                 sb.table("user_memories").delete().eq("id", created_mem_id).execute()
             except Exception:
                 pass
 
-    print()
+    print(flush=True)
     for k, v in results.items():
-        print(f"{k:<35} {v}")
-    print("=" * 60)
+        print(f"{k:<35} {v}", flush=True)
+    print("=" * 60, flush=True)
     return results
 
 if __name__ == "__main__":

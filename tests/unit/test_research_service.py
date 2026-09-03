@@ -88,6 +88,9 @@ def test_research_service_rejects_malformed_llm_output_without_fake_fallbacks():
     """Verify that unparseable or broken LLM output raises RuntimeError rather than returning fake fallback claims."""
     provider = MockFinancialProvider()
     fin_service = FinancialDataService(provider=provider)
+    mock_supabase = MockSupabaseClient()
+    mock_embed = MockEmbeddingService()
+    mem_service = MemoryService(supabase_client=mock_supabase, embedding_service=mock_embed)
 
     # Runner that returns garbage non-JSON string
     def bad_crew_runner(**kwargs):
@@ -95,6 +98,7 @@ def test_research_service_rejects_malformed_llm_output_without_fake_fallbacks():
 
     service = ResearchService(
         financial_service=fin_service,
+        memory_service=mem_service,
         crew_runner=bad_crew_runner,
     )
 

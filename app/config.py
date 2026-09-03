@@ -41,6 +41,10 @@ build_mysql_uri = build_database_uri
 class BaseConfig:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
 
     # Supabase (Persistent User Memory & Relational Database)
     SUPABASE_URL = os.getenv("SUPABASE_URL", "")
@@ -95,6 +99,15 @@ class DevelopmentConfig(BaseConfig):
 
     def __init__(self):
         self.SQLALCHEMY_DATABASE_URI = build_database_uri()
+        if not self.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
+            self.SQLALCHEMY_ENGINE_OPTIONS = {
+                "pool_pre_ping": True,
+                "pool_recycle": 300,
+                "connect_args": {
+                    "connect_timeout": 10,
+                    "sslmode": "require",
+                },
+            }
 
 
 class ProductionConfig(BaseConfig):
@@ -102,6 +115,15 @@ class ProductionConfig(BaseConfig):
 
     def __init__(self):
         self.SQLALCHEMY_DATABASE_URI = build_database_uri()
+        if not self.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
+            self.SQLALCHEMY_ENGINE_OPTIONS = {
+                "pool_pre_ping": True,
+                "pool_recycle": 300,
+                "connect_args": {
+                    "connect_timeout": 10,
+                    "sslmode": "require",
+                },
+            }
         validate_production_config(self)
 
 
@@ -110,6 +132,7 @@ class TestingConfig(BaseConfig):
     DEBUG = False
     RATELIMIT_ENABLED = False
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 
 
 def validate_production_config(config: BaseConfig) -> list[str]:
