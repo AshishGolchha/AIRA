@@ -64,9 +64,17 @@ export const Notifications: React.FC = () => {
         api.notifications.listEndpoints(),
         api.notifications.listDeliveries({ limit: 20 }),
       ]);
-      setPreferences(prefRes.preferences);
-      setEndpoints(epRes.endpoints);
-      setDeliveries(delRes.deliveries);
+      const loadedPrefs = prefRes.preferences
+        ? {
+            ...prefRes.preferences,
+            alert_types: Array.isArray(prefRes.preferences.alert_types)
+              ? prefRes.preferences.alert_types
+              : ['price_move', 'portfolio_gain_loss', 'watchlist_move', 'data_quality'],
+          }
+        : null;
+      setPreferences(loadedPrefs);
+      setEndpoints(epRes.endpoints || []);
+      setDeliveries(delRes.deliveries || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load notification settings.');
     } finally {
@@ -89,9 +97,14 @@ export const Notifications: React.FC = () => {
         email_enabled: preferences.email_enabled,
         webhook_enabled: preferences.webhook_enabled,
         minimum_severity: preferences.minimum_severity,
-        alert_types: preferences.alert_types,
+        alert_types: preferences.alert_types || ['price_move', 'portfolio_gain_loss', 'watchlist_move', 'data_quality'],
       });
-      setPreferences(res.preferences);
+      setPreferences({
+        ...res.preferences,
+        alert_types: Array.isArray(res.preferences.alert_types)
+          ? res.preferences.alert_types
+          : ['price_move', 'portfolio_gain_loss', 'watchlist_move', 'data_quality'],
+      });
       showToast('Notification preferences saved.', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to save preferences.', 'error');
@@ -102,10 +115,13 @@ export const Notifications: React.FC = () => {
 
   const handleToggleAlertType = (type: string) => {
     if (!preferences) return;
-    const exists = preferences.alert_types.includes(type);
+    const currentTypes = Array.isArray(preferences.alert_types)
+      ? preferences.alert_types
+      : ['price_move', 'portfolio_gain_loss', 'watchlist_move', 'data_quality'];
+    const exists = currentTypes.includes(type);
     const updated = exists
-      ? preferences.alert_types.filter((t) => t !== type)
-      : [...preferences.alert_types, type];
+      ? currentTypes.filter((t) => t !== type)
+      : [...currentTypes, type];
     setPreferences({ ...preferences, alert_types: updated });
   };
 
@@ -263,7 +279,7 @@ export const Notifications: React.FC = () => {
                     { id: 'watchlist_move', label: 'Watchlist Move' },
                     { id: 'data_quality', label: 'Data Quality' },
                   ].map((cat) => {
-                    const isChecked = preferences.alert_types.includes(cat.id);
+                    const isChecked = Array.isArray(preferences.alert_types) && preferences.alert_types.includes(cat.id);
                     return (
                       <button
                         type="button"
