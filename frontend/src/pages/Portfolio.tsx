@@ -366,7 +366,7 @@ export const Portfolio: React.FC = () => {
               required
             />
             <Input
-              label="Average Cost ($)"
+              label="Average Cost (₹)"
               type="number"
               step="any"
               min="0"
@@ -409,7 +409,7 @@ export const Portfolio: React.FC = () => {
               required
             />
             <Input
-              label="Average Cost ($)"
+              label="Average Cost (₹)"
               type="number"
               step="any"
               value={averageCost}

@@ -202,7 +202,7 @@ class PortfolioService:
                     "unrealized_gain_loss_percent": (
                         round(float(unrealized_gl_pct), 2) if unrealized_gl_pct is not None else None
                     ),
-                    "currency": quote_data.get("currency", "USD"),
+                    "currency": quote_data.get("currency", "INR"),
                     "source": quote_data.get("source"),
                 })
             else:

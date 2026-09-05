@@ -32,7 +32,7 @@ const MARKET_DATA: Record<string, TickerData> = {
   NVDA: {
     symbol: 'NVDA',
     companyName: 'NVIDIA Corp',
-    currentPrice: '$128.50',
+    currentPrice: '₹128.50',
     change: '+142.8% (1Y)',
     isPositive: true,
     peRatio: '64.2x',
@@ -72,7 +72,7 @@ const MARKET_DATA: Record<string, TickerData> = {
   AAPL: {
     symbol: 'AAPL',
     companyName: 'Apple Inc',
-    currentPrice: '$224.20',
+    currentPrice: '₹224.20',
     change: '+24.5% (1Y)',
     isPositive: true,
     peRatio: '33.1x',
@@ -112,7 +112,7 @@ const MARKET_DATA: Record<string, TickerData> = {
   MSFT: {
     symbol: 'MSFT',
     companyName: 'Microsoft Corp',
-    currentPrice: '$448.90',
+    currentPrice: '₹448.90',
     change: '+31.2% (1Y)',
     isPositive: true,
     peRatio: '36.8x',
@@ -366,7 +366,7 @@ export const MarketTerminalChart: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2 font-mono">
-                <span className="text-slate-900 dark:text-white font-bold">{activePoint.date}: ${activePoint.price.toFixed(2)}</span>
+                <span className="text-slate-900 dark:text-white font-bold">{activePoint.date}: ₹{activePoint.price.toFixed(2)}</span>
                 {activePoint.label && (
                   <span className="text-[10px] uppercase font-bold text-brand-700 dark:text-brand-cyan px-1.5 py-0.5 rounded bg-brand-500/10 dark:bg-brand-cyan/10 border border-brand-500/20 dark:border-brand-cyan/20">
                     {activePoint.label}
@@ -402,7 +402,7 @@ export const MarketTerminalChart: React.FC = () => {
         <div className="p-2.5 rounded-xl bg-surface-100/80 dark:bg-surface-100/60 border border-border-subtle">
           <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono uppercase block">52-Week Range</span>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${activeData.range52w.low}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">₹{activeData.range52w.low}</span>
             <div className="flex-1 h-1.5 rounded-full bg-surface-200 dark:bg-surface-300 relative overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-brand-600 to-cyan-500 rounded-full"
@@ -415,7 +415,7 @@ export const MarketTerminalChart: React.FC = () => {
                 }}
               />
             </div>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${activeData.range52w.high}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">₹{activeData.range52w.high}</span>
           </div>
         </div>
       </div>

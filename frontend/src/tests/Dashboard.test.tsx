@@ -139,7 +139,7 @@ describe('Dashboard Page Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Alex Vance/i)).toBeInTheDocument();
-      expect(screen.getByText(/\$125,000\.50/i)).toBeInTheDocument();
+      expect(screen.getByText(/1,25,000\.50/i)).toBeInTheDocument();
       expect(screen.getAllByText('NVDA').length).toBeGreaterThan(0);
       expect(screen.getByText(/Portfolio exhibits strong semiconductor exposure/i)).toBeInTheDocument();
     });

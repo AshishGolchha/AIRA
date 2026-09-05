@@ -67,7 +67,7 @@ describe('Watchlist Page Component', () => {
       expect(screen.getByText('NVDA')).toBeInTheDocument();
       expect(screen.getByText('AMD')).toBeInTheDocument();
       expect(screen.getByText('NVIDIA Corporation')).toBeInTheDocument();
-      expect(screen.getByText(/\$135\.50/i)).toBeInTheDocument();
+      expect(screen.getByText(/135\.50/i)).toBeInTheDocument();
     });
   });
 

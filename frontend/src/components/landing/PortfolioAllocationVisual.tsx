@@ -14,11 +14,11 @@ interface SectorSlice {
 }
 
 const SECTORS: SectorSlice[] = [
-  { name: 'Technology & AI', pct: 42, color: '#6366f1', value: '$52,500', holdings: ['NVDA', 'MSFT', 'AAPL'] },
-  { name: 'Healthcare & Biotech', pct: 18, color: '#06b6d4', value: '$22,500', holdings: ['LLY', 'UNH'] },
-  { name: 'Financial Services', pct: 15, color: '#10b981', value: '$18,750', holdings: ['JPM', 'V'] },
-  { name: 'Energy & Industrials', pct: 10, color: '#f59e0b', value: '$12,500', holdings: ['XOM', 'GE'] },
-  { name: 'Cash & Short Treasuries', pct: 15, color: '#8b5cf6', value: '$18,750', holdings: ['BIL', 'USD'] },
+  { name: 'Technology & AI', pct: 42, color: '#6366f1', value: '₹52,500', holdings: ['NVDA', 'MSFT', 'AAPL'] },
+  { name: 'Healthcare & Biotech', pct: 18, color: '#06b6d4', value: '₹22,500', holdings: ['LLY', 'UNH'] },
+  { name: 'Financial Services', pct: 15, color: '#10b981', value: '₹18,750', holdings: ['JPM', 'V'] },
+  { name: 'Energy & Industrials', pct: 10, color: '#f59e0b', value: '₹12,500', holdings: ['XOM', 'GE'] },
+  { name: 'Cash & Short Treasuries', pct: 15, color: '#8b5cf6', value: '₹18,750', holdings: ['BIL', 'USD'] },
 ];
 
 interface ScatterAsset {
@@ -155,7 +155,7 @@ export const PortfolioAllocationVisual: React.FC = () => {
                 {/* Center Donut Hole Text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
                   <span className="text-[11px] font-mono uppercase text-slate-500 dark:text-slate-400">Total Portfolio</span>
-                  <span className="text-xl font-bold text-slate-900 dark:text-white font-mono mt-0.5">$125,000</span>
+                  <span className="text-xl font-bold text-slate-900 dark:text-white font-mono mt-0.5">₹1,25,000</span>
                   <span className="text-[10px] text-emerald-600 dark:text-brand-emerald font-mono font-semibold">+25.0% P&L</span>
                 </div>
               </div>

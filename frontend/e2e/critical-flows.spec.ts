@@ -418,7 +418,7 @@ test.describe('AIRA Critical Browser E2E Workflows', () => {
 
     await expect(page).toHaveURL(/.*app\/dashboard/);
     await expect(page.locator('text=E2E Validation User').first()).toBeVisible();
-    await expect(page.locator('text=$125,000.00').first()).toBeVisible();
+    await expect(page.locator('text=1,25,000.00').first()).toBeVisible();
   });
 
   test('3. Full page navigation flow and Logout', async ({ page }) => {
@@ -436,7 +436,7 @@ test.describe('AIRA Critical Browser E2E Workflows', () => {
     });
 
     await page.goto('/app/dashboard');
-    await expect(page.locator('text=$125,000.00').first()).toBeVisible();
+    await expect(page.locator('text=1,25,000.00').first()).toBeVisible();
 
     // Navigate to Portfolio
     await page.click('a[href="/app/portfolio"]');
@@ -488,7 +488,7 @@ test.describe('AIRA Critical Browser E2E Workflows', () => {
     });
 
     await page.goto('/app/dashboard');
-    await expect(page.locator('text=$125,000.00').first()).toBeVisible();
+    await expect(page.locator('text=1,25,000.00').first()).toBeVisible();
 
     // Verify AI synthesis endpoint was never invoked on dashboard load
     expect(aiGenerationCalled).toBe(false);
