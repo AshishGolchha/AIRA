@@ -68,7 +68,7 @@ describe('Portfolio Page Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Portfolio Management')).toBeInTheDocument();
       expect(screen.getAllByText('NVDA').length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/\$13,000\.00/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/13,000\.00/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/\+18\.18%/i).length).toBeGreaterThan(0);
     });
   });

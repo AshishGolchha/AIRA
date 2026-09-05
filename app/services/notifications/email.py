@@ -116,7 +116,7 @@ Autonomous Investment Research Agent (AIRA)
                 current_app.logger.warning(f"Email delivery skipped: missing NOTIFICATION_EMAIL_API_KEY for user {user_id}")
             return False
 
-        # Provider dispatch logic (e.g. Resend HTTP API / SMTP abstraction)
+        # Provider dispatch logic (e.g. Resend HTTP API / custom backend)
         payload = {
             "user_id": user_id,
             "recipient": recipient,
@@ -126,4 +126,48 @@ Autonomous Investment Research Agent (AIRA)
             "alert": alert,
         }
         self.sent_emails.append(payload)
+
+        provider_type = (
+            current_app.config.get("NOTIFICATION_EMAIL_PROVIDER", "resend").lower()
+            if has_app_context()
+            else os.getenv("NOTIFICATION_EMAIL_PROVIDER", "resend").lower()
+        )
+
+        if provider_type == "resend":
+            import json
+            import urllib.error
+            import urllib.request
+
+            resend_payload = json.dumps({
+                "from": self._get_from_email(),
+                "to": [recipient],
+                "subject": content["subject"],
+                "text": content["body_text"],
+            }).encode("utf-8")
+
+            req = urllib.request.Request(
+                "https://api.resend.com/emails",
+                data=resend_payload,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "AIRA-Alert-Email/1.0",
+                },
+                method="POST",
+            )
+
+            try:
+                with urllib.request.urlopen(req, timeout=10.0) as resp:
+                    return 200 <= resp.status < 300
+            except urllib.error.HTTPError as http_err:
+                if has_app_context():
+                    current_app.logger.warning(
+                        f"Resend API rejected email delivery (HTTP {http_err.code}) for user {user_id}"
+                    )
+                return False
+            except Exception as e:
+                if has_app_context():
+                    current_app.logger.warning(f"Email delivery network error for user {user_id}: {e}")
+                return False
+
         return True

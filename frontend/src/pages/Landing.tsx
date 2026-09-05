@@ -57,7 +57,7 @@ const PIPELINE_STEPS: PipelineStep[] = [
     sampleOutput: {
       status: 'Target Ingested: NVDA (NVIDIA Corp)',
       metrics: {
-        'Current Price': '$128.50',
+        'Current Price': '₹128.50',
         'Market Cap': '$3.16T',
         'Trailing P/E': '64.2x',
         'EV / EBITDA': '51.8x',
@@ -88,9 +88,9 @@ const PIPELINE_STEPS: PipelineStep[] = [
     sampleOutput: {
       status: 'Portfolio Snapshot Computed (Zero LLM Overhead)',
       metrics: {
-        'Total Market Value': '$125,000.00',
-        'Cost Basis': '$100,000.00',
-        'Unrealized P&L': '+$25,000.00 (+25.0%)',
+        'Total Market Value': '₹1,25,000.00',
+        'Cost Basis': '₹1,00,000.00',
+        'Unrealized P&L': '+₹25,000.00 (+25.0%)',
         'NVDA Weight': '60.0% of Portfolio',
       },
       insights: [

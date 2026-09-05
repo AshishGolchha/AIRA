@@ -99,7 +99,7 @@ class AlertService:
                                 alert_type="portfolio_gain",
                                 severity="info",
                                 title=f"Gain Alert: {sym} (+{ugl_pct:.2f}%)",
-                                message=f"Holding {sym} has an unrealized gain of {ugl_pct:.2f}% (Market Value: ${h.get('market_value')}).",
+                                message=f"Holding {sym} has an unrealized gain of {ugl_pct:.2f}% (Market Value: ₹{h.get('market_value')}).",
                                 facts=h,
                                 sources=[h.get("source")] if h.get("source") else [],
                             )
@@ -115,7 +115,7 @@ class AlertService:
                                 alert_type="portfolio_loss",
                                 severity=sev,
                                 title=f"Loss Alert: {sym} ({ugl_pct:.2f}%)",
-                                message=f"Holding {sym} has an unrealized loss of {ugl_pct:.2f}% (Market Value: ${h.get('market_value')}).",
+                                message=f"Holding {sym} has an unrealized loss of {ugl_pct:.2f}% (Market Value: ₹{h.get('market_value')}).",
                                 facts=h,
                                 sources=[h.get("source")] if h.get("source") else [],
                             )
@@ -137,7 +137,7 @@ class AlertService:
                                     alert_type="price_move",
                                     severity=sev,
                                     title=f"Price Movement: {sym} ({chg_pct:+.2f}%)",
-                                    message=f"{sym} moved {chg_pct:+.2f}% today to ${quote.get('current_price')}.",
+                                    message=f"{sym} moved {chg_pct:+.2f}% today to ₹{quote.get('current_price')}.",
                                     facts=quote,
                                     sources=[quote.get("source")] if quote.get("source") else [],
                                 )
@@ -171,7 +171,7 @@ class AlertService:
                                 alert_type="watchlist_move",
                                 severity=sev,
                                 title=f"Watchlist Move: {sym} ({chg_pct:+.2f}%)",
-                                message=f"Watchlist stock {sym} moved {chg_pct:+.2f}% today to ${quote.get('current_price')}.",
+                                message=f"Watchlist stock {sym} moved {chg_pct:+.2f}% today to ₹{quote.get('current_price')}.",
                                 facts=quote,
                                 sources=[quote.get("source")] if quote.get("source") else [],
                             )
