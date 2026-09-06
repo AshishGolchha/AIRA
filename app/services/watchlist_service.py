@@ -6,7 +6,7 @@ from app.extensions import db
 from app.models.watchlist import WatchlistItem
 from app.services.financial.service import FinancialDataService
 
-SYMBOL_REGEX = re.compile(r"^[A-Za-z0-9\.\-\^]{1,10}$")
+SYMBOL_REGEX = re.compile(r"^[A-Za-z0-9\.\-\^]{1,20}$")
 ALLOWED_PRIORITIES = {"low", "normal", "high"}
 
 

@@ -56,7 +56,7 @@ class YFinanceProvider(BaseFinancialProvider):
             country=info.get("country"),
             website=info.get("website"),
             description=info.get("longBusinessSummary"),
-            currency=info.get("currency"),
+            currency=info.get("currency") or ("INR" if clean_symbol.endswith((".NS", ".BO", ".BSE", ".NSE")) else "USD"),
             source=source,
         )
 
@@ -72,6 +72,8 @@ class YFinanceProvider(BaseFinancialProvider):
         if current_price is None:
             raise ValueError(f"Real-time quote for '{clean_symbol}' not available.")
 
+        currency = info.get("currency") or ("INR" if clean_symbol.endswith((".NS", ".BO", ".BSE", ".NSE")) else "USD")
+
         source = SourceMetadata(
             provider="yfinance",
             source_url=f"https://finance.yahoo.com/quote/{clean_symbol}",
@@ -83,7 +85,7 @@ class YFinanceProvider(BaseFinancialProvider):
         return MarketQuote(
             symbol=clean_symbol,
             current_price=float(current_price),
-            currency=info.get("currency"),
+            currency=currency,
             change=info.get("regularMarketChange"),
             change_percent=info.get("regularMarketChangePercent"),
             day_high=info.get("dayHigh") or info.get("regularMarketDayHigh"),
@@ -299,3 +301,60 @@ class YFinanceProvider(BaseFinancialProvider):
                 "industry": q.get("industry"),
             })
         return results
+
+    def get_fx_rate(self, from_currency: str = "USD", to_currency: str = "INR") -> float:
+        """Retrieves real-time foreign exchange rate between two currencies using Yahoo Finance."""
+        clean_from = (from_currency or "USD").strip().upper()
+        clean_to = (to_currency or "INR").strip().upper()
+
+        if clean_from == clean_to:
+            return 1.0
+
+        if clean_from == "INR" and clean_to == "USD":
+            usd_inr = self.get_fx_rate("USD", "INR")
+            return round(1.0 / usd_inr, 6) if usd_inr > 0 else 0.0115
+
+        # Primary lookup: USDINR=X
+        fx_pair = f"{clean_from}{clean_to}=X"
+        try:
+            ticker = yf.Ticker(fx_pair)
+            info = ticker.info or {}
+            rate = (
+                info.get("regularMarketPrice")
+                or info.get("currentPrice")
+                or info.get("ask")
+                or info.get("bid")
+                or info.get("previousClose")
+            )
+            if rate is not None and float(rate) > 0:
+                return float(rate)
+
+            # Fallback to history close
+            hist = ticker.history(period="5d")
+            if hist is not None and not hist.empty and "Close" in hist:
+                last_close = hist["Close"].dropna().iloc[-1]
+                if last_close is not None and float(last_close) > 0:
+                    return float(last_close)
+        except Exception:
+            pass
+
+        # Secondary fallback if USD/INR: try INR=X
+        if clean_from == "USD" and clean_to == "INR":
+            try:
+                ticker = yf.Ticker("INR=X")
+                info = ticker.info or {}
+                rate = info.get("regularMarketPrice") or info.get("currentPrice") or info.get("previousClose")
+                if rate is not None and float(rate) > 0:
+                    return float(rate)
+                hist = ticker.history(period="5d")
+                if hist is not None and not hist.empty and "Close" in hist:
+                    last_close = hist["Close"].dropna().iloc[-1]
+                    if last_close is not None and float(last_close) > 0:
+                        return float(last_close)
+            except Exception:
+                pass
+
+        # Final defensive fallback with warning - avoid complete crash if external network temporarily unavailable
+        import logging
+        logging.getLogger(__name__).warning(f"Live FX retrieval for {fx_pair} failed. Using defensive baseline rate.")
+        return 87.0 if (clean_from == "USD" and clean_to == "INR") else 1.0

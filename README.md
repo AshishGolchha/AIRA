@@ -18,7 +18,7 @@ Phase 20C completes the transformation of the public AIRA homepage into a visual
 - **Evidence Grounding Audit Dissection**: Step-by-step visual audit trail tracing SEC 10-Q filing table excerpts directly to numerical metrics and thesis points.
 - **Architectural Circuit Visualizer**: Interactive circuit diagram demonstrating the strict separation between the **Autonomous AI Tier** (CrewAI multi-agent synthesis) and the **Deterministic Financial Core** (mathematical portfolio valuation, alert thresholds, retry-safe webhooks).
 - **Free Technical SEO & Fast Load**: Standard-compliant JSON-LD structured data (`WebApplication`), Open Graph preview cards, Twitter cards, canonical tags, `robots.txt`, and `sitemap.xml` with zero initial API requests.
-- **Comprehensive Verification**: 195 Python pytest tests, 29 TypeScript Vitest unit/component tests across 12 suites, and 6 Playwright E2E browser flows passing with 100% success.
+- **Comprehensive Verification**: 196 Python pytest tests, 33 TypeScript Vitest unit/component tests across 13 suites, and 6 Playwright E2E browser flows passing with 100% success.
 
 ---
 
@@ -402,14 +402,14 @@ Run the automated backend test suite:
 ```bash
 python -m pytest -v
 ```
-All 195 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
+All 196 automated tests run deterministically against an isolated in-memory SQLite database (`sqlite:///:memory:`) and mock external services.
 
 ### Frontend Tests (Vitest)
 Run the complete frontend test suite:
 ```bash
 cd frontend && npm run test
 ```
-All 29 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 12 test suites (`Landing`, `Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `ProtectedRoute`).
+All 33 unit, component, and user flow integration tests run with JSDOM and React Testing Library across 13 test suites (`Landing`, `Auth`, `Dashboard`, `Portfolio`, `Watchlist`, `Alerts`, `Intelligence`, `Research`, `Notifications`, `Settings`, `Navigation`, `Theme`, `ProtectedRoute`).
 
 ### Browser E2E Tests (Playwright)
 Run the browser-level end-to-end test suite:

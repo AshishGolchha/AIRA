@@ -7,7 +7,7 @@ from app.extensions import db
 from app.models.portfolio import PortfolioHolding
 from app.services.financial.service import FinancialDataService
 
-SYMBOL_REGEX = re.compile(r"^[A-Za-z0-9\.\-\^]{1,10}$")
+SYMBOL_REGEX = re.compile(r"^[A-Za-z0-9\.\-\^]{1,20}$")
 
 
 class PortfolioService:
@@ -202,7 +202,10 @@ class PortfolioService:
                     "unrealized_gain_loss_percent": (
                         round(float(unrealized_gl_pct), 2) if unrealized_gl_pct is not None else None
                     ),
-                    "currency": quote_data.get("currency", "INR"),
+                    "currency": "INR",
+                    "source_currency": quote_data.get("source_currency", "INR"),
+                    "source_price": quote_data.get("source_price"),
+                    "fx_rate": quote_data.get("fx_rate", 1.0),
                     "source": quote_data.get("source"),
                 })
             else:

@@ -19,7 +19,7 @@ const SIGNALS: SignalInput[] = [
     type: 'Unstructured Filing',
     source: 'SEC EDGAR 10-Q (48 pages)',
     rawSnippet: '"Data Center segment compute revenue rose to $26,272 million compared with $10,323 million in the prior year..."',
-    transformedOutput: 'Verified Metric: $26.3B (+154% YoY). Defensible Blackwell pricing power grounded in filing.',
+    transformedOutput: 'Verified Metric: ₹2,28,810 Cr ($26.3B, +154% YoY). Grounded in verified filing.',
   },
   {
     id: 'news',
@@ -32,14 +32,14 @@ const SIGNALS: SignalInput[] = [
     id: 'portfolio',
     type: 'Position Weighting',
     source: 'User Portfolio Holdings',
-    rawSnippet: '"Holding: 200 shares @ $95.00 FIFO cost basis. Represents 22.4% of total equity allocation."',
+    rawSnippet: '"Holding: 200 shares @ ₹8,250 FIFO cost basis. Represents 22.4% of total equity allocation."',
     transformedOutput: 'Deterministic Context: High portfolio concentration (>20%). Suggests conservative rebalance alert.',
   },
   {
     id: 'telemetry',
     type: 'Price Delta Feed',
     source: '15-Second Market Ticks',
-    rawSnippet: '"Tick: $128.50 (+3.4%). 24h delta: +5.2%. 52W Range: $45.20 - $140.70."',
+    rawSnippet: '"Tick: ₹11,180 (+3.4%). 24h delta: +5.2%. 52W Range: ₹3,930 - ₹12,240."',
     transformedOutput: 'Deterministic Telemetry: Triggered price move rule (>5.0%). Dispatched signed webhook.',
   },
 ];

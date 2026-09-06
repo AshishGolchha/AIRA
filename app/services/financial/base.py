@@ -55,3 +55,8 @@ class BaseFinancialProvider(ABC):
     def resolve_symbol(self, query: str) -> list[dict[str, Any]]:
         """Resolves a company name or ticker query to matching securities."""
         pass
+
+    @abstractmethod
+    def get_fx_rate(self, from_currency: str = "USD", to_currency: str = "INR") -> float:
+        """Retrieves real-time exchange rate between two currencies."""
+        pass

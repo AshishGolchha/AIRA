@@ -130,6 +130,8 @@ class AlertService:
                         if abs(chg_pct) >= p_thresh:
                             if not _has_active_alert(sym, "price_move"):
                                 sev = "warning" if chg_pct < 0 else "info"
+                                cp_val = quote.get("current_price")
+                                cp_str = f"₹{cp_val:,.2f}" if isinstance(cp_val, (int, float)) else f"₹{cp_val}"
                                 alert = Alert(
                                     user_id=user_id,
                                     symbol=sym,
@@ -137,7 +139,7 @@ class AlertService:
                                     alert_type="price_move",
                                     severity=sev,
                                     title=f"Price Movement: {sym} ({chg_pct:+.2f}%)",
-                                    message=f"{sym} moved {chg_pct:+.2f}% today to ₹{quote.get('current_price')}.",
+                                    message=f"{sym} moved {chg_pct:+.2f}% today to {cp_str}.",
                                     facts=quote,
                                     sources=[quote.get("source")] if quote.get("source") else [],
                                 )
@@ -164,6 +166,8 @@ class AlertService:
                     if abs(chg_pct) >= p_thresh:
                         if not _has_active_alert(sym, "watchlist_move"):
                             sev = "warning" if chg_pct < 0 else "info"
+                            cp_val = quote.get("current_price")
+                            cp_str = f"₹{cp_val:,.2f}" if isinstance(cp_val, (int, float)) else f"₹{cp_val}"
                             alert = Alert(
                                 user_id=user_id,
                                 symbol=sym,
@@ -171,7 +175,7 @@ class AlertService:
                                 alert_type="watchlist_move",
                                 severity=sev,
                                 title=f"Watchlist Move: {sym} ({chg_pct:+.2f}%)",
-                                message=f"Watchlist stock {sym} moved {chg_pct:+.2f}% today to ₹{quote.get('current_price')}.",
+                                message=f"Watchlist stock {sym} moved {chg_pct:+.2f}% today to {cp_str}.",
                                 facts=quote,
                                 sources=[quote.get("source")] if quote.get("source") else [],
                             )
