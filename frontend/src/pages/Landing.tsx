@@ -21,6 +21,7 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { AiraLogo } from '../components/ui/AiraLogo';
 import { HeroIntelligenceEngine } from '../components/landing/HeroIntelligenceEngine';
 import { MarketTerminalChart } from '../components/landing/MarketTerminalChart';
 import { PortfolioAllocationVisual } from '../components/landing/PortfolioAllocationVisual';
@@ -222,18 +223,17 @@ export const Landing: React.FC = () => {
       <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-surface-50/85 dark:bg-background/85 border-b border-border-subtle/80 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded-lg">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-brand-cyan p-[1px] shadow-glow-brand flex items-center justify-center">
-              <div className="w-full h-full bg-surface-50 dark:bg-surface-200 rounded-[11px] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-brand-600 dark:text-brand-300 group-hover:scale-110 transition-transform duration-200" />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
+          <Link to="/" className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded-lg" title="AIRA — Autonomous Investment Research & Analysis">
+            <AiraLogo variant="mark" size="md" />
+            <div className="flex flex-col text-left">
+              <span className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 font-display leading-none">
                 AIRA
                 <span className="text-[10px] uppercase font-semibold tracking-wider text-brand-600 dark:text-brand-cyan bg-brand-500/10 dark:bg-brand-cyan/10 px-1.5 py-0.5 rounded border border-brand-500/20 dark:border-brand-cyan/20">
                   v1.0
                 </span>
+              </span>
+              <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 tracking-wider uppercase hidden sm:block mt-0.5">
+                Autonomous Investment Research & Analysis
               </span>
             </div>
           </Link>
@@ -332,9 +332,9 @@ export const Landing: React.FC = () => {
         {/* ================================================================= */}
         <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-16 text-center">
           {/* Eyebrow Pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-100/90 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-6 shadow-glow-brand">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-100/90 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-6 shadow-glow-brand">
             <Sparkles className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
-            <span>Autonomous Investment Research Agent</span>
+            <span>AIRA &bull; Autonomous Investment Research &amp; Analysis</span>
           </div>
 
           {/* Main H1 Headline */}
@@ -661,14 +661,12 @@ export const Landing: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-border-subtle">
             {/* Brand */}
             <div className="space-y-3 md:col-span-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand-600 to-brand-cyan flex items-center justify-center text-white">
-                  <Sparkles className="w-3.5 h-3.5" />
-                </div>
-                <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">AIRA</span>
+              <AiraLogo variant="horizontal" size="sm" />
+              <div className="text-xs font-semibold text-brand-600 dark:text-brand-300 tracking-wide uppercase">
+                Autonomous Investment Research &amp; Analysis
               </div>
               <p className="text-slate-600 dark:text-slate-400 text-xs max-w-sm leading-relaxed">
-                Autonomous Investment Research Agent. Unifying company fundamentals, multi-agent AI reasoning, and deterministic portfolio telemetry.
+                Autonomous multi-agent equity research, valuation synthesis, deterministic portfolio risk alerts, and persistent memory.
               </p>
             </div>
 

@@ -23,16 +23,32 @@
   <!-- Card Border -->
   <rect x="80" y="80" width="1040" height="470" rx="24" stroke="rgba(255,255,255,0.12)" fill="rgba(18,22,31,0.6)" stroke-width="2"/>
   
-  <!-- Logo Icon -->
+  <!-- New Precision Lens Mark -->
   <g transform="translate(140, 140)">
-    <rect width="64" height="64" rx="16" fill="#161A24" stroke="#6366F1" stroke-width="2"/>
-    <path d="M32 14L50 48H14L32 14Z" stroke="#06B6D4" stroke-width="3" stroke-linejoin="round"/>
-    <circle cx="32" cy="38" r="5" fill="#6366F1"/>
+    <defs>
+      <linearGradient id="og-lens" x1="0" y1="32" x2="64" y2="32" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#3730A3"/>
+        <stop offset="55%"  stop-color="#4F46E5"/>
+        <stop offset="100%" stop-color="#6366F1"/>
+      </linearGradient>
+    </defs>
+    <!-- Scan line -->
+    <line x1="2"  y1="32" x2="16" y2="32" stroke="#4F46E5" stroke-width="1.6" stroke-linecap="round" opacity="0.65"/>
+    <line x1="2"  y1="28.5" x2="2" y2="35.5" stroke="#4F46E5" stroke-width="1.6" stroke-linecap="round" opacity="0.65"/>
+    <!-- Upper lens arc -->
+    <path d="M 18 32 Q 32 10 46 32" stroke="url(#og-lens)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <!-- Lower lens arc -->
+    <path d="M 46 32 Q 32 54 18 32" stroke="url(#og-lens)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <!-- Focus ring -->
+    <circle cx="32" cy="32" r="8.5" stroke="#6366F1" stroke-width="1.2" fill="none" opacity="0.45"/>
+    <!-- Center gold dot -->
+    <circle cx="32" cy="32" r="4" fill="#D97706"/>
+    <circle cx="30.8" cy="30.8" r="1.4" fill="#FCD34D" opacity="0.55"/>
   </g>
   
   <!-- Title & Typography -->
   <text x="225" y="185" fill="#FFFFFF" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="800" letter-spacing="-0.02em">AIRA</text>
-  <text x="330" y="185" fill="#818CF8" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="600" letter-spacing="0.05em">AUTONOMOUS INVESTMENT RESEARCH AGENT</text>
+  <text x="330" y="185" fill="#818CF8" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="600" letter-spacing="0.05em">AUTONOMOUS INVESTMENT RESEARCH &amp; ANALYSIS</text>
   
   <text x="140" y="290" fill="#FFFFFF" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="800" letter-spacing="-0.03em">Your Investment Research,</text>
   <text x="140" y="350" fill="#06B6D4" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="800" letter-spacing="-0.03em">Running on Autonomous Intelligence.</text>

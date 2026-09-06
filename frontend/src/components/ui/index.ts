@@ -15,3 +15,4 @@ export * from './ErrorState';
 export * from './PageHeader';
 export * from './MetricCard';
 export * from './ThemeToggle';
+export * from './AiraLogo';

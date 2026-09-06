@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { GlassCard } from '../components/ui/GlassCard';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { AiraLogo } from '../components/ui/AiraLogo';
 
 export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -30,27 +31,27 @@ export const Register: React.FC = () => {
     e.preventDefault();
     const cleanEmail = email.trim();
     if (!cleanEmail || !password) {
-      setError('Please fill in email and password.');
+      setError('Please fill in all required fields.');
       return;
     }
+
     if (password.length < 8) {
       setError('Password must be at least 8 characters long.');
       return;
     }
 
-    setError(null);
-    setIsSubmitting(true);
-
     try {
+      setIsSubmitting(true);
+      setError(null);
       await register({
         email: cleanEmail,
         password,
         display_name: displayName.trim() || undefined,
       });
       showToast('Account created successfully!', 'success');
-      navigate('/app/dashboard');
+      navigate('/app/dashboard', { replace: true });
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please check your inputs.');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -72,13 +73,16 @@ export const Register: React.FC = () => {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-600/10 dark:bg-cyan-600/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 text-white font-bold text-2xl shadow-glow-brand mb-4">
-            A
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Create AIRA Account</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-            Get personalized investment insights, real-time alerts, and AI-powered research.
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Link to="/" className="mb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-2xl" title="Return to Home">
+            <AiraLogo variant="mark" size="xl" />
+          </Link>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-display">AIRA</h1>
+          <p className="text-xs font-semibold text-brand-600 dark:text-brand-300 tracking-wider uppercase mt-1">
+            Autonomous Investment Research &amp; Analysis
+          </p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 max-w-xs mx-auto">
+            Create an account to unlock deterministic risk alerts and multi-agent equity synthesis.
           </p>
         </div>
 
