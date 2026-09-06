@@ -4,6 +4,7 @@ import { X, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { navigationItems } from './Sidebar';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import { AiraLogo } from '../ui/AiraLogo';
 import { cn } from '../../lib/utils';
 
 export interface MobileNavProps {
@@ -29,15 +30,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
         <div>
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white font-bold text-sm shadow-glow-brand">
-                A
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold tracking-tight text-slate-900 dark:text-white text-base">AIRA</span>
-                <span className="text-[9px] text-slate-500 dark:text-slate-400 -mt-1 font-mono">INVESTMENT AI</span>
-              </div>
-            </div>
+            <AiraLogo variant="full" size="sm" subtitle="AUTONOMOUS INVESTMENT RESEARCH & ANALYSIS" />
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <button

@@ -11,6 +11,7 @@ import { Select } from '../components/ui/Select';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
+import { AiraLogo, FULL_BRAND_NAME } from '../components/ui/AiraLogo';
 
 export const Settings: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -238,6 +239,26 @@ export const Settings: React.FC = () => {
                   {user?.alerts_enabled ? 'Active' : 'Disabled'}
                 </span>
               </div>
+            </div>
+          </GlassCard>
+
+          {/* About AIRA Brand Card */}
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3.5 mb-3">
+              <AiraLogo variant="mark" size="md" />
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white font-display leading-tight">AIRA</h3>
+                <p className="text-[11px] font-semibold text-brand-600 dark:text-brand-400 tracking-wide">
+                  {FULL_BRAND_NAME}
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              AIRA is an autonomous multi-agent equity intelligence platform engineered to transform company fundamentals, live market telemetry, and equity filings into grounded, deterministic research reports and portfolio risk insights.
+            </p>
+            <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between text-[11px] text-slate-500 font-mono">
+              <span>AIRA v1.0.0</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium">Production Ready</span>
             </div>
           </GlassCard>
         </div>

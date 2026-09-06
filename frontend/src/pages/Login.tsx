@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { GlassCard } from '../components/ui/GlassCard';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { AiraLogo } from '../components/ui/AiraLogo';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -29,20 +30,16 @@ export const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanEmail = email.trim();
-    if (!cleanEmail || !password) {
+    if (!email || !password) {
       setError('Please enter both email and password.');
       return;
     }
 
-    setError(null);
-    setIsSubmitting(true);
-
     try {
-      await login({ email: cleanEmail, password });
+      setIsSubmitting(true);
+      setError(null);
+      await login({ email: email.trim(), password });
       showToast('Welcome back to AIRA', 'success');
-      const from = (location.state as any)?.from?.pathname || '/app/dashboard';
-      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Invalid email or password.');
     } finally {
@@ -51,15 +48,10 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background transition-colors duration-200">
-      {/* Top Bar Theme Toggle & Home link */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 flex items-center gap-3">
+    <div className="min-h-screen bg-background flex flex-col justify-center items-center px-4 relative overflow-hidden transition-colors duration-200">
+      {/* Top Controls */}
+      <div className="absolute top-6 right-6 z-20">
         <ThemeToggle />
-      </div>
-      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
-        <Link to="/" className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1.5">
-          ← Back to Overview
-        </Link>
       </div>
 
       {/* Background Ambient Glows */}
@@ -68,13 +60,16 @@ export const Login: React.FC = () => {
 
       <div className="w-full max-w-md relative z-10">
         {/* Brand Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 text-white font-bold text-2xl shadow-glow-brand mb-4">
-            A
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">AIRA Intelligence</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-            Autonomous multi-agent equity research, portfolio tracking, and deterministic risk alerts.
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Link to="/" className="mb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-2xl" title="Return to Home">
+            <AiraLogo variant="mark" size="xl" />
+          </Link>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-display">AIRA</h1>
+          <p className="text-xs font-semibold text-brand-600 dark:text-brand-300 tracking-wider uppercase mt-1">
+            Autonomous Investment Research &amp; Analysis
+          </p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 max-w-xs mx-auto">
+            Sign in to access real-time valuation, deterministic risk alerts, and multi-agent equity intelligence.
           </p>
         </div>
 
