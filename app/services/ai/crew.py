@@ -45,7 +45,8 @@ def create_research_crew(
         goal=f"Review verified ground-truth metrics and gather detailed financial context for {symbol}.",
         backstory=(
             "You are an expert financial data discovery specialist. You cross-reference provided ground-truth "
-            "financial data and tools without ever fabricating financial statistics or metrics."
+            "financial data and tools without ever fabricating financial statistics or metrics. All monetary "
+            "metrics are denominated in Indian Rupees (INR / ₹)."
         ),
         tools=tools,
         llm=active_llm,
@@ -69,8 +70,9 @@ def create_research_crew(
         role="Principal Investment Intelligence Synthesizer",
         goal=f"Synthesize comprehensive research findings into an executive-ready JSON report tailored to user context: '{user_context}'.",
         backstory=(
-            "You are a lead investment strategist. You synthesize quantitative metrics and fundamental "
-            "analysis into clear, structured research reports without inventing numerical data."
+            "You are a lead investment strategist for AIRA, an Indian-focused investment platform. You synthesize "
+            "quantitative metrics and fundamental analysis into clear, structured research reports without inventing numerical data. "
+            "All monetary figures are quoted in Indian Rupees (INR / ₹) with '₹' symbol. Never use '$' for monetary values."
         ),
         llm=active_llm,
         verbose=False,
@@ -80,9 +82,10 @@ def create_research_crew(
     task_gather = Task(
         description=(
             f"Review the pre-verified ground-truth financial facts for '{symbol}': {facts_str}\n"
+            f"All monetary figures are in Indian Rupees (INR / ₹).\n"
             f"Use tools to supplement with company news, historical trends, or statements if needed."
         ),
-        expected_output="Grounded factual data collection for company profile, quote, metrics, financials, and news.",
+        expected_output="Grounded factual data collection for company profile, quote, metrics, financials, and news in INR.",
         agent=researcher,
     )
 
@@ -91,8 +94,8 @@ def create_research_crew(
         description=(
             f"Analyze the gathered facts for '{symbol}'. Ground your analysis strictly in verified metrics:\n"
             f"1. Valuation multiples (P/E, P/B, forward P/E) vs historical/sector norms.\n"
-            f"2. Profitability, revenue scale, and margin trends.\n"
-            f"3. Balance sheet health and debt obligations.\n"
+            f"2. Profitability, revenue scale, and margin trends (in INR / ₹).\n"
+            f"3. Balance sheet health and debt obligations (in INR / ₹).\n"
             f"4. Key investment risks and competitive moat opportunities."
         ),
         expected_output="In-depth fundamental, valuation, and risk assessment analysis grounded in facts.",
@@ -105,10 +108,11 @@ def create_research_crew(
         description=(
             f"Synthesize the research and analysis for user query '{query}' on symbol '{symbol}'.\n"
             f"User Context / Stored Preferences: {user_context or 'None provided.'}\n"
+            f"IMPORTANT: AIRA is an Indian-focused platform. State all monetary figures in Indian Rupees (INR / ₹). Never use '$'.\n"
             f"Generate a final JSON object with the exact keys: 'company', 'symbol', 'summary', "
             f"'fundamentals', 'valuation', 'market_context', 'risks', 'opportunities'."
         ),
-        expected_output="Valid JSON object with summary, fundamentals, valuation, market_context, risks, and opportunities.",
+        expected_output="Valid JSON object with summary, fundamentals, valuation, market_context, risks, and opportunities using INR (₹) notation.",
         agent=synthesizer,
         context=[task_gather, task_analyze],
     )
@@ -141,8 +145,8 @@ def create_portfolio_intelligence_crew(
         role="Senior Portfolio & Asset Discovery Specialist",
         goal="Review verified portfolio holdings, deterministic valuations, and watchlist facts without fabricating numbers.",
         backstory=(
-            "You are an institutional portfolio research analyst. You review verified holding allocations, "
-            "cost bases, market values, and watchlist securities strictly based on verified evidence."
+            "You are an institutional portfolio research analyst for an Indian investment platform. You review verified holding allocations, "
+            "cost bases, market values, and watchlist securities strictly based on verified evidence denominated in Indian Rupees (INR / ₹)."
         ),
         llm=active_llm,
         verbose=False,
@@ -154,7 +158,7 @@ def create_portfolio_intelligence_crew(
         goal="Evaluate concentration, asset health, risk exposures, and watchlist opportunities grounded strictly in verified evidence.",
         backstory=(
             "You are a seasoned portfolio strategist. You critically analyze concentration risks, "
-            "fundamental asset valuations, and potential catalysts across holdings and watchlist items."
+            "fundamental asset valuations, and potential catalysts across holdings and watchlist items denominated in INR."
         ),
         llm=active_llm,
         verbose=False,
@@ -165,8 +169,9 @@ def create_portfolio_intelligence_crew(
         role="Principal Personalized Investment Intelligence Strategist",
         goal=f"Synthesize comprehensive portfolio intelligence tailored to user preferences: '{user_context}'.",
         backstory=(
-            "You are a chief investment strategist. You produce structured, actionable intelligence "
-            "reports linking portfolio facts, watchlist priorities, and user risk preferences without inventing numbers."
+            "You are a chief investment strategist for AIRA. You produce structured, actionable intelligence "
+            "reports linking portfolio facts, watchlist priorities, and user risk preferences without inventing numbers. "
+            "All portfolio values, costs, market values, and opportunity sizes must be quoted in Indian Rupees (INR / ₹) with '₹'. Never use '$'."
         ),
         llm=active_llm,
         verbose=False,
@@ -175,12 +180,12 @@ def create_portfolio_intelligence_crew(
     task_gather = Task(
         description=(
             f"Review verified portfolio holdings data and watchlist items:\n"
-            f"Portfolio Holdings & Valuation: {portfolio_json}\n"
-            f"Watchlist Items & Quotes: {watchlist_json}\n"
-            f"Verified Market Facts: {facts_json}\n"
+            f"Portfolio Holdings & Valuation (in INR): {portfolio_json}\n"
+            f"Watchlist Items & Quotes (in INR): {watchlist_json}\n"
+            f"Verified Market Facts (in INR): {facts_json}\n"
             f"Extract factual areas of concentration, valuation divergences, and data coverage."
         ),
-        expected_output="Structured factual collection of portfolio and watchlist allocations.",
+        expected_output="Structured factual collection of portfolio and watchlist allocations in INR.",
         agent=researcher,
     )
 
@@ -201,10 +206,11 @@ def create_portfolio_intelligence_crew(
         description=(
             f"Synthesize the intelligence report answering user query: '{query}'\n"
             f"User Context & Preferences: {user_context or 'None provided.'}\n"
+            f"IMPORTANT: AIRA is an Indian-focused investment platform. All monetary amounts must be denominated in Indian Rupees (INR / ₹) using '₹' notation. Never use '$'.\n"
             f"Produce a final JSON object with the exact keys: 'summary', 'portfolio_overview', "
             f"'portfolio_risks', 'portfolio_opportunities', 'watchlist_priorities', 'recommended_research'."
         ),
-        expected_output="Valid JSON object with summary, portfolio_overview, portfolio_risks, portfolio_opportunities, watchlist_priorities, and recommended_research.",
+        expected_output="Valid JSON object with summary, portfolio_overview, portfolio_risks, portfolio_opportunities, watchlist_priorities, and recommended_research formatted in INR (₹).",
         agent=synthesizer,
         context=[task_gather, task_analyze],
     )

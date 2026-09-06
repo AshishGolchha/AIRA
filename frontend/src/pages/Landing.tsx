@@ -57,14 +57,14 @@ const PIPELINE_STEPS: PipelineStep[] = [
     sampleOutput: {
       status: 'Target Ingested: NVDA (NVIDIA Corp)',
       metrics: {
-        'Current Price': '₹128.50',
-        'Market Cap': '$3.16T',
+        'Current Price': '₹11,179.50',
+        'Market Cap': '₹274.9T (₹275L Cr)',
         'Trailing P/E': '64.2x',
         'EV / EBITDA': '51.8x',
         'Rev Growth YoY': '+122.4%',
       },
       evidence: [
-        'SEC 10-Q filing confirmed Data Center compute segment revenue surged to $26.3B.',
+        'SEC 10-Q filing confirmed Data Center segment compute revenue surged to ₹2,28,810 Cr ($26.3B).',
         'Gross margin expanded to 75.1% driven by Blackwell architecture demand.',
       ],
     },
