@@ -113,26 +113,8 @@ AIRA/
 │           ├── provider.py   # YFinanceProvider implementation
 │           └── service.py    # FinancialDataService with TTL caching & symbol validation
 ├── docs/
-│   └── architecture-decisions/
-│       ├── ADR-001-flask-application-factory.md
-│       ├── ADR-002-mysql-sqlalchemy-database-strategy.md
-│       ├── ADR-003-multi-user-data-isolation.md
-│       ├── ADR-004-future-memory-architecture.md
-│       ├── ADR-005-jwt-authentication-strategy.md
-│       ├── ADR-006-persistent-user-memory-supabase-pgvector.md
-│       ├── ADR-007-financial-data-provider-architecture.md
-│       ├── ADR-008-ai-research-agent-crewai-architecture.md
-│       ├── ADR-009-evidence-based-research-workflow.md
-│       ├── ADR-010-research-persistence-and-history.md
-│       ├── ADR-011-user-watchlist-and-portfolio-foundation.md
-│       ├── ADR-012-personalized-portfolio-intelligence.md
-│       ├── ADR-013-alert-detection-and-monitoring-foundation.md
-│       ├── ADR-014-automated-alert-monitoring-and-notification-foundation.md
-│       ├── ADR-015-external-notification-delivery-and-preferences.md
-│       ├── ADR-016-production-monitoring-scheduler-retry-and-observability.md
-│       ├── ADR-017-unified-investor-dashboard-read-api.md
-│       └── ADR-018-portfolio-intelligence-persistence-and-history.md
-├── migrations/               # MySQL Alembic database migration scripts
+│   └── ARCHITECTURE.md           # Consolidated architecture reference document
+├── migrations/               # Alembic database migration scripts (PostgreSQL)
 │   └── versions/
 │       ├── 0001_create_users_and_user_profiles.py
 │       ├── 0002_create_research_records.py
