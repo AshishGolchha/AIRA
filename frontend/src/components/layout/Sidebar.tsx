@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   PieChart,
@@ -54,11 +54,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
         >
           {isCollapsed ? (
             <>
-              <button
-                onClick={onToggleCollapse}
+              <Link
+                to="/"
                 className="flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl transition-opacity hover:opacity-80 active:opacity-60"
-                title="AIRA — Autonomous Investment Research & Analysis (Click to expand)"
-                aria-label="Expand sidebar"
+                title="Go to AIRA home"
+                aria-label="Go to AIRA home"
               >
                 <img
                   src="/logo.png"
@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
                   className="object-contain select-none"
                   style={{ height: 36, width: 'auto', maxWidth: 68 }}
                 />
-              </button>
+              </Link>
               <button
                 onClick={onToggleCollapse}
                 className="absolute -right-3 top-5 w-6 h-6 rounded-full bg-surface-50 dark:bg-surface-200 border border-border-strong text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white shadow-md flex items-center justify-center hover:scale-110 transition-all z-40"
@@ -79,12 +79,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
             </>
           ) : (
             <>
-              <div
-                className="flex items-center min-w-0"
-                title="AIRA — Autonomous Investment Research & Analysis"
+              <Link
+                to="/"
+                className="flex items-center min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg transition-opacity hover:opacity-80"
+                title="Go to AIRA home"
+                aria-label="Go to AIRA home"
               >
                 <AiraLogo variant="full" size="sm" subtitle="INVESTMENT AI" />
-              </div>
+              </Link>
               <button
                 onClick={onToggleCollapse}
                 className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded-lg hover:bg-slate-900/5 dark:hover:bg-white/5 transition-colors shrink-0"
